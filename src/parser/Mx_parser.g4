@@ -13,19 +13,24 @@ functionDefinition:
 	returnType IDENTIFIER '(' parameterList? ')' functionBody;
 
 // 类定义
-classDefinition: 'class' IDENTIFIER '{' classMember* '}';
+classDefinition: 'class' IDENTIFIER '{' classMember* '}' ';';
 
 // 全局变量声明
 globalVariableDeclaration: variableDeclaration;
 
 // 变量声明
 variableDeclaration:
-	type IDENTIFIER (',' IDENTIFIER)* ';'
-	| type IDENTIFIER '=' expression ';';
+	type variableDeclarationparts (',' variableDeclarationparts)* ';'
+	| arrayType variableDeclarationparts (
+		',' variableDeclarationparts
+	)* ';';
+
+variableDeclarationparts: IDENTIFIER ('=' expression)?;
 
 // 类成员
 classMember:
-	type IDENTIFIER (',' IDENTIFIER)* ';'
+	variableDeclaration
+	| IDENTIFIER '(' parameterList? ')' functionBody
 	| functionDefinition;
 
 // 函数体
@@ -40,8 +45,7 @@ statement:
 	| 'for' '(' forControl ')' statement					# forStatement
 	| 'return' expression? ';'								# returnStatement
 	| variableDeclaration									# privatevariableDeclaration
-	| IDENTIFIER '[' expression ']' '=' expression ';'		# arrayAssignment
-	| IDENTIFIER '=' expression ';'							# assignment
+	| expression '=' expression ';'							# assignmentStatement
 	| '{' statement* '}'									# block
 	| 'break' ';'											# breakStatement
 	| 'continue' ';'										# continueStatement;
@@ -64,14 +68,15 @@ expression:
 	| '~' expression										# bitwiseNotExpression
 	| '-' expression										# unaryMinusExpression
 	| IDENTIFIER '(' (expression (',' expression)*)? ')'	# functionCall
-	| IDENTIFIER '.' IDENTIFIER '(' (
-		expression (',' expression)*
-	)? ')'										# memberFunctionCall
-	| expression '[' expression ']'				# arrayAccess
-	| constant									# constantExpression
-	| 'new' arrayType '[' INTEGER_CONSTANT ']'	# newArrayExpression
-	| IDENTIFIER								# variableExpression
-	| '(' expression ')'						# parenthesesExpression;
+	| expression '.' IDENTIFIER (
+		'(' ( expression (',' expression)*)? ')'
+	)?															# memberFunctionCall
+	| constant													# constantExpression
+	| 'new' type												# newVariableExpression
+	| 'new' type ('[' expression ']')* ('[' expression? ']')+	# newArrayExpression
+	| IDENTIFIER												# variableExpression
+	| expression ('[' expression ']')* ('[' expression? ']')+	# arrayExpression
+	| '(' expression ')'										# parenthesesExpression;
 
 // 赋值表达式
 assignmentExpression: IDENTIFIER assignmentOperator expression;
@@ -113,28 +118,21 @@ relationalOperator: '<' | '>' | '<=' | '>=' | '==' | '!=';
 parameterList: parameter (',' parameter)*;
 
 // 函数参数
-parameter: type IDENTIFIER;
+parameter: type IDENTIFIER | arrayType IDENTIFIER;
 
 // 类型定义
-type:
-	'int'
-	| 'bool'
-	| 'string'
-	| 'void'
-	| 'string'
-	| IDENTIFIER
-	| type '[]'; // 类型或用户定义类型
+type: 'int' | 'bool' | 'string' | IDENTIFIER;
 
 // 基本类型数组
-arrayType: type ('[' ']')?;
+arrayType: type ('[' ']')+;
 
 // 返回类型
-returnType: 'int' | 'bool' | 'string' | 'void';
+returnType: 'int' | 'bool' | 'string' | 'void' | IDENTIFIER;
 
 // 常量
 constant:
 	INTEGER_CONSTANT
-	| STRING_CONSTANT
+	| string_constant
 	| 'true'
 	| 'false'
 	| 'null';
@@ -145,10 +143,6 @@ IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
 // 整数常量
 INTEGER_CONSTANT: [0-9]+;
 
-// 用于解析字符串常量
-STRING_CONSTANT: '"' (ESC | ~[\r\n"])* '"';
-ESC: '\\' (['"\\nrt]);
-
 // 注释
 LINE_COMMENT: '//' ~[\r\n]* -> skip;
 
@@ -156,3 +150,21 @@ BLOCK_COMMENT: '/*' .*? '*/' -> skip;
 
 // 空白符
 WS: [ \t\r\n]+ -> skip;
+
+// F-string的规则
+fstring:
+	'f"' (
+		(text = STRING_CONTENT)? format_expression (
+			text = STRING_CONTENT
+		)?
+	)* '"';
+
+// 格式化表达式的规则
+format_expression: '$' expression '$';
+
+STRING_CONTENT: '"' ( ESC | ~[\r\n"])* '"';
+
+ESC: '\\' (['"\\nrt]);
+
+// 用于解析字符串常量
+string_constant: STRING_CONTENT | format_expression;

@@ -1,4 +1,4 @@
-# Generated from Mx_parser.g4 by ANTLR 4.13.1
+# Generated from Mx_parser.g4 by ANTLR 4.13.2
 from antlr4 import *
 
 if "." in __name__:
@@ -52,6 +52,18 @@ class Mx_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by Mx_parserParser#variableDeclaration.
     def exitVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#variableDeclarationparts.
+    def enterVariableDeclarationparts(
+        self, ctx: Mx_parserParser.VariableDeclarationpartsContext
+    ):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#variableDeclarationparts.
+    def exitVariableDeclarationparts(
+        self, ctx: Mx_parserParser.VariableDeclarationpartsContext
+    ):
         pass
 
     # Enter a parse tree produced by Mx_parserParser#classMember.
