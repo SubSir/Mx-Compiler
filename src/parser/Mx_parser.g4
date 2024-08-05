@@ -1,6 +1,5 @@
 // 定义语言的名称和版本
 grammar Mx_parser;
-
 // 程序入口点
 program: (
 		functionDefinition
@@ -59,7 +58,10 @@ expression:
 	| expression logicOperator expression					# logicExpression
 	| expression '?' expression ':' expression				# conditionalExpression
 	| expression relationalOperator expression				# relationalExpression
-	| expression arithmeticOperator expression				# arithmeticExpression
+	| expression (MUL | DIV | MOD) expression				# muldivmodExpression
+	| expression (PLUS | MINUS) expression					# plusminusExpression
+	| expression (LSHIFT | RSHIFT) expression				# shiftExpression
+	| expression (AND | XOR | OR) expression				# andxororExpression
 	| '++' expression										# prefixIncrementExpression
 	| expression '++'										# postfixIncrementExpression
 	| '--' expression										# prefixDecrementExpression
@@ -81,18 +83,19 @@ expression:
 // 逻辑运算符
 logicOperator: '&&' | '||';
 
-// 算术运算符
-arithmeticOperator:
-	'+'
-	| '-'
-	| '*'
-	| '/'
-	| '%'
-	| '<<'
-	| '>>'
-	| '&'
-	| '^'
-	| '|';
+// 运算符
+PLUS: '+';
+MINUS: '-';
+MUL: '*';
+DIV: '/';
+MOD: '%';
+LSHIFT: '<<';
+RSHIFT: '>>';
+AND: '&';
+XOR: '^';
+OR: '|';
+LPAREN: '(';
+RPAREN: ')';
 
 // 关系运算符
 relationalOperator: '<' | '>' | '<=' | '>=' | '==' | '!=';
