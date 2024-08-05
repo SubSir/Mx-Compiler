@@ -121,7 +121,10 @@ constant:
 	| string_constant
 	| 'true'
 	| 'false'
-	| 'null';
+	| 'null'
+	| array_constant;
+
+array_constant: '{' (expression (',' expression)*)? '}';
 
 // 标识符
 IDENTIFIER: [a-zA-Z] [a-zA-Z0-9_]*;
@@ -134,23 +137,20 @@ LINE_COMMENT: '//' ~[\r\n]* -> skip;
 
 BLOCK_COMMENT: '/*' .*? '*/' -> skip;
 
-// 空白符
-WS: [ \t\r\n]+ -> skip;
-
 // F-string的规则
-fstring:
-	'f"' (
-		(text = STRING_CONTENT)? format_expression (
-			text = STRING_CONTENT
-		)?
-	)* '"';
+fstring: FSTRING_PART1 expression? FSTRING_PART2;
 
-// 格式化表达式的规则
-format_expression: '$' expression '$';
+FSTRING_PART1: 'f"' ( ESC2 | ~[\r\n"$])* '$';
 
 STRING_CONTENT: '"' ( ESC | ~[\r\n"])* '"';
 
+FSTRING_PART2: '$' ( ESC2 | ~[\r\n"$])* '"';
+
 ESC: '\\' (['"\\nrt]);
+ESC2: '\\' (['"\\nrt]) | '$$';
 
 // 用于解析字符串常量
-string_constant: STRING_CONTENT | format_expression;
+string_constant: STRING_CONTENT | fstring;
+
+// 空白符
+WS: [ \t\r\n]+ -> skip;

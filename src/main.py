@@ -40,6 +40,9 @@ class parameterclass:
         self.value = value
         self.priority = priority
 
+    def to_string(self) -> str:
+        return self.type + self.value
+
 
 class classclass:
     # name = ""     作为字典键
@@ -120,6 +123,42 @@ class MyListener(Mx_parserListener):
             if type1 != type2:
                 print("error: type mismatch")
             return type1
+        elif code.getRuleIndex() == parser.RULE_muldivmodExpression:
+            # muldivmodExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2:
+                print("error: type mismatch")
+            if type1 != "int":
+                print("error: type cannot be used in arithmetic expression")
+            return type1
+        elif code.getRuleIndex() == parser.RULE_arithmeticExpression:
+            # plusminusExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2:
+                print("error: type mismatch")
+            if type1 != "int" and type1 != "string":
+                print("error: type cannot be used in arithmetic expression")
+            return type1
+        elif code.getRuleIndex() == parser.RULE_shiftExpression:
+            # shiftExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2:
+                print("error: type mismatch")
+            if type1 != "int":
+                print("error: type cannot be used in arithmetic expression")
+            return type1
+        elif code.getRuleIndex() == parser.RULE_andxororExpression:
+            # andxororExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2:
+                print("error: type mismatch")
+            if type1 != "bool" and type1 != "int":
+                print("error: type cannot be used in arithmetic expression")
+            return type1
         elif code.getRuleIndex() == parser.RULE_prefixIncrementExpression:
             # prefixIncrementExpression
             return self.return_expressiontype(code.expression())
@@ -156,13 +195,30 @@ class MyListener(Mx_parserListener):
                 print("error: undefined function")
         elif code.getRuleIndex() == parser.RULE_memberFunctionCall:
             # memberFunctionCall
-            return "memberFunctionCall"
+            if code.IDENTIFIER().getText() in self.function_definition_map:
+                func = self.function_definition_map[code.IDENTIFIER().getText()]
+                for i in range(len(func.parameter_list)):
+                    if (
+                        self.return_expressiontype(code.expressionList().expression(i))
+                        != func.parameter_list[i].type
+                    ):
+                        print("error: type mismatch")
+                return func.return_Type
+            else:
+                print("error: undefined function")
         elif code.getRuleIndex() == parser.RULE_constantExpression:
             # constantExpression
-            return "constantExpression"
+            constant = code.constant()
+            if constant.INTEGER_CONSTANT() != None:
+                return "int"
+            if constant.string_constant() != None:
+                return "string"
+            if constant.getText() == "null":
+                return "null"
+            return "bool"
         elif code.getRuleIndex() == parser.RULE_newVariableExpression:
             # newVariableExpression
-            return "newVariableExpression"
+            return code.type().getText()
         elif code.getRuleIndex() == parser.RULE_newArrayExpression:
             # newArrayExpression
             return "newArrayExpression"

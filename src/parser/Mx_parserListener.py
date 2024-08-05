@@ -214,6 +214,30 @@ class Mx_parserListener(ParseTreeListener):
     def exitConstantExpression(self, ctx: Mx_parserParser.ConstantExpressionContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#muldivmodExpression.
+    def enterMuldivmodExpression(self, ctx: Mx_parserParser.MuldivmodExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#muldivmodExpression.
+    def exitMuldivmodExpression(self, ctx: Mx_parserParser.MuldivmodExpressionContext):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#plusminusExpression.
+    def enterPlusminusExpression(self, ctx: Mx_parserParser.PlusminusExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#plusminusExpression.
+    def exitPlusminusExpression(self, ctx: Mx_parserParser.PlusminusExpressionContext):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#shiftExpression.
+    def enterShiftExpression(self, ctx: Mx_parserParser.ShiftExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#shiftExpression.
+    def exitShiftExpression(self, ctx: Mx_parserParser.ShiftExpressionContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#arrayExpression.
     def enterArrayExpression(self, ctx: Mx_parserParser.ArrayExpressionContext):
         pass
@@ -258,15 +282,15 @@ class Mx_parserListener(ParseTreeListener):
     ):
         pass
 
-    # Enter a parse tree produced by Mx_parserParser#arithmeticExpression.
-    def enterArithmeticExpression(
-        self, ctx: Mx_parserParser.ArithmeticExpressionContext
+    # Enter a parse tree produced by Mx_parserParser#prefixDecrementExpression.
+    def enterPrefixDecrementExpression(
+        self, ctx: Mx_parserParser.PrefixDecrementExpressionContext
     ):
         pass
 
-    # Exit a parse tree produced by Mx_parserParser#arithmeticExpression.
-    def exitArithmeticExpression(
-        self, ctx: Mx_parserParser.ArithmeticExpressionContext
+    # Exit a parse tree produced by Mx_parserParser#prefixDecrementExpression.
+    def exitPrefixDecrementExpression(
+        self, ctx: Mx_parserParser.PrefixDecrementExpressionContext
     ):
         pass
 
@@ -370,6 +394,14 @@ class Mx_parserListener(ParseTreeListener):
     def exitLogicExpression(self, ctx: Mx_parserParser.LogicExpressionContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#andxororExpression.
+    def enterAndxororExpression(self, ctx: Mx_parserParser.AndxororExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#andxororExpression.
+    def exitAndxororExpression(self, ctx: Mx_parserParser.AndxororExpressionContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#newArrayExpression.
     def enterNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
         pass
@@ -378,32 +410,12 @@ class Mx_parserListener(ParseTreeListener):
     def exitNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
         pass
 
-    # Enter a parse tree produced by Mx_parserParser#assignmentExpression.
-    def enterAssignmentExpression(
-        self, ctx: Mx_parserParser.AssignmentExpressionContext
-    ):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#assignmentExpression.
-    def exitAssignmentExpression(
-        self, ctx: Mx_parserParser.AssignmentExpressionContext
-    ):
-        pass
-
     # Enter a parse tree produced by Mx_parserParser#logicOperator.
     def enterLogicOperator(self, ctx: Mx_parserParser.LogicOperatorContext):
         pass
 
     # Exit a parse tree produced by Mx_parserParser#logicOperator.
     def exitLogicOperator(self, ctx: Mx_parserParser.LogicOperatorContext):
-        pass
-
-    # Enter a parse tree produced by Mx_parserParser#arithmeticOperator.
-    def enterArithmeticOperator(self, ctx: Mx_parserParser.ArithmeticOperatorContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#arithmeticOperator.
-    def exitArithmeticOperator(self, ctx: Mx_parserParser.ArithmeticOperatorContext):
         pass
 
     # Enter a parse tree produced by Mx_parserParser#relationalOperator.
@@ -462,20 +474,20 @@ class Mx_parserListener(ParseTreeListener):
     def exitConstant(self, ctx: Mx_parserParser.ConstantContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#array_constant.
+    def enterArray_constant(self, ctx: Mx_parserParser.Array_constantContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#array_constant.
+    def exitArray_constant(self, ctx: Mx_parserParser.Array_constantContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#fstring.
     def enterFstring(self, ctx: Mx_parserParser.FstringContext):
         pass
 
     # Exit a parse tree produced by Mx_parserParser#fstring.
     def exitFstring(self, ctx: Mx_parserParser.FstringContext):
-        pass
-
-    # Enter a parse tree produced by Mx_parserParser#format_expression.
-    def enterFormat_expression(self, ctx: Mx_parserParser.Format_expressionContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#format_expression.
-    def exitFormat_expression(self, ctx: Mx_parserParser.Format_expressionContext):
         pass
 
     # Enter a parse tree produced by Mx_parserParser#string_constant.
