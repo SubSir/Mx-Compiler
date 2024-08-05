@@ -398,14 +398,6 @@ class Mx_parserListener(ParseTreeListener):
     def exitLogicOperator(self, ctx: Mx_parserParser.LogicOperatorContext):
         pass
 
-    # Enter a parse tree produced by Mx_parserParser#assignmentOperator.
-    def enterAssignmentOperator(self, ctx: Mx_parserParser.AssignmentOperatorContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#assignmentOperator.
-    def exitAssignmentOperator(self, ctx: Mx_parserParser.AssignmentOperatorContext):
-        pass
-
     # Enter a parse tree produced by Mx_parserParser#arithmeticOperator.
     def enterArithmeticOperator(self, ctx: Mx_parserParser.ArithmeticOperatorContext):
         pass

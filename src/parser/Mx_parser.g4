@@ -55,14 +55,14 @@ forControl: (expression? ';' expression? ';' expression?);
 
 // 表达式
 expression:
-	assignmentExpression (',' assignmentExpression)*		# expressionList
+	IDENTIFIER '=' expression								# expressionList
 	| expression logicOperator expression					# logicExpression
 	| expression '?' expression ':' expression				# conditionalExpression
 	| expression relationalOperator expression				# relationalExpression
 	| expression arithmeticOperator expression				# arithmeticExpression
 	| '++' expression										# prefixIncrementExpression
 	| expression '++'										# postfixIncrementExpression
-	| '--' expression										# postfixDecrementExpression
+	| '--' expression										# prefixDecrementExpression
 	| expression '--'										# postfixDecrementExpression
 	| '!' expression										# logicalNotExpression
 	| '~' expression										# bitwiseNotExpression
@@ -78,25 +78,8 @@ expression:
 	| expression ('[' expression ']')* ('[' expression? ']')+	# arrayExpression
 	| '(' expression ')'										# parenthesesExpression;
 
-// 赋值表达式
-assignmentExpression: IDENTIFIER assignmentOperator expression;
-
 // 逻辑运算符
 logicOperator: '&&' | '||';
-
-// 赋值运算符
-assignmentOperator:
-	'='
-	| '+='
-	| '-='
-	| '*='
-	| '/='
-	| '%='
-	| '<<='
-	| '>>='
-	| '&='
-	| '^='
-	| '|=';
 
 // 算术运算符
 arithmeticOperator:
