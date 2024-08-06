@@ -51,9 +51,7 @@ forControl: (expression? ';' expression? ';' expression?);
 
 // 表达式
 expression:
-	expression logicOperator expression						# logicExpression
-	| expression '?' expression ':' expression				# conditionalExpression
-	| expression relationalOperator expression				# relationalExpression
+	expression '?' expression ':' expression				# conditionalExpression
 	| '++' expression										# prefixIncrementExpression
 	| expression '++'										# postfixIncrementExpression
 	| '--' expression										# prefixDecrementExpression
@@ -61,11 +59,9 @@ expression:
 	| '!' expression										# logicalNotExpression
 	| '~' expression										# bitwiseNotExpression
 	| '-' expression										# unaryMinusExpression
-	| IDENTIFIER '(' (expression (',' expression)*)? ')'	# functionCall
-	| expression '.' IDENTIFIER (
-		'(' ( expression (',' expression)*)? ')'
-	)?			# memberFunctionCall
-	| constant	# constantExpression
+	| IDENTIFIER '(' expressionLists? ')'					# functionCall
+	| expression '.' IDENTIFIER ('(' expressionLists? ')')?	# memberFunctionCall
+	| constant												# constantExpression
 	| 'new' type (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
 	)+				# newArrayExpression
@@ -79,10 +75,13 @@ expression:
 	| expression (LSHIFT | RSHIFT) expression	# shiftExpression
 	| expression (AND | XOR | OR) expression	# andxororExpression
 	| '(' expression ')'						# parenthesesExpression
+	| expression relationalOperator expression	# relationalExpression
+	| expression logicOperator expression		# logicExpression
 	| IDENTIFIER '=' expression					# expressionList;
 
 square_brackets1: '[';
 square_brackets2: ']';
+expressionLists: expression (',' expression)*;
 
 // 逻辑运算符
 logicOperator: '&&' | '||';

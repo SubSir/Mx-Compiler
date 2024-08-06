@@ -78,6 +78,59 @@ class MyListener(Mx_parserListener):
     #     rule_text = ctx.getText()
     #     print(f"Existing rule: {rule_name}, Text: {rule_text}")
 
+    def __init__(self) -> None:
+        print_ = functionclass(
+            "void",
+            "print",
+            [parameterclass("string[0]", "__str", "", 0)],
+            0,
+        )
+        println = functionclass(
+            "void",
+            "println",
+            [parameterclass("string[0]", "__str", "", 0)],
+            0,
+        )
+        printInt = functionclass(
+            "void",
+            "printInt",
+            [parameterclass("int[0]", "__int", "", 0)],
+            0,
+        )
+        printlnInt = functionclass(
+            "void",
+            "printlnInt",
+            [parameterclass("int[0]", "__int", "", 0)],
+            0,
+        )
+        getstring = functionclass(
+            "string[0]",
+            "getString",
+            [],
+            0,
+        )
+        getint = functionclass(
+            "int[0]",
+            "getInt",
+            [],
+            0,
+        )
+        tostring = functionclass(
+            "string[0]",
+            "toString",
+            [parameterclass("int[0]", "__int", "", 0)],
+            0,
+        )
+        self.function_definition_stack.append(print_)
+        self.function_definition_stack.append(println)
+        self.function_definition_stack.append(printlnInt)
+        self.function_definition_stack.append(printInt)
+        self.function_definition_stack.append(getstring)
+        self.function_definition_stack.append(getint)
+        self.function_definition_stack.append(tostring)
+        for i in self.function_definition_stack:
+            self.function_definition_map[i.name] = i
+
     def visitTerminal(self, node: TerminalNodeImpl):
         # 当访问到终端节点时调用此方法
         print(node.getText(), end="")
@@ -86,9 +139,8 @@ class MyListener(Mx_parserListener):
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
             type1 = self.return_expressiontype(code.expression())
-            type2 = self.return_expressiontype(
-                self.variable_definition_map[code.IDENTIFIER().getText()]
-            )
+            type2 = self.variable_definition_map[code.IDENTIFIER().getText()].type
+
             if type1 != type2 and type1 != "null" and type2 != "null":
                 print("error: type mismatch")
             return self.return_expressiontype(code.expression())
@@ -182,14 +234,16 @@ class MyListener(Mx_parserListener):
             # functionCall
             if code.IDENTIFIER().getText() in self.function_definition_map:
                 func = self.function_definition_map[code.IDENTIFIER().getText()]
-                for i in range(len(func.parameter_list)):
+                for i in range(len(func.parameterList)):
+                    if code.expressionLists() == None:
+                        print("error: type mismatch")
                     type1 = self.return_expressiontype(
-                        code.expressionList().expression(i)
+                        code.expressionLists().expression(i)
                     )
-                    type2 = self.return_expressiontype(func.parameter_list[i])
+                    type2 = func.parameterList[i].type
                     if type1 != type2 and type1 != "null" and type2 != "null":
                         print("error: type mismatch")
-                return func.return_Type
+                return func.returnType
             else:
                 print("error: undefined function")
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
@@ -197,12 +251,15 @@ class MyListener(Mx_parserListener):
             if code.IDENTIFIER().getText() in self.function_definition_map:
                 func = self.function_definition_map[code.IDENTIFIER().getText()]
                 for i in range(len(func.parameter_list)):
-                    if (
-                        self.return_expressiontype(code.expressionList().expression(i))
-                        != func.parameter_list[i].type
-                    ):
+                    if code.expressionLists() == None:
                         print("error: type mismatch")
-                return func.return_Type
+                    type1 = self.return_expressiontype(
+                        code.expressionLists().expression(i)
+                    )
+                    type2 = func.parameterList[i].type
+                    if type1 != type2 and type1 != "null" and type2 != "null":
+                        print("error: type mismatch")
+                return func.returnType
             else:
                 print("error: undefined function")
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
@@ -220,6 +277,11 @@ class MyListener(Mx_parserListener):
             return code.type_().getText() + "[0]"
         elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
             # newArrayExpression
+            expression = code.expression()
+            for i in range(len(expression)):
+                type_ = self.return_expressiontype(expression[i])
+                if type_ != "int[0]":
+                    print("error: type mismatch")
             dimansion = len(code.square_brackets1())
             return arrayclass(code.type_().getText(), dimansion).to_string()
         elif isinstance(code, Mx_parserParser.VariableExpressionContext):
@@ -230,10 +292,23 @@ class MyListener(Mx_parserListener):
             return self.variable_definition_map[identifier].type
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
+            expression = code.expression()
+            if isinstance(
+                code.expression(0), Mx_parserParser.NewArrayExpressionContext
+            ) or isinstance(
+                code.expression(0), Mx_parserParser.NewVariableExpressionContext
+            ):
+                print(
+                    "error: The shape of multidimensional array must be specified from left to right"
+                )
+            for i in range(1, len(expression)):
+                type_ = self.return_expressiontype(expression[i])
+                if type_ != "int[0]":
+                    print("error: type mismatch")
             dimansion = len(code.square_brackets1())
             type = self.return_expressiontype(code.expression(0))
             dimansion2 = int(type.split("[")[1].split("]")[0])
-            return type.split("[")[0] + "[" + str(dimansion - dimansion2) + "]"
+            return type.split("[")[0] + "[" + str(dimansion2 - dimansion) + "]"
         elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
             # parenthesesExpression
             return self.return_expressiontype(code.expression())
@@ -373,8 +448,8 @@ class MyListener(Mx_parserListener):
             self.function_definition_stack[-1].returned == False
             and self.function_definition_stack[-1].returnType != "void"
             and not (
-                self.function_definition_stack[-1].returnType == "int"
-                and self.function_definition_stack[-1].name != "main"
+                self.function_definition_stack[-1].returnType == "int[0]"
+                and self.function_definition_stack[-1].name == "main"
             )
         ):
             print(
