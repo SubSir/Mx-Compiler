@@ -4,7 +4,7 @@ grammar Mx_parser;
 program: (
 		functionDefinition
 		| classDefinition
-		| globalVariableDeclaration
+		| variableDeclaration
 	)* EOF;
 
 // 函数定义
@@ -13,9 +13,6 @@ functionDefinition:
 
 // 类定义
 classDefinition: 'class' IDENTIFIER '{' classMember* '}' ';';
-
-// 全局变量声明
-globalVariableDeclaration: variableDeclaration;
 
 // 变量声明
 variableDeclaration:
@@ -54,14 +51,9 @@ forControl: (expression? ';' expression? ';' expression?);
 
 // 表达式
 expression:
-	IDENTIFIER '=' expression								# expressionList
-	| expression logicOperator expression					# logicExpression
+	expression logicOperator expression						# logicExpression
 	| expression '?' expression ':' expression				# conditionalExpression
 	| expression relationalOperator expression				# relationalExpression
-	| expression (MUL | DIV | MOD) expression				# muldivmodExpression
-	| expression (PLUS | MINUS) expression					# plusminusExpression
-	| expression (LSHIFT | RSHIFT) expression				# shiftExpression
-	| expression (AND | XOR | OR) expression				# andxororExpression
 	| '++' expression										# prefixIncrementExpression
 	| expression '++'										# postfixIncrementExpression
 	| '--' expression										# prefixDecrementExpression
@@ -72,13 +64,25 @@ expression:
 	| IDENTIFIER '(' (expression (',' expression)*)? ')'	# functionCall
 	| expression '.' IDENTIFIER (
 		'(' ( expression (',' expression)*)? ')'
-	)?															# memberFunctionCall
-	| constant													# constantExpression
-	| 'new' type												# newVariableExpression
-	| 'new' type ('[' expression ']')* ('[' expression? ']')+	# newArrayExpression
-	| IDENTIFIER												# variableExpression
-	| expression ('[' expression ']')* ('[' expression? ']')+	# arrayExpression
-	| '(' expression ')'										# parenthesesExpression;
+	)?			# memberFunctionCall
+	| constant	# constantExpression
+	| 'new' type (square_brackets1 expression square_brackets2)* (
+		square_brackets1 expression? square_brackets2
+	)+				# newArrayExpression
+	| 'new' type	# newVariableExpression
+	| IDENTIFIER	# variableExpression
+	| expression (square_brackets1 expression square_brackets2)* (
+		square_brackets1 expression? square_brackets2
+	)+											# arrayExpression
+	| expression (MUL | DIV | MOD) expression	# muldivmodExpression
+	| expression (PLUS | MINUS) expression		# plusminusExpression
+	| expression (LSHIFT | RSHIFT) expression	# shiftExpression
+	| expression (AND | XOR | OR) expression	# andxororExpression
+	| '(' expression ')'						# parenthesesExpression
+	| IDENTIFIER '=' expression					# expressionList;
+
+square_brackets1: '[';
+square_brackets2: ']';
 
 // 逻辑运算符
 logicOperator: '&&' | '||';
@@ -138,7 +142,8 @@ LINE_COMMENT: '//' ~[\r\n]* -> skip;
 BLOCK_COMMENT: '/*' .*? '*/' -> skip;
 
 // F-string的规则
-fstring: FSTRING_PART1 expression? FSTRING_PART2;
+fstring:
+	FSTRING_PART1 (expression FSTRING_MIDDLE_PART?)* FSTRING_PART2;
 
 FSTRING_PART1: 'f"' ( ESC2 | ~[\r\n"$])* '$';
 
@@ -148,6 +153,8 @@ FSTRING_PART2: '$' ( ESC2 | ~[\r\n"$])* '"';
 
 ESC: '\\' (['"\\nrt]);
 ESC2: '\\' (['"\\nrt]) | '$$';
+
+FSTRING_MIDDLE_PART: '$' ( ESC2 | ~[\r\n"$])* '$';
 
 // 用于解析字符串常量
 string_constant: STRING_CONTENT | fstring;

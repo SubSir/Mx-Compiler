@@ -34,18 +34,6 @@ class Mx_parserListener(ParseTreeListener):
     def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         pass
 
-    # Enter a parse tree produced by Mx_parserParser#globalVariableDeclaration.
-    def enterGlobalVariableDeclaration(
-        self, ctx: Mx_parserParser.GlobalVariableDeclarationContext
-    ):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#globalVariableDeclaration.
-    def exitGlobalVariableDeclaration(
-        self, ctx: Mx_parserParser.GlobalVariableDeclarationContext
-    ):
-        pass
-
     # Enter a parse tree produced by Mx_parserParser#variableDeclaration.
     def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
         pass
@@ -338,14 +326,6 @@ class Mx_parserListener(ParseTreeListener):
     ):
         pass
 
-    # Enter a parse tree produced by Mx_parserParser#expressionList.
-    def enterExpressionList(self, ctx: Mx_parserParser.ExpressionListContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#expressionList.
-    def exitExpressionList(self, ctx: Mx_parserParser.ExpressionListContext):
-        pass
-
     # Enter a parse tree produced by Mx_parserParser#parenthesesExpression.
     def enterParenthesesExpression(
         self, ctx: Mx_parserParser.ParenthesesExpressionContext
@@ -356,6 +336,14 @@ class Mx_parserListener(ParseTreeListener):
     def exitParenthesesExpression(
         self, ctx: Mx_parserParser.ParenthesesExpressionContext
     ):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#expressionList.
+    def enterExpressionList(self, ctx: Mx_parserParser.ExpressionListContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#expressionList.
+    def exitExpressionList(self, ctx: Mx_parserParser.ExpressionListContext):
         pass
 
     # Enter a parse tree produced by Mx_parserParser#memberFunctionCall.
@@ -408,6 +396,22 @@ class Mx_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by Mx_parserParser#newArrayExpression.
     def exitNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#square_brackets1.
+    def enterSquare_brackets1(self, ctx: Mx_parserParser.Square_brackets1Context):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#square_brackets1.
+    def exitSquare_brackets1(self, ctx: Mx_parserParser.Square_brackets1Context):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#square_brackets2.
+    def enterSquare_brackets2(self, ctx: Mx_parserParser.Square_brackets2Context):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#square_brackets2.
+    def exitSquare_brackets2(self, ctx: Mx_parserParser.Square_brackets2Context):
         pass
 
     # Enter a parse tree produced by Mx_parserParser#logicOperator.
