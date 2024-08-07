@@ -12,7 +12,7 @@ functionDefinition:
 	returnType IDENTIFIER '(' parameterList? ')' functionBody;
 
 // 类定义
-classDefinition: 'class' IDENTIFIER '{' classMember* '}' ';';
+classDefinition: 'class' IDENTIFIER '{' classMember* '}';
 
 // 变量声明
 variableDeclaration:
@@ -60,16 +60,17 @@ expression:
 	| '~' expression										# bitwiseNotExpression
 	| '-' expression										# unaryMinusExpression
 	| IDENTIFIER '(' expressionLists? ')'					# functionCall
-	| expression '.' IDENTIFIER ('(' expressionLists? ')')?	# memberFunctionCall
+	| expression '.' IDENTIFIER ('(' expressionLists? ')')	# memberFunctionCall
+	| expression '.' IDENTIFIER								# memberMemberCall
 	| constant												# constantExpression
 	| 'new' type (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
-	)+				# newArrayExpression
-	| 'new' type	# newVariableExpression
-	| IDENTIFIER	# variableExpression
+	) (square_brackets1 square_brackets2)*	# newArrayExpression
+	| 'new' type							# newVariableExpression
+	| IDENTIFIER							# variableExpression
 	| expression (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
-	)+											# arrayExpression
+	) (square_brackets1 square_brackets2)*		# arrayExpression
 	| expression (MUL | DIV | MOD) expression	# muldivmodExpression
 	| expression (PLUS | MINUS) expression		# plusminusExpression
 	| expression (LSHIFT | RSHIFT) expression	# shiftExpression
