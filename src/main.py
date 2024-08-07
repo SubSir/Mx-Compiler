@@ -145,8 +145,6 @@ class MyListener(Mx_parserListener):
             name = code.IDENTIFIER().getText()
             if name in self.variable_definition_map:
                 type2 = self.variable_definition_map[name].type
-            elif self.enterclass != "":
-                type2 = self.usertype_map[self.enterclass].class_member_map[name].type
             else:
                 print("error: undeclared variable")
                 sys.exit(1)
@@ -365,10 +363,6 @@ class MyListener(Mx_parserListener):
             identifier = code.IDENTIFIER().getText()
             if identifier in self.variable_definition_map:
                 type = self.variable_definition_map[identifier].type
-            elif self.enterclass != "":
-                type = (
-                    self.usertype_map[self.enterclass].class_member_map[identifier].type
-                )
             else:
                 print("error: undeclared variable")
                 sys.exit(1)
@@ -473,7 +467,7 @@ class MyListener(Mx_parserListener):
         return return_list
 
     def functionDefinition_decode(self, code) -> functionclass:
-        type = code.returnType().getText()
+        type = self.type_to_string(code.returnType().getText())
         name = code.IDENTIFIER().getText()
         parameter_list = self.parameterList_decode(code.parameterList())
         return functionclass(type, name, parameter_list, self.priority)
@@ -558,11 +552,12 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
             self.int_main_check = True
         func = functionclass(returnType, name, parameter_list, self.priority)
-        if name in self.function_definition_map:
+        if name in self.function_definition_map and self.enterclass == "":
             print("Error: redeclaration")
             sys.exit(1)
-        self.function_definition_map[name] = func
-        self.function_definition_stack.append(func)
+        if name not in self.function_definition_map:
+            self.function_definition_map[name] = func
+            self.function_definition_stack.append(func)
         self.variable_definition_stack += parameter_list
         for param in parameter_list:
             self.variable_definition_map[param.name] = param
@@ -620,21 +615,30 @@ class MyListener(Mx_parserListener):
     def enterClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         self.priority += 1
         self.enterclass = ctx.IDENTIFIER().getText() + "[0]"
-        # class_ = self.usertype_map[ctx.IDENTIFIER().getText() + '[0]']
-        # for i in class_.class_member_map.values():
-        #     self.variable_definition_map[i.name] = i
-
-        # for i in class_.class_function_map.values():
-        #     self.function_definition_map[i.name] = i
-
-    def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
-        list = self.variableDeclaration_decode(ctx)
-        self.variable_definition_stack += list
-        for i in list:
+        class_ = self.usertype_map[ctx.IDENTIFIER().getText() + "[0]"]
+        for i in class_.class_member_map.values():
             if i.name in self.variable_definition_map:
                 print("Error: redeclaration")
                 sys.exit(1)
             self.variable_definition_map[i.name] = i
+            self.variable_definition_stack.append(i)
+
+        for i in class_.class_function_map.values():
+            if i.name in self.function_definition_map:
+                print("Error: redeclaration")
+                sys.exit(1)
+            self.function_definition_map[i.name] = i
+            self.function_definition_stack.append(i)
+
+    def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
+        list = self.variableDeclaration_decode(ctx)
+        for i in list:
+            if i.name in self.variable_definition_map and self.enterclass == "":
+                print("Error: redeclaration")
+                sys.exit(1)
+            if i.name not in self.variable_definition_map:
+                self.variable_definition_map[i.name] = i
+                self.variable_definition_stack.append(i)
 
     # def enterClassDefinition(self, ctx):
     #     class_ = self.class_decode(ctx)

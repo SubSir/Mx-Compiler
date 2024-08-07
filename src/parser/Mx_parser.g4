@@ -12,7 +12,7 @@ functionDefinition:
 	returnType IDENTIFIER '(' parameterList? ')' functionBody;
 
 // 类定义
-classDefinition: 'class' IDENTIFIER '{' classMember* '}';
+classDefinition: 'class' IDENTIFIER '{' classMember* '}' ';';
 
 // 变量声明
 variableDeclaration:
