@@ -531,10 +531,7 @@ class MyListener(Mx_parserListener):
             num_parameters = len(parameterList.parameter())
             parameter_list = self.parameterList_decode(parameterList)
 
-        if ctx.returnType().getText() != "void":
-            self.function_definition_stack.append(returnType)
-
-        if name == "main" and returnType == "int[0]" and num_parameters == 0:
+        if name == "main" and returnType == "int[0]" and num_parameters == 0 and self.priority == 1:
             if self.int_main_check:
                 print("Error: Multiple definitions of main function")
                 sys.exit(1)
@@ -569,12 +566,14 @@ class MyListener(Mx_parserListener):
                 break
             self.variable_definition_map.pop(self.variable_definition_stack[i].name)
             self.variable_definition_stack.pop()
+            i-=1
 
         for i in range(len(self.function_definition_stack) - 1, -1, -1):
             if self.function_definition_stack[i].priority-1 <= self.priority:
                 break
-            self.function_definition_map.pop(self.variable_definition_stack[i].name)
+            self.function_definition_map.pop(self.function_definition_stack[i].name)
             self.function_definition_stack.pop()
+            i-=1
             
     def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         self.priority -= 1
@@ -583,12 +582,14 @@ class MyListener(Mx_parserListener):
                 break
             self.variable_definition_map.pop(self.variable_definition_stack[i].name)
             self.variable_definition_stack.pop()
+            i-=1
 
         for i in range(len(self.function_definition_stack) - 1, -1, -1):
             if self.function_definition_stack[i].priority-1 <= self.priority:
                 break
-            self.function_definition_map.pop(self.variable_definition_stack[i].name)
+            self.function_definition_map.pop(self.function_definition_stack[i].name)
             self.function_definition_stack.pop()
+            i-=1
             
     def enterClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         self.priority+=1
