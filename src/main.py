@@ -61,11 +61,11 @@ class classclass:
 
 # 定义一个监听器类来遍历和处理语法树
 class MyListener(Mx_parserListener):
-    function_definition_map = {}  # name -> functionclass
+    function_definition_map = {}  # name -> list[functionclass]
     function_definition_stack = []  # list[functionclass]
     usertype_map = {}  # name -> classclass
     int_main_check = False
-    variable_definition_map = {}  # name -> parameterclass
+    variable_definition_map = {}  # name -> list[parameterclass]
     variable_definition_stack = []  # list[parameterclass]
     priority = 0
     loop = 0
@@ -132,7 +132,7 @@ class MyListener(Mx_parserListener):
         self.function_definition_stack.append(getint)
         self.function_definition_stack.append(tostring)
         for i in self.function_definition_stack:
-            self.function_definition_map[i.name] = i
+            self.function_definition_map[i.name] = [i]
 
     def visitTerminal(self, node: TerminalNodeImpl):
         # 当访问到终端节点时调用此方法
@@ -143,8 +143,11 @@ class MyListener(Mx_parserListener):
             # expressionList
             type1 = self.return_expressiontype(code.expression())
             name = code.IDENTIFIER().getText()
+            if name == "this":
+                print("error: cannot assign to this")
+                sys.exit(1)
             if name in self.variable_definition_map:
-                type2 = self.variable_definition_map[name].type
+                type2 = self.variable_definition_map[name][-1].type
             else:
                 print("error: undeclared variable")
                 sys.exit(1)
@@ -153,7 +156,7 @@ class MyListener(Mx_parserListener):
                 print("error: type mismatch")
                 sys.exit(1)
             return self.return_expressiontype(code.expression())
-        elif isinstance(code, Mx_parserParser.LogicExpressionContext):
+        if isinstance(code, Mx_parserParser.LogicExpressionContext):
             # logicExpression
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
@@ -256,7 +259,7 @@ class MyListener(Mx_parserListener):
             # functionCall
             name = code.IDENTIFIER().getText()
             if name in self.function_definition_map:
-                func = self.function_definition_map[name]
+                func = self.function_definition_map[name][-1]
                 for i in range(len(func.parameterList)):
                     if code.expressionLists() == None:
                         print("error: type mismatch")
@@ -362,7 +365,7 @@ class MyListener(Mx_parserListener):
             # variableExpression
             identifier = code.IDENTIFIER().getText()
             if identifier in self.variable_definition_map:
-                type = self.variable_definition_map[identifier].type
+                type = self.variable_definition_map[identifier][-1].type
             else:
                 print("error: undeclared variable")
                 sys.exit(1)
@@ -522,9 +525,9 @@ class MyListener(Mx_parserListener):
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
                 class_ = self.class_decode(child)
                 self.usertype_map[class_.name] = class_
-                self.variable_definition_map["this"] = parameterclass(
-                    class_.name, "this", None, self.priority
-                )
+                self.variable_definition_map["this"] = [
+                    parameterclass(class_.name, "this", None, self.priority)
+                ]
                 if class_.name[:-3] in self.function_definition_map:
                     print("Error: redeclaration")
                     sys.exit(1)
@@ -552,15 +555,27 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
             self.int_main_check = True
         func = functionclass(returnType, name, parameter_list, self.priority)
-        if name in self.function_definition_map and self.enterclass == "":
+        if (
+            name in self.function_definition_map
+            and self.enterclass == ""
+            and self.priority == self.function_definition_map[name][-1].piority
+        ):
             print("Error: redeclaration")
             sys.exit(1)
-        if name not in self.function_definition_map:
-            self.function_definition_map[name] = func
+        if not (
+            name in self.function_definition_map
+            and self.priority == self.function_definition_map[name][-1].priority
+        ):
+            if name not in self.function_definition_map:
+                self.function_definition_map[name] = []
+            self.function_definition_map[name] += [func]
             self.function_definition_stack.append(func)
         self.variable_definition_stack += parameter_list
         for param in parameter_list:
-            self.variable_definition_map[param.name] = param
+            if param.name not in self.variable_definition_map:
+                self.variable_definition_map[param.name] = [param]
+            else:
+                self.variable_definition_map[param.name] += [param]
         if self.type_to_string(name) in self.usertype_map:
             print("Error: redeclaration")
             sys.exit(1)
@@ -584,14 +599,32 @@ class MyListener(Mx_parserListener):
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
             if self.variable_definition_stack[i].priority <= self.priority:
                 break
-            self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
             self.variable_definition_stack.pop()
             i -= 1
 
         for i in range(len(self.function_definition_stack) - 1, -1, -1):
             if self.function_definition_stack[i].priority - 1 <= self.priority:
                 break
-            self.function_definition_map.pop(self.function_definition_stack[i].name)
+            if len(
+                self.function_definition_map[self.function_definition_stack[i].name]
+                == 1
+            ):
+                self.function_definition_map.pop(self.function_definition_stack[i].name)
+            else:
+                self.function_definition_map[
+                    self.function_definition_stack[i].name
+                ].pop()
             self.function_definition_stack.pop()
             i -= 1
 
@@ -601,14 +634,34 @@ class MyListener(Mx_parserListener):
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
             if self.variable_definition_stack[i].priority <= self.priority:
                 break
-            self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
             self.variable_definition_stack.pop()
             i -= 1
 
         for i in range(len(self.function_definition_stack) - 1, -1, -1):
             if self.function_definition_stack[i].priority - 1 <= self.priority:
                 break
-            self.function_definition_map.pop(self.function_definition_stack[i].name)
+            if (
+                len(
+                    self.function_definition_map[self.function_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.function_definition_map.pop(self.function_definition_stack[i].name)
+            else:
+                self.function_definition_map[
+                    self.function_definition_stack[i].name
+                ].pop()
             self.function_definition_stack.pop()
             i -= 1
 
@@ -617,27 +670,49 @@ class MyListener(Mx_parserListener):
         self.enterclass = ctx.IDENTIFIER().getText() + "[0]"
         class_ = self.usertype_map[ctx.IDENTIFIER().getText() + "[0]"]
         for i in class_.class_member_map.values():
-            if i.name in self.variable_definition_map:
+            if (
+                i.name in self.variable_definition_map
+                and self.priority == self.variable_definition_map[i.name][-1].priority
+            ):
                 print("Error: redeclaration")
                 sys.exit(1)
-            self.variable_definition_map[i.name] = i
+            if i.name not in self.variable_definition_map:
+                self.variable_definition_map[i.name] = [i]
+            else:
+                self.variable_definition_map[i.name] += [i]
             self.variable_definition_stack.append(i)
 
         for i in class_.class_function_map.values():
-            if i.name in self.function_definition_map:
+            if (
+                i.name in self.function_definition_map
+                and i.priority == self.function_definition_map[i.name][-1].priority
+            ):
                 print("Error: redeclaration")
                 sys.exit(1)
-            self.function_definition_map[i.name] = i
+            if i.name not in self.function_definition_map:
+                self.function_definition_map[i.name] = [i]
+            else:
+                self.function_definition_map[i.name] += [i]
             self.function_definition_stack.append(i)
 
     def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
         list = self.variableDeclaration_decode(ctx)
         for i in list:
-            if i.name in self.variable_definition_map and self.enterclass == "":
+            if (
+                i.name in self.variable_definition_map
+                and self.enterclass == ""
+                and self.variable_definition_map[i.name][-1].priority == i.priority
+            ):
                 print("Error: redeclaration")
                 sys.exit(1)
-            if i.name not in self.variable_definition_map:
-                self.variable_definition_map[i.name] = i
+            if not (
+                i.name in self.variable_definition_map
+                and self.variable_definition_map[i.name][-1].priority == i.priority
+            ):
+                if i.name not in self.variable_definition_map:
+                    self.variable_definition_map[i.name] = [i]
+                else:
+                    self.variable_definition_map[i.name] += [i]
                 self.variable_definition_stack.append(i)
 
     # def enterClassDefinition(self, ctx):
@@ -707,6 +782,10 @@ class MyListener(Mx_parserListener):
         if isinstance(ctx.expression(0), Mx_parserParser.ConstantExpressionContext):
             print("Error: assignment statement type does not match variable type")
             sys.exit(1)
+        if isinstance(ctx.expression(0), Mx_parserParser.VariableExpressionContext):
+            if ctx.exception(0).IDENTIFIER().getText() == "this":
+                print("Error: this cannot be assigned")
+                sys.exit(1)
         type1 = self.return_expressiontype(ctx.expression(0))
         type2 = self.return_expressiontype(ctx.expression(1))
         if type1 != type2 and type2 != "null":
@@ -722,6 +801,51 @@ class MyListener(Mx_parserListener):
 
     def exitBlock(self, ctx):
         self.priority -= 1
+        if (
+            self.function_definition_stack[-1].returned == False
+            and self.function_definition_stack[-1].returnType != "void[0]"
+            and not (
+                self.function_definition_stack[-1].returnType == "int[0]"
+                and self.function_definition_stack[-1].name == "main"
+            )
+        ):
+            print(
+                "Error: Function "
+                + self.function_definition_stack[-1].name
+                + " does not return a value"
+            )
+            sys.exit(1)
+        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
+            if self.variable_definition_stack[i].priority <= self.priority:
+                break
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
+            self.variable_definition_stack.pop()
+            i -= 1
+
+        for i in range(len(self.function_definition_stack) - 1, -1, -1):
+            if self.function_definition_stack[i].priority - 1 <= self.priority:
+                break
+            if len(
+                self.function_definition_map[self.function_definition_stack[i].name]
+                == 1
+            ):
+                self.function_definition_map.pop(self.function_definition_stack[i].name)
+            else:
+                self.function_definition_map[
+                    self.function_definition_stack[i].name
+                ].pop()
+            self.function_definition_stack.pop()
+            i -= 1
 
     def enterBreakStatement(self, ctx):
         if self.loop == 0:
