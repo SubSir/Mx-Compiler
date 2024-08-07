@@ -50,20 +50,20 @@ class parameterclass:
 
 class classclass:
     name = ""
-    class_member_list = []  # list[parameterclass]
-    class_function_list = []  # list[functionclass]
+    class_member_map = {}  # name -> parameterclass
+    class_function_map = {}  # name -> functionclass
 
-    def __init__(self, name, class_member_list=[], class_function_list=[]):
+    def __init__(self, name, class_member_map={}, class_function_map={}):
         self.name = name
-        self.class_member_list = class_member_list
-        self.class_function_list = class_function_list
+        self.class_member_map = class_member_map
+        self.class_function_map = class_function_map
 
 
 # 定义一个监听器类来遍历和处理语法树
 class MyListener(Mx_parserListener):
     function_definition_map = {}  # name -> functionclass
     function_definition_stack = []  # list[functionclass]
-    usertype_map = {}
+    usertype_map = {} # name -> classclass
     int_main_check = False
     variable_definition_map = {}  # name -> parameterclass
     variable_definition_stack = []  # list[parameterclass]
@@ -151,7 +151,7 @@ class MyListener(Mx_parserListener):
             # logicExpression
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
-            if type1 != type2 and type1 != "null" and type2 != "null":
+            if type1!="bool[0]" or type2!="bool[0]":
                 print("error: type mismatch")
                 sys.exit(1)
             return "bool[0]"
@@ -268,20 +268,64 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
             # memberFunctionCall
-            if code.IDENTIFIER().getText() in self.function_definition_map:
-                func = self.function_definition_map[code.IDENTIFIER().getText()]
-                for i in range(len(func.parameter_list)):
-                    if code.expressionLists() == None:
-                        print("error: type mismatch")
-                        sys.exit(1)
-                    type1 = self.return_expressiontype(
-                        code.expressionLists().expression(i)
-                    )
-                    type2 = func.parameterList[i].type
-                    if type1 != type2 and type1 != "null" and type2 != "null":
-                        print("error: type mismatch")
-                        sys.exit(1)
-                return func.returnType
+            type = self.return_expressiontype(code.expression())
+            name = code.IDENTIFIER().getText()
+            if type in self.usertype_map:
+                type_ = self.usertype_map[type]
+                if name in type_.class_function_map:
+                    func = type_.class_function_map[name]
+                    for i in range(len(func.parameterList)):
+                        if code.expressionLists() == None:
+                            print("error: type mismatch")
+                            sys.exit(1)
+                        type1 = self.return_expressiontype(
+                            code.expressionLists().expression(i)
+                        )
+                        type2 = func.parameterList[i].type
+                        if type1 != type2 and type1 != "null" and type2 != "null":
+                            print("error: type mismatch")
+                            sys.exit(1)
+                    return func.returnType
+                else:
+                    print("error: undefined function")
+                    sys.exit(1)
+            elif name == "size" and type[-1]==']': # 写的很糟糕
+                return "int[0]"
+            elif type == "string[0]":
+                if name == "length":
+                    return "int[0]"
+                elif name == "substring":
+                    return "string[0]"
+                elif name ==  "parseInt":
+                    return "int[0]"
+                elif name == "ord":
+                    return "int[0]"
+            else:
+                print("error: undefined function")
+                sys.exit(1)
+        elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
+            # memberMemberCall
+            type = self.return_expressiontype(code.expression())
+            name = code.IDENTIFIER().getText()
+            if type in self.usertype_map:
+                type_ = self.usertype_map[type]
+                if name in type_.class_member_map:
+                    mem = type_.class_member_map[name]
+                    return mem.type
+                else:
+                    print("error: undefined function")
+                    sys.exit(1)
+            elif name == "size" and type[-1]==']': # 写的很糟糕
+                return "int[0]"
+            elif type == "string[0]":
+                if name == "length":
+                    return "int[0]"
+                elif name == "substring":
+                    return "string[0]"
+                elif name ==  "parseInt":
+                    return "int[0]"
+                elif name == "ord":
+                    return "int[0]"
             else:
                 print("error: undefined function")
                 sys.exit(1)
@@ -366,12 +410,15 @@ class MyListener(Mx_parserListener):
             )
 
     def parameterList_decode(self, code) -> list[parameterclass]:
+        if code == None:
+            return []
         parameters = code.parameter()
         if parameters == None:
             return []
         return_list = []
         for param in parameters:
             return_list.append(self.parameter_decode(param))
+        return return_list
 
     def variableDeclaration_decode(self, code) -> list[parameterclass]:
         return_list = []
@@ -390,9 +437,14 @@ class MyListener(Mx_parserListener):
 
             if variableDeclarationpart.expression() != None:
                 type2 = self.return_expressiontype(variableDeclarationpart.expression())
-                if type2 != type_:
+                if type2 != type_ and type2 != "null":
                     print("error: type mismatch")
                     sys.exit(1)
+                    
+                if type2 == "null":
+                    if type_ == "int[0]" or type_ == "bool[0]" or type_ == "string[0]":
+                        print("error: null cannot be assigned to primitive type variable")
+                        sys.exit(1)
 
             return_list.append(
                 parameterclass(
@@ -411,33 +463,44 @@ class MyListener(Mx_parserListener):
         return functionclass(type, name, parameter_list, self.priority)
 
     def class_decode(self, code) -> classclass:
-        name = code.IDENTIFIER().getText()
+        name = code.IDENTIFIER().getText() + '[0]'
         members = code.classMember()
         class_ = classclass(name)
         for member in members:
             if member.variableDeclaration() != None:
-                class_.class_member_list += self.variableDeclaration_decode(
+                member_list = self.variableDeclaration_decode(
                     member.variableDeclaration()
                 )
+                for i in member_list:
+                    if i.name in class_.class_member_map:
+                        print("error: redeclaration")
+                        sys.exit(1)
+                    class_.class_member_map[i.name] = i
             elif member.functionDefinition() != None:
-                class_.class_function_list += self.functionDefinition_decode(
+                function = self.functionDefinition_decode(
                     member.functionDefinition()
                 )
+                if function.name in class_.class_function_map:
+                    print("error: redeclaration")
+                    sys.exit(1)
+                class_.class_function_map[function.name] = function
             else:
-                class_.class_function_list.append(
-                    functionclass(
+                if "construction" in class_.class_function_map:
+                    print("error: redeclaration")
+                    sys.exit(1)
+                class_.class_function_map["construction"]=functionclass(
                         None,
                         "construction",
                         self.parameterList_decode(member.parameterList()),
                         self.priority,
                     )
-                )
+                
         return class_
 
     def type_to_string(self, text: str):
         if text[-1] == "]" and text[-2].isdigit():
             return text
-        if text[-2] == "[":
+        if len(text)>2 and text[-2] == "[":
             cnt = 0
             for i in text:
                 if i == "[":
@@ -445,6 +508,18 @@ class MyListener(Mx_parserListener):
             return text + "[" + str(cnt) + "]"
         return text + "[0]"
 
+    def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
+        for child in ctx.getChildren():
+            if isinstance(child, Mx_parserParser.ClassDefinitionContext):
+                class_ = self.class_decode(child)
+                self.usertype_map[class_.name] = class_
+                self.variable_definition_map["this"] = parameterclass(
+                    class_.name, "this", None, self.priority
+                )
+                if class_.name[:-3] in self.function_definition_map:
+                    print("Error: redeclaration")
+                    sys.exit(1)
+                    
     def enterFunctionDefinition(self, ctx):
         self.priority += 1
         returnType = self.type_to_string(ctx.returnType().getText())
@@ -459,7 +534,7 @@ class MyListener(Mx_parserListener):
         if ctx.returnType().getText() != "void":
             self.function_definition_stack.append(returnType)
 
-        if name == "main" and returnType == "int" and num_parameters == 0:
+        if name == "main" and returnType == "int[0]" and num_parameters == 0:
             if self.int_main_check:
                 print("Error: Multiple definitions of main function")
                 sys.exit(1)
@@ -470,7 +545,9 @@ class MyListener(Mx_parserListener):
         self.variable_definition_stack += parameter_list
         for param in parameter_list:
             self.variable_definition_map[param.name] = param
-
+        if self.type_to_string(name) in self.usertype_map:
+            print("Error: redeclaration")
+            sys.exit(1)
     def exitFunctionDefinition(self, ctx):
         self.priority -= 1
         if (
@@ -488,31 +565,54 @@ class MyListener(Mx_parserListener):
             )
             sys.exit(1)
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority - 1 >= self.priority:
+            if self.variable_definition_stack[i].priority <= self.priority:
                 break
             self.variable_definition_map.pop(self.variable_definition_stack[i].name)
             self.variable_definition_stack.pop()
 
+        for i in range(len(self.function_definition_stack) - 1, -1, -1):
+            if self.function_definition_stack[i].priority-1 <= self.priority:
+                break
+            self.function_definition_map.pop(self.variable_definition_stack[i].name)
+            self.function_definition_stack.pop()
+            
+    def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
+        self.priority -= 1
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority == self.priority:
+            if self.variable_definition_stack[i].priority <= self.priority:
                 break
             self.variable_definition_map.pop(self.variable_definition_stack[i].name)
             self.variable_definition_stack.pop()
 
+        for i in range(len(self.function_definition_stack) - 1, -1, -1):
+            if self.function_definition_stack[i].priority-1 <= self.priority:
+                break
+            self.function_definition_map.pop(self.variable_definition_stack[i].name)
+            self.function_definition_stack.pop()
+            
+    def enterClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
+        self.priority+=1
+    
     def enterVariableDeclaration(self, ctx):
         list = self.variableDeclaration_decode(ctx)
         self.variable_definition_stack += list
         for i in list:
+            if i.name in self.variable_definition_map:
+                print("Error: redeclaration")
+                sys.exit(1)
             self.variable_definition_map[i.name] = i
 
-    def enterClassDefinition(self, ctx):
-        class_ = self.class_decode(ctx)
-        self.usertype_map[class_.name] = class_
+    # def enterClassDefinition(self, ctx):
+    #     class_ = self.class_decode(ctx)
+    #     self.usertype_map[class_.name] = class_
+    #     if class_.name[:-3] in self.function_definition_map:
+    #         print("Error: redeclaration")
+    #         sys.exit(1)
 
     def enterType(self, ctx):
         if (
             ctx.IDENTIFIER() != None
-            and ctx.IDENTIFIER().getText() not in self.usertype_map.keys()
+            and self.type_to_string(ctx.IDENTIFIER().getText()) not in self.usertype_map.keys()
         ):
             print("Error: Undefined type")
             sys.exit(1)
@@ -558,18 +658,25 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
             self.function_definition_stack[-1].returned = True
         else:
-            if returntype != "void":
+            if returntype != "void[0]":
                 print(
                     "Error: return statement type does not match function return type"
                 )
                 sys.exit(1)
 
     def enterAssignmentStatement(self, ctx):
+        if isinstance(ctx.expression(0),Mx_parserParser.ConstantExpressionContext):
+            print("Error: assignment statement type does not match variable type")
+            sys.exit(1)
         type1 = self.return_expressiontype(ctx.expression(0))
         type2 = self.return_expressiontype(ctx.expression(1))
         if (type1!=type2 and type2!="null"):
             print("Error: assignment statement type does not match variable type")
             sys.exit(1)
+        if (type2=="null"):
+            if (type1=="int[0]" or type1=="bool[0]" or type1=="string[0]"):
+                print("Error: null cannot be assigned to primitive type variable")
+                sys.exit(1)
 
     def enterBlock(self, ctx):
         self.priority += 1
@@ -606,4 +713,7 @@ tree = parser.program()
 listener = MyListener()
 walker = ParseTreeWalker()
 walker.walk(listener, tree)
+if listener.int_main_check == False:
+    print("Error: No main function")
+    sys.exit(1)
 sys.exit(0)

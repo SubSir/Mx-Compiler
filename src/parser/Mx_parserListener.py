@@ -390,6 +390,14 @@ class Mx_parserListener(ParseTreeListener):
     def exitLogicExpression(self, ctx: Mx_parserParser.LogicExpressionContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#memberMemberCall.
+    def enterMemberMemberCall(self, ctx: Mx_parserParser.MemberMemberCallContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#memberMemberCall.
+    def exitMemberMemberCall(self, ctx: Mx_parserParser.MemberMemberCallContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#newArrayExpression.
     def enterNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
         pass
