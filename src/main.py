@@ -255,7 +255,7 @@ class MyListener(Mx_parserListener):
                 print("error: type cannot be used in arithmetic expression")
                 sys.exit(1)
             return type
-        elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
+        elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
@@ -430,6 +430,7 @@ class MyListener(Mx_parserListener):
             # parenthesesExpression
             return self.return_expressiontype(code.expression())
         else:
+            name = code.getText()
             # 如果没有匹配的规则，返回未知类型
             return "unknown"
 
@@ -562,11 +563,15 @@ class MyListener(Mx_parserListener):
                             "error: null cannot be assigned to primitive type variable"
                         )
                         sys.exit(1)
+            name = variableDeclarationpart.IDENTIFIER().getText()
+            if name == "this":
+                print("error: this is a reserved word")
+                sys.exit(1)
 
             return_list.append(
                 parameterclass(
                     type_,
-                    variableDeclarationpart.IDENTIFIER().getText(),
+                    name,
                     None,
                     self.priority,
                 )
@@ -723,6 +728,10 @@ class MyListener(Mx_parserListener):
         self.priority += 1
         returnType = self.type_to_string(ctx.returnType().getText())
         name = ctx.IDENTIFIER().getText()
+        if name == "this":
+            print("error: this is a reserved word.")
+            sys.exit(1)
+
         parameterList = ctx.parameterList()
         parameter_list = []
         num_parameters = 0

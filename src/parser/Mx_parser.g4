@@ -61,7 +61,6 @@ expression:
 	expression (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
 	) (square_brackets1 square_brackets2)*					# arrayExpression
-	| expression '?' expression ':' expression				# conditionalExpression
 	| expression '++'										# postfixIncrementExpression
 	| expression '--'										# postfixDecrementExpression
 	| '++' expression										# prefixIncrementExpression
@@ -75,17 +74,18 @@ expression:
 	| constant												# constantExpression
 	| 'new' type (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
-	) (square_brackets1 square_brackets2)* ('(' ')')?	# newArrayExpression
-	| 'new' type ('(' ')')?								# newVariableExpression
-	| IDENTIFIER										# variableExpression
-	| expression (MUL | DIV | MOD) expression			# muldivmodExpression
-	| expression (PLUS | MINUS) expression				# plusminusExpression
-	| expression (LSHIFT | RSHIFT) expression			# shiftExpression
-	| expression (AND | XOR | OR) expression			# andxororExpression
-	| '(' expression ')'								# parenthesesExpression
-	| expression relationalOperator expression			# relationalExpression
-	| expression logicOperator expression				# logicExpression
-	| IDENTIFIER '=' expression							# expressionList;
+	) (square_brackets1 square_brackets2)* ('(' ')')?			# newArrayExpression
+	| 'new' type ('(' ')')?										# newVariableExpression
+	| IDENTIFIER												# variableExpression
+	| expression (MUL | DIV | MOD) expression					# muldivmodExpression
+	| expression (PLUS | MINUS) expression						# plusminusExpression
+	| expression (LSHIFT | RSHIFT) expression					# shiftExpression
+	| expression (AND | XOR | OR) expression					# andxororExpression
+	| '(' expression ')'										# parenthesesExpression
+	| expression relationalOperator expression					# relationalExpression
+	| expression logicOperator expression						# logicExpression
+	| IDENTIFIER '=' expression									# expressionList
+	| <assoc = right> expression '?' expression ':' expression	# conditionalExpression;
 
 square_brackets1: '[';
 square_brackets2: ']';

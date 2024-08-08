@@ -274,18 +274,6 @@ class Mx_parserListener(ParseTreeListener):
     def exitArrayExpression(self, ctx: Mx_parserParser.ArrayExpressionContext):
         pass
 
-    # Enter a parse tree produced by Mx_parserParser#conditionalExpression.
-    def enterConditionalExpression(
-        self, ctx: Mx_parserParser.ConditionalExpressionContext
-    ):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#conditionalExpression.
-    def exitConditionalExpression(
-        self, ctx: Mx_parserParser.ConditionalExpressionContext
-    ):
-        pass
-
     # Enter a parse tree produced by Mx_parserParser#relationalExpression.
     def enterRelationalExpression(
         self, ctx: Mx_parserParser.RelationalExpressionContext
@@ -295,6 +283,18 @@ class Mx_parserListener(ParseTreeListener):
     # Exit a parse tree produced by Mx_parserParser#relationalExpression.
     def exitRelationalExpression(
         self, ctx: Mx_parserParser.RelationalExpressionContext
+    ):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#conditionalExpression.
+    def enterConditionalExpression(
+        self, ctx: Mx_parserParser.ConditionalExpressionContext
+    ):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#conditionalExpression.
+    def exitConditionalExpression(
+        self, ctx: Mx_parserParser.ConditionalExpressionContext
     ):
         pass
 
