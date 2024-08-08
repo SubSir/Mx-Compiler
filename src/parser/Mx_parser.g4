@@ -52,10 +52,10 @@ forControl: (expression? ';' expression? ';' expression?);
 // 表达式
 expression:
 	expression '?' expression ':' expression				# conditionalExpression
-	| '++' expression										# prefixIncrementExpression
 	| expression '++'										# postfixIncrementExpression
-	| '--' expression										# prefixDecrementExpression
 	| expression '--'										# postfixDecrementExpression
+	| '++' expression										# prefixIncrementExpression
+	| '--' expression										# prefixDecrementExpression
 	| '!' expression										# logicalNotExpression
 	| '~' expression										# bitwiseNotExpression
 	| '-' expression										# unaryMinusExpression

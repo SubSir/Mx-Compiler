@@ -53,10 +53,16 @@ class classclass:
     class_member_map = {}  # name -> parameterclass
     class_function_map = {}  # name -> functionclass
 
-    def __init__(self, name, class_member_map={}, class_function_map={}):
+    def __init__(self, name, class_member_map_=None, class_function_map_=None):
         self.name = name
-        self.class_member_map = class_member_map
-        self.class_function_map = class_function_map
+        if class_member_map_ is None:
+            self.class_member_map = {}
+        else:
+            self.class_member_map = class_member_map_
+        if class_function_map_ is None:
+            self.class_function_map = {}
+        else:
+            self.class_function_map = class_function_map_
 
 
 # 定义一个监听器类来遍历和处理语法树
@@ -156,7 +162,7 @@ class MyListener(Mx_parserListener):
                 print("error: type mismatch")
                 sys.exit(1)
             return self.return_expressiontype(code.expression())
-        if isinstance(code, Mx_parserParser.LogicExpressionContext):
+        elif isinstance(code, Mx_parserParser.LogicExpressionContext):
             # logicExpression
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
@@ -184,8 +190,8 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
             if (
                 type1 == "bool[0]"
-                and code.relationOperator().getText() != "=="
-                and code.relationOperator().getText() != "!="
+                and code.relationalOperator().getText() != "=="
+                and code.relationalOperator().getText() != "!="
             ):
                 print("error: bool type cannot be compared")
                 sys.exit(1)
@@ -398,6 +404,74 @@ class MyListener(Mx_parserListener):
             # 如果没有匹配的规则，返回未知类型
             return "unknown"
 
+    def return_const_or_not(self, code) -> bool:
+        if isinstance(code, Mx_parserParser.ConstantExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.NewVariableExpressionContext):
+            return False
+        elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
+            return False
+        elif isinstance(code, Mx_parserParser.VariableExpressionContext):
+            return False
+        elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
+            return False
+        elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
+            return self.return_const_or_not(code.expression())
+        elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
+            return False  # 写的很糟糕
+        elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
+            return True
+        elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
+            isconst1 = self.return_const_or_not(code.expression(1))
+            isconst2 = self.return_const_or_not(code.expression(2))
+            return isconst1 or isconst2
+        elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
+            if self.return_const_or_not(code.expression()) == True:
+                print("error: The operand of ++ or -- must be a variable")
+                sys.exit(1)
+            return False
+        elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
+            if self.return_const_or_not(code.expression()) == True:
+                print("error: The operand of ++ or -- must be a variable")
+                sys.exit(1)
+            return False
+        elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
+            if self.return_const_or_not(code.expression()) == True:
+                print("error: The operand of ++ or -- must be a variable")
+                sys.exit(1)
+            return True
+        elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
+            if self.return_const_or_not(code.expression()) == True:
+                print("error: The operand of ++ or -- must be a variable")
+                sys.exit(1)
+            return True
+        elif isinstance(code, Mx_parserParser.UnaryMinusExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.BitwiseNotExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.FunctionCallContext):
+            return True
+        elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
+            return True
+        elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
+            return False
+        elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.LogicExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.ExpressionListContext):
+            return True
+
     def array_decode(self, code) -> arrayclass:
         return arrayclass(code.type_().getText(), (code.getChildCount() - 1) // 2)
 
@@ -524,11 +598,59 @@ class MyListener(Mx_parserListener):
         for child in ctx.getChildren():
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
                 class_ = self.class_decode(child)
+                if class_.name in self.usertype_map:
+                    print("error: redeclaration")
+                    sys.exit(1)
                 self.usertype_map[class_.name] = class_
                 self.variable_definition_map["this"] = [
                     parameterclass(class_.name, "this", None, self.priority)
                 ]
                 if class_.name[:-3] in self.function_definition_map:
+                    print("Error: redeclaration")
+                    sys.exit(1)
+            elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
+                returnType = self.type_to_string(child.returnType().getText())
+                name = child.IDENTIFIER().getText()
+                parameterList = child.parameterList()
+                parameter_list = []
+                num_parameters = 0
+                if parameterList is not None:
+                    num_parameters = len(parameterList.parameter())
+                    parameter_list = self.parameterList_decode(parameterList)
+
+                if (
+                    name == "main"
+                    and returnType == "int[0]"
+                    and num_parameters == 0
+                    and self.priority == 1
+                ):
+                    if self.int_main_check:
+                        print("Error: Multiple definitions of main function")
+                        sys.exit(1)
+                    self.int_main_check = True
+                func = functionclass(returnType, name, parameter_list, self.priority)
+                if (
+                    name in self.function_definition_map
+                    and self.enterclass == ""
+                    and self.priority == self.function_definition_map[name][-1].piority
+                ):
+                    print("Error: redeclaration")
+                    sys.exit(1)
+                if not (
+                    name in self.function_definition_map
+                    and self.priority == self.function_definition_map[name][-1].priority
+                ):
+                    if name not in self.function_definition_map:
+                        self.function_definition_map[name] = []
+                    self.function_definition_map[name] += [func]
+                    # self.function_definition_stack.append(func)
+                self.variable_definition_stack += parameter_list
+                for param in parameter_list:
+                    if param.name not in self.variable_definition_map:
+                        self.variable_definition_map[param.name] = [param]
+                    else:
+                        self.variable_definition_map[param.name] += [param]
+                if self.type_to_string(name) in self.usertype_map:
                     print("Error: redeclaration")
                     sys.exit(1)
         self.priority -= 1
@@ -544,21 +666,22 @@ class MyListener(Mx_parserListener):
             num_parameters = len(parameterList.parameter())
             parameter_list = self.parameterList_decode(parameterList)
 
-        if (
-            name == "main"
-            and returnType == "int[0]"
-            and num_parameters == 0
-            and self.priority == 1
-        ):
-            if self.int_main_check:
-                print("Error: Multiple definitions of main function")
-                sys.exit(1)
-            self.int_main_check = True
+        # if (
+        #     name == "main"
+        #     and returnType == "int[0]"
+        #     and num_parameters == 0
+        #     and self.priority == 1
+        # ):
+        #     if self.int_main_check:
+        #         print("Error: Multiple definitions of main function")
+        #         sys.exit(1)
+        #     self.int_main_check = True
         func = functionclass(returnType, name, parameter_list, self.priority)
         if (
             name in self.function_definition_map
             and self.enterclass == ""
-            and self.priority == self.function_definition_map[name][-1].piority
+            and self.priority == self.function_definition_map[name][-1].priority
+            and self.priority != 1
         ):
             print("Error: redeclaration")
             sys.exit(1)
@@ -569,6 +692,7 @@ class MyListener(Mx_parserListener):
             if name not in self.function_definition_map:
                 self.function_definition_map[name] = []
             self.function_definition_map[name] += [func]
+        if self.priority == 1:
             self.function_definition_stack.append(func)
         self.variable_definition_stack += parameter_list
         for param in parameter_list:
@@ -576,7 +700,7 @@ class MyListener(Mx_parserListener):
                 self.variable_definition_map[param.name] = [param]
             else:
                 self.variable_definition_map[param.name] += [param]
-        if self.type_to_string(name) in self.usertype_map:
+        if self.type_to_string(name) in self.usertype_map and self.priority != 1:
             print("Error: redeclaration")
             sys.exit(1)
 
@@ -733,6 +857,7 @@ class MyListener(Mx_parserListener):
 
     def enterExpressionStatement(self, ctx: Mx_parserParser.ExpressionStatementContext):
         self.return_expressiontype(ctx.expression())
+        self.return_const_or_not(ctx.expression())
 
     def enterIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
         if self.return_expressiontype(ctx.expression()) != "bool[0]":
@@ -779,7 +904,7 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
 
     def enterAssignmentStatement(self, ctx: Mx_parserParser.AssignmentStatementContext):
-        if isinstance(ctx.expression(0), Mx_parserParser.ConstantExpressionContext):
+        if self.return_const_or_not(ctx.expression(0)):
             print("Error: assignment statement type does not match variable type")
             sys.exit(1)
         if isinstance(ctx.expression(0), Mx_parserParser.VariableExpressionContext):
