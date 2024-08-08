@@ -622,47 +622,16 @@ def serializedATN():
         10,
         1,
         10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        3,
-        10,
-        292,
-        8,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
-        1,
-        10,
         5,
         10,
-        303,
+        288,
         8,
         10,
         10,
         10,
         12,
         10,
-        306,
+        291,
         9,
         10,
         1,
@@ -671,7 +640,7 @@ def serializedATN():
         10,
         3,
         10,
-        310,
+        295,
         8,
         10,
         1,
@@ -686,15 +655,46 @@ def serializedATN():
         10,
         5,
         10,
-        317,
+        302,
         8,
         10,
         10,
         10,
         12,
         10,
-        320,
+        305,
         9,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        3,
+        10,
+        316,
+        8,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
+        10,
+        1,
         10,
         5,
         10,
@@ -2159,7 +2159,7 @@ def serializedATN():
         3,
         20,
         10,
-        21,
+        20,
         196,
         197,
         5,
@@ -2171,7 +2171,7 @@ def serializedATN():
         3,
         20,
         10,
-        20,
+        19,
         198,
         199,
         5,
@@ -2183,7 +2183,7 @@ def serializedATN():
         3,
         20,
         10,
-        19,
+        18,
         200,
         201,
         5,
@@ -2195,7 +2195,7 @@ def serializedATN():
         3,
         20,
         10,
-        18,
+        17,
         202,
         203,
         5,
@@ -2207,7 +2207,7 @@ def serializedATN():
         3,
         20,
         10,
-        17,
+        16,
         204,
         205,
         5,
@@ -2625,7 +2625,7 @@ def serializedATN():
         256,
         257,
         10,
-        24,
+        23,
         0,
         0,
         257,
@@ -2651,7 +2651,7 @@ def serializedATN():
         3,
         20,
         10,
-        25,
+        24,
         261,
         322,
         1,
@@ -2779,261 +2779,261 @@ def serializedATN():
         0,
         0,
         282,
-        283,
+        289,
         10,
-        23,
+        24,
         0,
         0,
         283,
+        284,
+        3,
+        22,
+        11,
+        0,
+        284,
+        285,
+        3,
+        20,
+        10,
+        0,
+        285,
+        286,
+        3,
+        24,
+        12,
+        0,
+        286,
+        288,
+        1,
+        0,
+        0,
+        0,
+        287,
+        283,
+        1,
+        0,
+        0,
+        0,
+        288,
+        291,
+        1,
+        0,
+        0,
+        0,
+        289,
+        287,
+        1,
+        0,
+        0,
+        0,
+        289,
+        290,
+        1,
+        0,
+        0,
+        0,
+        290,
+        292,
+        1,
+        0,
+        0,
+        0,
+        291,
+        289,
+        1,
+        0,
+        0,
+        0,
+        292,
+        294,
+        3,
+        22,
+        11,
+        0,
+        293,
+        295,
+        3,
+        20,
+        10,
+        0,
+        294,
+        293,
+        1,
+        0,
+        0,
+        0,
+        294,
+        295,
+        1,
+        0,
+        0,
+        0,
+        295,
+        296,
+        1,
+        0,
+        0,
+        0,
+        296,
+        297,
+        3,
+        24,
+        12,
+        0,
+        297,
+        303,
+        1,
+        0,
+        0,
+        0,
+        298,
+        299,
+        3,
+        22,
+        11,
+        0,
+        299,
+        300,
+        3,
+        24,
+        12,
+        0,
+        300,
+        302,
+        1,
+        0,
+        0,
+        0,
+        301,
+        298,
+        1,
+        0,
+        0,
+        0,
+        302,
+        305,
+        1,
+        0,
+        0,
+        0,
+        303,
+        301,
+        1,
+        0,
+        0,
+        0,
+        303,
+        304,
+        1,
+        0,
+        0,
+        0,
+        304,
+        322,
+        1,
+        0,
+        0,
+        0,
+        305,
+        303,
+        1,
+        0,
+        0,
+        0,
+        306,
+        307,
+        10,
+        22,
+        0,
+        0,
+        307,
         322,
         5,
         16,
         0,
         0,
-        284,
-        285,
+        308,
+        309,
         10,
-        22,
+        21,
         0,
         0,
-        285,
+        309,
         322,
         5,
         17,
         0,
         0,
-        286,
-        287,
+        310,
+        311,
         10,
-        15,
+        14,
         0,
         0,
-        287,
-        288,
+        311,
+        312,
         5,
         20,
         0,
         0,
-        288,
-        289,
+        312,
+        313,
         5,
         51,
         0,
         0,
-        289,
-        291,
+        313,
+        315,
         5,
         49,
         0,
         0,
-        290,
-        292,
+        314,
+        316,
         3,
         26,
         13,
         0,
-        291,
-        290,
+        315,
+        314,
         1,
         0,
         0,
         0,
-        291,
-        292,
+        315,
+        316,
         1,
         0,
         0,
         0,
-        292,
-        293,
+        316,
+        317,
         1,
         0,
         0,
         0,
-        293,
+        317,
         322,
         5,
         50,
         0,
         0,
-        294,
-        295,
+        318,
+        319,
         10,
-        14,
+        13,
         0,
         0,
-        295,
-        296,
+        319,
+        320,
         5,
         20,
         0,
         0,
-        296,
+        320,
         322,
         5,
         51,
-        0,
-        0,
-        297,
-        304,
-        10,
-        9,
-        0,
-        0,
-        298,
-        299,
-        3,
-        22,
-        11,
-        0,
-        299,
-        300,
-        3,
-        20,
-        10,
-        0,
-        300,
-        301,
-        3,
-        24,
-        12,
-        0,
-        301,
-        303,
-        1,
-        0,
-        0,
-        0,
-        302,
-        298,
-        1,
-        0,
-        0,
-        0,
-        303,
-        306,
-        1,
-        0,
-        0,
-        0,
-        304,
-        302,
-        1,
-        0,
-        0,
-        0,
-        304,
-        305,
-        1,
-        0,
-        0,
-        0,
-        305,
-        307,
-        1,
-        0,
-        0,
-        0,
-        306,
-        304,
-        1,
-        0,
-        0,
-        0,
-        307,
-        309,
-        3,
-        22,
-        11,
-        0,
-        308,
-        310,
-        3,
-        20,
-        10,
-        0,
-        309,
-        308,
-        1,
-        0,
-        0,
-        0,
-        309,
-        310,
-        1,
-        0,
-        0,
-        0,
-        310,
-        311,
-        1,
-        0,
-        0,
-        0,
-        311,
-        312,
-        3,
-        24,
-        12,
-        0,
-        312,
-        318,
-        1,
-        0,
-        0,
-        0,
-        313,
-        314,
-        3,
-        22,
-        11,
-        0,
-        314,
-        315,
-        3,
-        24,
-        12,
-        0,
-        315,
-        317,
-        1,
-        0,
-        0,
-        0,
-        316,
-        313,
-        1,
-        0,
-        0,
-        0,
-        317,
-        320,
-        1,
-        0,
-        0,
-        0,
-        318,
-        316,
-        1,
-        0,
-        0,
-        0,
-        318,
-        319,
-        1,
-        0,
-        0,
-        0,
-        319,
-        322,
-        1,
-        0,
-        0,
-        0,
-        320,
-        318,
-        1,
-        0,
         0,
         0,
         321,
@@ -3085,25 +3085,25 @@ def serializedATN():
         0,
         0,
         321,
-        284,
+        306,
         1,
         0,
         0,
         0,
         321,
-        286,
+        308,
         1,
         0,
         0,
         0,
         321,
-        294,
+        310,
         1,
         0,
         0,
         0,
         321,
-        297,
+        318,
         1,
         0,
         0,
@@ -3794,10 +3794,10 @@ def serializedATN():
         238,
         244,
         254,
-        291,
-        304,
-        309,
-        318,
+        289,
+        294,
+        303,
+        315,
         321,
         323,
         335,
@@ -5769,7 +5769,7 @@ class Mx_parserParser(Parser):
                 self.state = 194
                 self.match(Mx_parserParser.T__15)
                 self.state = 195
-                self.expression(21)
+                self.expression(20)
                 pass
 
             elif la_ == 2:
@@ -5781,7 +5781,7 @@ class Mx_parserParser(Parser):
                 self.state = 196
                 self.match(Mx_parserParser.T__16)
                 self.state = 197
-                self.expression(20)
+                self.expression(19)
                 pass
 
             elif la_ == 3:
@@ -5791,7 +5791,7 @@ class Mx_parserParser(Parser):
                 self.state = 198
                 self.match(Mx_parserParser.T__17)
                 self.state = 199
-                self.expression(19)
+                self.expression(18)
                 pass
 
             elif la_ == 4:
@@ -5801,7 +5801,7 @@ class Mx_parserParser(Parser):
                 self.state = 200
                 self.match(Mx_parserParser.T__18)
                 self.state = 201
-                self.expression(18)
+                self.expression(17)
                 pass
 
             elif la_ == 5:
@@ -5811,7 +5811,7 @@ class Mx_parserParser(Parser):
                 self.state = 202
                 self.match(Mx_parserParser.MINUS)
                 self.state = 203
-                self.expression(17)
+                self.expression(16)
                 pass
 
             elif la_ == 6:
@@ -5973,11 +5973,11 @@ class Mx_parserParser(Parser):
                             localctx, _startState, self.RULE_expression
                         )
                         self.state = 256
-                        if not self.precpred(self._ctx, 24):
+                        if not self.precpred(self._ctx, 23):
                             from antlr4.error.Errors import FailedPredicateException
 
                             raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 24)"
+                                self, "self.precpred(self._ctx, 23)"
                             )
                         self.state = 257
                         self.match(Mx_parserParser.T__13)
@@ -5986,7 +5986,7 @@ class Mx_parserParser(Parser):
                         self.state = 259
                         self.match(Mx_parserParser.T__14)
                         self.state = 260
-                        self.expression(25)
+                        self.expression(24)
                         pass
 
                     elif la_ == 2:
@@ -6158,108 +6158,6 @@ class Mx_parserParser(Parser):
                         pass
 
                     elif la_ == 8:
-                        localctx = Mx_parserParser.PostfixIncrementExpressionContext(
-                            self,
-                            Mx_parserParser.ExpressionContext(
-                                self, _parentctx, _parentState
-                            ),
-                        )
-                        self.pushNewRecursionContext(
-                            localctx, _startState, self.RULE_expression
-                        )
-                        self.state = 282
-                        if not self.precpred(self._ctx, 23):
-                            from antlr4.error.Errors import FailedPredicateException
-
-                            raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 23)"
-                            )
-                        self.state = 283
-                        self.match(Mx_parserParser.T__15)
-                        pass
-
-                    elif la_ == 9:
-                        localctx = Mx_parserParser.PostfixDecrementExpressionContext(
-                            self,
-                            Mx_parserParser.ExpressionContext(
-                                self, _parentctx, _parentState
-                            ),
-                        )
-                        self.pushNewRecursionContext(
-                            localctx, _startState, self.RULE_expression
-                        )
-                        self.state = 284
-                        if not self.precpred(self._ctx, 22):
-                            from antlr4.error.Errors import FailedPredicateException
-
-                            raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 22)"
-                            )
-                        self.state = 285
-                        self.match(Mx_parserParser.T__16)
-                        pass
-
-                    elif la_ == 10:
-                        localctx = Mx_parserParser.MemberFunctionCallContext(
-                            self,
-                            Mx_parserParser.ExpressionContext(
-                                self, _parentctx, _parentState
-                            ),
-                        )
-                        self.pushNewRecursionContext(
-                            localctx, _startState, self.RULE_expression
-                        )
-                        self.state = 286
-                        if not self.precpred(self._ctx, 15):
-                            from antlr4.error.Errors import FailedPredicateException
-
-                            raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 15)"
-                            )
-                        self.state = 287
-                        self.match(Mx_parserParser.T__19)
-                        self.state = 288
-                        self.match(Mx_parserParser.IDENTIFIER)
-
-                        self.state = 289
-                        self.match(Mx_parserParser.LPAREN)
-                        self.state = 291
-                        self._errHandler.sync(self)
-                        _la = self._input.LA(1)
-                        if ((_la) & ~0x3F) == 0 and (
-                            (1 << _la) & 115406321002414084
-                        ) != 0:
-                            self.state = 290
-                            self.expressionLists()
-
-                        self.state = 293
-                        self.match(Mx_parserParser.RPAREN)
-                        pass
-
-                    elif la_ == 11:
-                        localctx = Mx_parserParser.MemberMemberCallContext(
-                            self,
-                            Mx_parserParser.ExpressionContext(
-                                self, _parentctx, _parentState
-                            ),
-                        )
-                        self.pushNewRecursionContext(
-                            localctx, _startState, self.RULE_expression
-                        )
-                        self.state = 294
-                        if not self.precpred(self._ctx, 14):
-                            from antlr4.error.Errors import FailedPredicateException
-
-                            raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 14)"
-                            )
-                        self.state = 295
-                        self.match(Mx_parserParser.T__19)
-                        self.state = 296
-                        self.match(Mx_parserParser.IDENTIFIER)
-                        pass
-
-                    elif la_ == 12:
                         localctx = Mx_parserParser.ArrayExpressionContext(
                             self,
                             Mx_parserParser.ExpressionContext(
@@ -6269,58 +6167,160 @@ class Mx_parserParser(Parser):
                         self.pushNewRecursionContext(
                             localctx, _startState, self.RULE_expression
                         )
-                        self.state = 297
-                        if not self.precpred(self._ctx, 9):
+                        self.state = 282
+                        if not self.precpred(self._ctx, 24):
                             from antlr4.error.Errors import FailedPredicateException
 
                             raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 9)"
+                                self, "self.precpred(self._ctx, 24)"
                             )
-                        self.state = 304
+                        self.state = 289
                         self._errHandler.sync(self)
-                        _alt = self._interp.adaptivePredict(self._input, 26, self._ctx)
+                        _alt = self._interp.adaptivePredict(self._input, 25, self._ctx)
                         while _alt != 2 and _alt != ATN.INVALID_ALT_NUMBER:
                             if _alt == 1:
-                                self.state = 298
+                                self.state = 283
                                 self.square_brackets1()
-                                self.state = 299
+                                self.state = 284
                                 self.expression(0)
-                                self.state = 300
+                                self.state = 285
                                 self.square_brackets2()
-                            self.state = 306
+                            self.state = 291
                             self._errHandler.sync(self)
                             _alt = self._interp.adaptivePredict(
-                                self._input, 26, self._ctx
+                                self._input, 25, self._ctx
                             )
 
-                        self.state = 307
+                        self.state = 292
                         self.square_brackets1()
-                        self.state = 309
+                        self.state = 294
                         self._errHandler.sync(self)
                         _la = self._input.LA(1)
                         if ((_la) & ~0x3F) == 0 and (
                             (1 << _la) & 115406321002414084
                         ) != 0:
-                            self.state = 308
+                            self.state = 293
                             self.expression(0)
 
-                        self.state = 311
+                        self.state = 296
                         self.square_brackets2()
-                        self.state = 318
+                        self.state = 303
                         self._errHandler.sync(self)
-                        _alt = self._interp.adaptivePredict(self._input, 28, self._ctx)
+                        _alt = self._interp.adaptivePredict(self._input, 27, self._ctx)
                         while _alt != 2 and _alt != ATN.INVALID_ALT_NUMBER:
                             if _alt == 1:
-                                self.state = 313
+                                self.state = 298
                                 self.square_brackets1()
-                                self.state = 314
+                                self.state = 299
                                 self.square_brackets2()
-                            self.state = 320
+                            self.state = 305
                             self._errHandler.sync(self)
                             _alt = self._interp.adaptivePredict(
-                                self._input, 28, self._ctx
+                                self._input, 27, self._ctx
                             )
 
+                        pass
+
+                    elif la_ == 9:
+                        localctx = Mx_parserParser.PostfixIncrementExpressionContext(
+                            self,
+                            Mx_parserParser.ExpressionContext(
+                                self, _parentctx, _parentState
+                            ),
+                        )
+                        self.pushNewRecursionContext(
+                            localctx, _startState, self.RULE_expression
+                        )
+                        self.state = 306
+                        if not self.precpred(self._ctx, 22):
+                            from antlr4.error.Errors import FailedPredicateException
+
+                            raise FailedPredicateException(
+                                self, "self.precpred(self._ctx, 22)"
+                            )
+                        self.state = 307
+                        self.match(Mx_parserParser.T__15)
+                        pass
+
+                    elif la_ == 10:
+                        localctx = Mx_parserParser.PostfixDecrementExpressionContext(
+                            self,
+                            Mx_parserParser.ExpressionContext(
+                                self, _parentctx, _parentState
+                            ),
+                        )
+                        self.pushNewRecursionContext(
+                            localctx, _startState, self.RULE_expression
+                        )
+                        self.state = 308
+                        if not self.precpred(self._ctx, 21):
+                            from antlr4.error.Errors import FailedPredicateException
+
+                            raise FailedPredicateException(
+                                self, "self.precpred(self._ctx, 21)"
+                            )
+                        self.state = 309
+                        self.match(Mx_parserParser.T__16)
+                        pass
+
+                    elif la_ == 11:
+                        localctx = Mx_parserParser.MemberFunctionCallContext(
+                            self,
+                            Mx_parserParser.ExpressionContext(
+                                self, _parentctx, _parentState
+                            ),
+                        )
+                        self.pushNewRecursionContext(
+                            localctx, _startState, self.RULE_expression
+                        )
+                        self.state = 310
+                        if not self.precpred(self._ctx, 14):
+                            from antlr4.error.Errors import FailedPredicateException
+
+                            raise FailedPredicateException(
+                                self, "self.precpred(self._ctx, 14)"
+                            )
+                        self.state = 311
+                        self.match(Mx_parserParser.T__19)
+                        self.state = 312
+                        self.match(Mx_parserParser.IDENTIFIER)
+
+                        self.state = 313
+                        self.match(Mx_parserParser.LPAREN)
+                        self.state = 315
+                        self._errHandler.sync(self)
+                        _la = self._input.LA(1)
+                        if ((_la) & ~0x3F) == 0 and (
+                            (1 << _la) & 115406321002414084
+                        ) != 0:
+                            self.state = 314
+                            self.expressionLists()
+
+                        self.state = 317
+                        self.match(Mx_parserParser.RPAREN)
+                        pass
+
+                    elif la_ == 12:
+                        localctx = Mx_parserParser.MemberMemberCallContext(
+                            self,
+                            Mx_parserParser.ExpressionContext(
+                                self, _parentctx, _parentState
+                            ),
+                        )
+                        self.pushNewRecursionContext(
+                            localctx, _startState, self.RULE_expression
+                        )
+                        self.state = 318
+                        if not self.precpred(self._ctx, 13):
+                            from antlr4.error.Errors import FailedPredicateException
+
+                            raise FailedPredicateException(
+                                self, "self.precpred(self._ctx, 13)"
+                            )
+                        self.state = 319
+                        self.match(Mx_parserParser.T__19)
+                        self.state = 320
+                        self.match(Mx_parserParser.IDENTIFIER)
                         pass
 
                 self.state = 325
@@ -7123,7 +7123,7 @@ class Mx_parserParser(Parser):
 
     def expression_sempred(self, localctx: ExpressionContext, predIndex: int):
         if predIndex == 0:
-            return self.precpred(self._ctx, 24)
+            return self.precpred(self._ctx, 23)
 
         if predIndex == 1:
             return self.precpred(self._ctx, 8)
@@ -7144,16 +7144,16 @@ class Mx_parserParser(Parser):
             return self.precpred(self._ctx, 2)
 
         if predIndex == 7:
-            return self.precpred(self._ctx, 23)
+            return self.precpred(self._ctx, 24)
 
         if predIndex == 8:
             return self.precpred(self._ctx, 22)
 
         if predIndex == 9:
-            return self.precpred(self._ctx, 15)
+            return self.precpred(self._ctx, 21)
 
         if predIndex == 10:
             return self.precpred(self._ctx, 14)
 
         if predIndex == 11:
-            return self.precpred(self._ctx, 9)
+            return self.precpred(self._ctx, 13)

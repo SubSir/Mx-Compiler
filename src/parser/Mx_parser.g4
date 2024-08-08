@@ -52,7 +52,10 @@ forControl: (expression? ';' expression? ';' expression?);
 
 // 表达式
 expression:
-	expression '?' expression ':' expression				# conditionalExpression
+	expression (square_brackets1 expression square_brackets2)* (
+		square_brackets1 expression? square_brackets2
+	) (square_brackets1 square_brackets2)*					# arrayExpression
+	| expression '?' expression ':' expression				# conditionalExpression
 	| expression '++'										# postfixIncrementExpression
 	| expression '--'										# postfixDecrementExpression
 	| '++' expression										# prefixIncrementExpression
@@ -69,17 +72,14 @@ expression:
 	) (square_brackets1 square_brackets2)* ('(' ')')?	# newArrayExpression
 	| 'new' type ('(' ')')?								# newVariableExpression
 	| IDENTIFIER										# variableExpression
-	| expression (square_brackets1 expression square_brackets2)* (
-		square_brackets1 expression? square_brackets2
-	) (square_brackets1 square_brackets2)*		# arrayExpression
-	| expression (MUL | DIV | MOD) expression	# muldivmodExpression
-	| expression (PLUS | MINUS) expression		# plusminusExpression
-	| expression (LSHIFT | RSHIFT) expression	# shiftExpression
-	| expression (AND | XOR | OR) expression	# andxororExpression
-	| '(' expression ')'						# parenthesesExpression
-	| expression relationalOperator expression	# relationalExpression
-	| expression logicOperator expression		# logicExpression
-	| IDENTIFIER '=' expression					# expressionList;
+	| expression (MUL | DIV | MOD) expression			# muldivmodExpression
+	| expression (PLUS | MINUS) expression				# plusminusExpression
+	| expression (LSHIFT | RSHIFT) expression			# shiftExpression
+	| expression (AND | XOR | OR) expression			# andxororExpression
+	| '(' expression ')'								# parenthesesExpression
+	| expression relationalOperator expression			# relationalExpression
+	| expression logicOperator expression				# logicExpression
+	| IDENTIFIER '=' expression							# expressionList;
 
 square_brackets1: '[';
 square_brackets2: ']';

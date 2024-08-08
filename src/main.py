@@ -242,16 +242,32 @@ class MyListener(Mx_parserListener):
             return type1
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
-            return self.return_expressiontype(code.expression())
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
-            return self.return_expressiontype(code.expression())
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixDecrementExpression
-            return self.return_expressiontype(code.expression())
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
         elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
             # postfixDecrementExpression
-            return self.return_expressiontype(code.expression())
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
             return self.return_expressiontype(code.expression())
@@ -266,6 +282,12 @@ class MyListener(Mx_parserListener):
             name = code.IDENTIFIER().getText()
             if name in self.function_definition_map:
                 func = self.function_definition_map[name][-1]
+                len1 = 0
+                if code.expressionLists() is not None:
+                    len1 = len(code.expressionLists().expression())
+                if len1 != len(func.parameterList):
+                    print("error: wrong number of arguments")
+                    sys.exit(1)
                 for i in range(len(func.parameterList)):
                     if code.expressionLists() == None:
                         print("error: type mismatch")
@@ -289,6 +311,12 @@ class MyListener(Mx_parserListener):
                 type_ = self.usertype_map[type]
                 if name in type_.class_function_map:
                     func = type_.class_function_map[name]
+                    len1 = 0
+                    if code.expressionLists() is not None:
+                        len1 = len(code.expressionLists().expression())
+                    if len1 != len(func.parameterList):
+                        print("error: wrong number of arguments")
+                        sys.exit(1)
                     for i in range(len(func.parameterList)):
                         if code.expressionLists() == None:
                             print("error: type mismatch")
