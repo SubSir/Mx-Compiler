@@ -6,6 +6,7 @@ from parser.Mx_parserListener import Mx_parserListener
 from parser.Mx_parserParser import Mx_parserParser
 from antlr4.tree.Tree import TerminalNodeImpl
 from antlr4.tree.Tree import ParseTreeWalker
+from antlr4.error.ErrorListener import ErrorListener
 
 
 class arrayclass:
@@ -665,9 +666,9 @@ class MyListener(Mx_parserListener):
                     print("error: redeclaration")
                     sys.exit(1)
                 self.usertype_map[class_.name] = class_
-                self.variable_definition_map["this"] = [
-                    parameterclass(class_.name, "this", None, self.priority)
-                ]
+                # self.variable_definition_map["this"] = [
+                #     parameterclass(class_.name, "this", None, self.priority)
+                # ]
                 if class_.name[:-3] in self.function_definition_map:
                     print("Error: redeclaration")
                     sys.exit(1)
@@ -819,6 +820,7 @@ class MyListener(Mx_parserListener):
         self.priority -= 1
         self.enterclass = ""
         self.function_definition_map.pop("construction")
+        self.variable_definition_map.pop("this")
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
             if self.variable_definition_stack[i].priority <= self.priority:
                 break
@@ -857,6 +859,9 @@ class MyListener(Mx_parserListener):
         self.priority += 1
         self.enterclass = ctx.IDENTIFIER().getText() + "[0]"
         class_ = self.usertype_map[ctx.IDENTIFIER().getText() + "[0]"]
+        self.variable_definition_map["this"] = [
+            parameterclass(class_.name, "this", None, self.priority)
+        ]
         for i in class_.class_member_map.values():
             if (
                 i.name in self.variable_definition_map
@@ -902,6 +907,46 @@ class MyListener(Mx_parserListener):
                     self.variable_definition_map[i.name] += [i]
                 self.variable_definition_stack.append(i)
 
+    def enterElsestatement(self, ctx: Mx_parserParser.ElsestatementContext):
+        self.priority -= 1
+        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
+            if self.variable_definition_stack[i].priority <= self.priority:
+                break
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
+            self.variable_definition_stack.pop()
+            i -= 1
+        self.priority += 1
+
+    def exitElsestatement(self, ctx: Mx_parserParser.ElsestatementContext):
+        self.priority -= 1
+        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
+            if self.variable_definition_stack[i].priority <= self.priority:
+                break
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
+            self.variable_definition_stack.pop()
+            i -= 1
+        self.priority += 1
+
     # def enterClassDefinition(self, ctx):
     #     class_ = self.class_decode(ctx)
     #     self.usertype_map[class_.name] = class_
@@ -923,18 +968,56 @@ class MyListener(Mx_parserListener):
         self.return_const_or_not(ctx.expression())
 
     def enterIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
+        self.priority += 1
         if self.return_expressiontype(ctx.expression()) != "bool[0]":
             print("Error: if statement condition is not bool")
             sys.exit(1)
 
+    def exitIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
+        self.priority -= 1
+        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
+            if self.variable_definition_stack[i].priority <= self.priority:
+                break
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
+            self.variable_definition_stack.pop()
+            i -= 1
+
     def enterWhileStatement(self, ctx: Mx_parserParser.WhileStatementContext):
         self.loop += 1
+        self.priority += 1
         if self.return_expressiontype(ctx.expression()) != "bool[0]":
             print("Error: if statement condition is not bool")
             sys.exit(1)
 
     def exitWhileStatement(self, ctx: Mx_parserParser.WhileStatementContext):
         self.loop -= 1
+        self.priority -= 1
+        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
+            if self.variable_definition_stack[i].priority <= self.priority:
+                break
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
+            self.variable_definition_stack.pop()
+            i -= 1
 
     def enterForControl(self, ctx: Mx_parserParser.ForControlContext):
         expression = ctx.expression2()
@@ -946,9 +1029,27 @@ class MyListener(Mx_parserListener):
 
     def enterForStatement(self, ctx: Mx_parserParser.ForStatementContext):
         self.loop += 1
+        self.priority += 1
 
     def exitForStatement(self, ctx: Mx_parserParser.ForStatementContext):
         self.loop -= 1
+        self.priority -= 1
+        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
+            if self.variable_definition_stack[i].priority <= self.priority:
+                break
+            if (
+                len(
+                    self.variable_definition_map[self.variable_definition_stack[i].name]
+                )
+                == 1
+            ):
+                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
+            else:
+                self.variable_definition_map[
+                    self.variable_definition_stack[i].name
+                ].pop()
+            self.variable_definition_stack.pop()
+            i -= 1
 
     def enterReturnStatement(self, ctx: Mx_parserParser.ReturnStatementContext):
         returntype = self.function_definition_stack[-1].returnType
@@ -1039,6 +1140,12 @@ class MyListener(Mx_parserListener):
             sys.exit(1)
 
 
+class MyErrorListener(ErrorListener):
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        print(f"Syntax error at line {line}:{column}. {msg}")
+        sys.exit(1)
+
+
 # with open("in.txt", "r") as f:
 #     code = f.read()
 
@@ -1047,8 +1154,12 @@ code = sys.stdin.read()
 # 创建输入流和语法分析器
 input_stream = InputStream(code)
 lexer = Mx_parserLexer(input_stream)
+lexer.removeErrorListeners()
+lexer.addErrorListener(MyErrorListener())
 token_stream = CommonTokenStream(lexer)
 parser = Mx_parserParser(token_stream)
+parser.removeErrorListeners()
+parser.addErrorListener(MyErrorListener())
 
 # 构建语法树
 tree = parser.program()

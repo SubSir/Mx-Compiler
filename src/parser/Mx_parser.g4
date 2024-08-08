@@ -37,7 +37,7 @@ functionBody: '{' (statement)* '}';
 statement:
 	';'														# emptyStatement
 	| expression ';'										# expressionStatement
-	| 'if' '(' expression ')' statement ('else' statement)?	# ifStatement
+	| 'if' '(' expression ')' statement (elsestatement)?	# ifStatement
 	| 'while' '(' expression ')' statement					# whileStatement
 	| 'for' '(' forControl ')' statement					# forStatement
 	| 'return' expression? ';'								# returnStatement
@@ -46,6 +46,8 @@ statement:
 	| '{' statement* '}'									# block
 	| 'break' ';'											# breakStatement
 	| 'continue' ';'										# continueStatement;
+
+elsestatement: 'else' statement;
 
 // for循环控制结构
 forControl: (expression1? ';' expression2? ';' expression3?);
