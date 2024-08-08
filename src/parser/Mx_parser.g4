@@ -66,9 +66,9 @@ expression:
 	| constant												# constantExpression
 	| 'new' type (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
-	) (square_brackets1 square_brackets2)*	# newArrayExpression
-	| 'new' type							# newVariableExpression
-	| IDENTIFIER							# variableExpression
+	) (square_brackets1 square_brackets2)* ('(' ')')?	# newArrayExpression
+	| 'new' type ('(' ')')?								# newVariableExpression
+	| IDENTIFIER										# variableExpression
 	| expression (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
 	) (square_brackets1 square_brackets2)*		# arrayExpression
