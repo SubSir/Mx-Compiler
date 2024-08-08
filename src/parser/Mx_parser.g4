@@ -48,7 +48,11 @@ statement:
 	| 'continue' ';'										# continueStatement;
 
 // for循环控制结构
-forControl: (expression? ';' expression? ';' expression?);
+forControl: (expression1? ';' expression2? ';' expression3?);
+
+expression1: expression;
+expression2: expression;
+expression3: expression;
 
 // 表达式
 expression:

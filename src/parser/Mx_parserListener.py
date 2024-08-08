@@ -178,6 +178,30 @@ class Mx_parserListener(ParseTreeListener):
     def exitForControl(self, ctx: Mx_parserParser.ForControlContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#expression1.
+    def enterExpression1(self, ctx: Mx_parserParser.Expression1Context):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#expression1.
+    def exitExpression1(self, ctx: Mx_parserParser.Expression1Context):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#expression2.
+    def enterExpression2(self, ctx: Mx_parserParser.Expression2Context):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#expression2.
+    def exitExpression2(self, ctx: Mx_parserParser.Expression2Context):
+        pass
+
+    # Enter a parse tree produced by Mx_parserParser#expression3.
+    def enterExpression3(self, ctx: Mx_parserParser.Expression3Context):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#expression3.
+    def exitExpression3(self, ctx: Mx_parserParser.Expression3Context):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#logicalNotExpression.
     def enterLogicalNotExpression(
         self, ctx: Mx_parserParser.LogicalNotExpressionContext

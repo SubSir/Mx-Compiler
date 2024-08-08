@@ -504,6 +504,7 @@ class MyListener(Mx_parserListener):
         return arrayclass(code.type_().getText(), (code.getChildCount() - 1) // 2)
 
     def parameter_decode(self, code) -> parameterclass:
+        text = code.getText()
         if code.type_() != None:
             return parameterclass(
                 arrayclass(
@@ -516,7 +517,7 @@ class MyListener(Mx_parserListener):
             )
         else:
             return parameterclass(
-                self.array_decode(code).to_string(),
+                self.array_decode(code.arrayType()).to_string(),
                 code.IDENTIFIER().getText(),
                 None,
                 self.priority,
@@ -706,12 +707,12 @@ class MyListener(Mx_parserListener):
                         self.function_definition_map[name] = []
                     self.function_definition_map[name] += [func]
                     # self.function_definition_stack.append(func)
-                self.variable_definition_stack += parameter_list
-                for param in parameter_list:
-                    if param.name not in self.variable_definition_map:
-                        self.variable_definition_map[param.name] = [param]
-                    else:
-                        self.variable_definition_map[param.name] += [param]
+                # self.variable_definition_stack += parameter_list
+                # for param in parameter_list:
+                #     if param.name not in self.variable_definition_map:
+                #         self.variable_definition_map[param.name] = [param]
+                #     else:
+                #         self.variable_definition_map[param.name] += [param]
                 if self.type_to_string(name) in self.usertype_map:
                     print("Error: redeclaration")
                     sys.exit(1)
@@ -936,9 +937,10 @@ class MyListener(Mx_parserListener):
         self.loop -= 1
 
     def enterForControl(self, ctx: Mx_parserParser.ForControlContext):
-        expression = ctx.expression(1)
+        expression = ctx.expression2()
         if expression != None:
-            if self.return_expressiontype(expression) != "bool[0]":
+            type = self.return_expressiontype(expression.expression())
+            if type != "bool[0]":
                 print("Error: for statement condition is not bool")
                 sys.exit(1)
 
@@ -952,7 +954,13 @@ class MyListener(Mx_parserListener):
         returntype = self.function_definition_stack[-1].returnType
         expression = ctx.expression()
         if expression != None:
-            if self.return_expressiontype(expression) != returntype:
+            type1 = self.return_expressiontype(expression)
+            if type1 != returntype and not (
+                type1 == "null"
+                and returntype != "int[0]"
+                and returntype != "bool[0]"
+                and returntype != "string[0]"
+            ):
                 print(
                     "Error: return statement type does not match function return type"
                 )
