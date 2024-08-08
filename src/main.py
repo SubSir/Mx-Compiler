@@ -692,7 +692,7 @@ class MyListener(Mx_parserListener):
             if name not in self.function_definition_map:
                 self.function_definition_map[name] = []
             self.function_definition_map[name] += [func]
-        if self.priority == 1:
+        if self.priority == 1 or self.enterclass != "":
             self.function_definition_stack.append(func)
         self.variable_definition_stack += parameter_list
         for param in parameter_list:
@@ -817,7 +817,6 @@ class MyListener(Mx_parserListener):
                 self.function_definition_map[i.name] = [i]
             else:
                 self.function_definition_map[i.name] += [i]
-            self.function_definition_stack.append(i)
 
     def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
         list = self.variableDeclaration_decode(ctx)
@@ -926,20 +925,6 @@ class MyListener(Mx_parserListener):
 
     def exitBlock(self, ctx):
         self.priority -= 1
-        if (
-            self.function_definition_stack[-1].returned == False
-            and self.function_definition_stack[-1].returnType != "void[0]"
-            and not (
-                self.function_definition_stack[-1].returnType == "int[0]"
-                and self.function_definition_stack[-1].name == "main"
-            )
-        ):
-            print(
-                "Error: Function "
-                + self.function_definition_stack[-1].name
-                + " does not return a value"
-            )
-            sys.exit(1)
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
             if self.variable_definition_stack[i].priority <= self.priority:
                 break
