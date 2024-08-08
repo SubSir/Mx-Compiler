@@ -564,12 +564,15 @@ class MyListener(Mx_parserListener):
                         sys.exit(1)
                     class_.class_member_map[i.name] = i
             elif member.functionDefinition() != None:
+                self.priority += 1
                 function = self.functionDefinition_decode(member.functionDefinition())
                 if function.name in class_.class_function_map:
                     print("error: redeclaration")
                     sys.exit(1)
                 class_.class_function_map[function.name] = function
+                self.priority -= 1
             else:
+                self.priority += 1
                 if "construction" in class_.class_function_map:
                     print("error: redeclaration")
                     sys.exit(1)
@@ -587,6 +590,7 @@ class MyListener(Mx_parserListener):
                     self.parameterList_decode(member.construction().parameterList()),
                     self.priority,
                 )
+                self.priority -= 1
         if "construction" not in class_.class_function_map:
             class_.class_function_map["construction"] = functionclass(
                 "void[0]",
@@ -627,7 +631,6 @@ class MyListener(Mx_parserListener):
         self.priority += 1
         for child in ctx.getChildren():
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
-                self.priority += 1
                 class_ = self.class_decode(child)
                 if class_.name in self.usertype_map:
                     print("error: redeclaration")
@@ -639,7 +642,6 @@ class MyListener(Mx_parserListener):
                 if class_.name[:-3] in self.function_definition_map:
                     print("Error: redeclaration")
                     sys.exit(1)
-                self.priority -= 1
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
                 returnType = self.type_to_string(child.returnType().getText())
                 name = child.IDENTIFIER().getText()
