@@ -573,30 +573,61 @@ class MyListener(Mx_parserListener):
                 if "construction" in class_.class_function_map:
                     print("error: redeclaration")
                     sys.exit(1)
+                if (
+                    member.construction().IDENTIFIER().getText()
+                    != code.IDENTIFIER().getText()
+                ):
+                    print(
+                        "error: The name of class constructor must be the same as the class name."
+                    )
+                    sys.exit(1)
                 class_.class_function_map["construction"] = functionclass(
-                    None,
+                    "void[0]",
                     "construction",
-                    self.parameterList_decode(member.parameterList()),
+                    self.parameterList_decode(member.construction().parameterList()),
                     self.priority,
                 )
-
+        if "construction" not in class_.class_function_map:
+            class_.class_function_map["construction"] = functionclass(
+                "void[0]",
+                "construction",
+                [],
+                self.priority,
+            )
         return class_
+
+    def enterConstruction(self, ctx: Mx_parserParser.ConstructionContext):
+        self.function_definition_stack.append(
+            functionclass(
+                "void[0]",
+                "construction",
+                self.parameterList_decode(ctx.parameterList()),
+                self.priority,
+            )
+        )
+
+    def exitConstruction(self, ctx: Mx_parserParser.ConstructionContext):
+        self.function_definition_stack.pop()
 
     def type_to_string(self, text: str):
         if text[-1] == "]" and text[-2].isdigit():
             return text
         if len(text) > 2 and text[-2] == "[":
+            cut = ""
             cnt = 0
-            for i in text:
-                if i == "[":
+            for i in range(len(text)):
+                if text[i] == "[":
                     cnt += 1
-            return text + "[" + str(cnt) + "]"
+                    if cut == "":
+                        cut = text[:i]
+            return cut + "[" + str(cnt) + "]"
         return text + "[0]"
 
     def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
         self.priority += 1
         for child in ctx.getChildren():
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
+                self.priority += 1
                 class_ = self.class_decode(child)
                 if class_.name in self.usertype_map:
                     print("error: redeclaration")
@@ -608,6 +639,7 @@ class MyListener(Mx_parserListener):
                 if class_.name[:-3] in self.function_definition_map:
                     print("Error: redeclaration")
                     sys.exit(1)
+                self.priority -= 1
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
                 returnType = self.type_to_string(child.returnType().getText())
                 name = child.IDENTIFIER().getText()
@@ -755,6 +787,7 @@ class MyListener(Mx_parserListener):
     def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         self.priority -= 1
         self.enterclass = ""
+        self.function_definition_map.pop("construction")
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
             if self.variable_definition_stack[i].priority <= self.priority:
                 break

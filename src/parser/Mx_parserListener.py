@@ -62,6 +62,14 @@ class Mx_parserListener(ParseTreeListener):
     def exitClassMember(self, ctx: Mx_parserParser.ClassMemberContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#construction.
+    def enterConstruction(self, ctx: Mx_parserParser.ConstructionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#construction.
+    def exitConstruction(self, ctx: Mx_parserParser.ConstructionContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#functionBody.
     def enterFunctionBody(self, ctx: Mx_parserParser.FunctionBodyContext):
         pass

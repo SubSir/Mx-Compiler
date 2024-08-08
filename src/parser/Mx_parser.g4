@@ -26,9 +26,10 @@ variableDeclarationparts: IDENTIFIER ('=' expression)?;
 // 类成员
 classMember:
 	variableDeclaration
-	| IDENTIFIER '(' parameterList? ')' functionBody
+	| construction
 	| functionDefinition;
 
+construction: IDENTIFIER '(' parameterList? ')' functionBody;
 // 函数体
 functionBody: '{' (statement)* '}';
 
@@ -117,7 +118,13 @@ type: 'int' | 'bool' | 'string' | IDENTIFIER;
 arrayType: type ('[' ']')+;
 
 // 返回类型
-returnType: 'int' | 'bool' | 'string' | 'void' | IDENTIFIER;
+returnType:
+	'int'
+	| 'bool'
+	| 'string'
+	| 'void'
+	| IDENTIFIER
+	| arrayType;
 
 // 常量
 constant:
