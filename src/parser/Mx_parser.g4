@@ -74,7 +74,7 @@ expression:
 	| constant												# constantExpression
 	| 'new' type (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
-	) (square_brackets1 square_brackets2)* ('(' ')')?			# newArrayExpression
+	) (square_brackets1 square_brackets2)* (array_constant)?	# newArrayExpression
 	| 'new' type ('(' ')')?										# newVariableExpression
 	| IDENTIFIER												# variableExpression
 	| expression (MUL | DIV | MOD) expression					# muldivmodExpression

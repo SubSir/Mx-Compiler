@@ -380,6 +380,17 @@ class MyListener(Mx_parserListener):
                 return "int[0]"
             if constant.string_constant() != None:
                 return "string[0]"
+            if constant.array_constant() != None:
+                expressionlist = constant.array_constant().expression()
+                if len(expressionlist) == 0:
+                    return "null"
+                type1 = self.return_expressiontype(expressionlist[0])
+                for i in range(1, len(expressionlist)):
+                    type2 = self.return_expressiontype(expressionlist[i])
+                    if type2 != "null" and type1[:-3] != type2[:-3]:
+                        print("error: type mismatch")
+                        sys.exit(1)
+                return type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
             if constant.getText() == "null":
                 return "null"
             return "bool[0]"
@@ -394,8 +405,25 @@ class MyListener(Mx_parserListener):
                 if type_ != "int[0]":
                     print("error: type mismatch")
                     sys.exit(1)
+
             dimansion = len(code.square_brackets1())
-            return arrayclass(code.type_().getText(), dimansion).to_string()
+            type = arrayclass(code.type_().getText(), dimansion).to_string()
+            if code.array_constant() != None:
+                expressionlist = code.array_constant().expression()
+                if len(expressionlist) == 0:
+                    return type
+                type1 = self.return_expressiontype(expressionlist[0])
+                for i in range(1, len(expressionlist)):
+                    type2 = self.return_expressiontype(expressionlist[i])
+                    if type2 != "null" and type1[:-3] != type2[:-3]:
+                        print("error: type mismatch")
+                        sys.exit(1)
+                type2 = type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
+                if type2 != type:
+                    print("error: type mismatch")
+                    sys.exit(1)
+
+            return type
         elif isinstance(code, Mx_parserParser.VariableExpressionContext):
             # variableExpression
             identifier = code.IDENTIFIER().getText()
