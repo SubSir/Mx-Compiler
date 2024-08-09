@@ -141,11 +141,11 @@ class MyListener(Mx_parserListener):
         for i in self.function_definition_stack:
             self.function_definition_map[i.name] = [i]
 
-    def visitTerminal(self, node: TerminalNodeImpl):
-        # 当访问到终端节点时调用此方法
-        print(node.getText(), end="")
+    # def visitTerminal(self, node: TerminalNodeImpl):
+    #     # 当访问到终端节点时调用此方法
+    #     print(node.getText(), end="")
 
-    def return_expressiontype(self, code) -> str:
+    def return_expressiontype(self, code, print=False) -> str:
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
             type1 = self.return_expressiontype(code.expression())
@@ -377,6 +377,8 @@ class MyListener(Mx_parserListener):
             # constantExpression
             constant = code.constant()
             if constant.INTEGER_CONSTANT() != None:
+                if print:
+                    print(constant.getText(), end=" ")
                 return "int[0]"
             if constant.string_constant() != None:
                 return "string[0]"
@@ -529,6 +531,321 @@ class MyListener(Mx_parserListener):
             return True
         elif isinstance(code, Mx_parserParser.ExpressionListContext):
             return True
+
+    def return_expression2ir(self, code, print=False) -> str:
+        if isinstance(code, Mx_parserParser.ExpressionListContext):
+            # expressionList
+            type1 = self.return_expressiontype(code.expression())
+            name = code.IDENTIFIER().getText()
+            if name == "this":
+                print("error: cannot assign to this")
+                sys.exit(1)
+            if name in self.variable_definition_map:
+                type2 = self.variable_definition_map[name][-1].type
+            else:
+                print("error: undeclared variable")
+                sys.exit(1)
+
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            return self.return_expressiontype(code.expression())
+        elif isinstance(code, Mx_parserParser.LogicExpressionContext):
+            # logicExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != "bool[0]" or type2 != "bool[0]":
+                print("error: type mismatch")
+                sys.exit(1)
+            return "bool[0]"
+        elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
+            # conditionalExpression
+            if self.return_expressiontype(code.expression(0)) != "bool[0]":
+                print("error: type mismatch")
+                sys.exit(1)
+            type1 = self.return_expressiontype(code.expression(1))
+            type2 = self.return_expressiontype(code.expression(2))
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            return type1
+        elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
+            # relationalExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            if (
+                type1 == "bool[0]"
+                and code.relationalOperator().getText() != "=="
+                and code.relationalOperator().getText() != "!="
+            ):
+                print("error: bool type cannot be compared")
+                sys.exit(1)
+            return "bool[0]"
+        elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
+            # muldivmodExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            if type1 != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type1
+        elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
+            # plusminusExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            if type1 != "int[0]" and type1 != "string[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type1
+        elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
+            # shiftExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            if type1 != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type1
+        elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
+            # andxororExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != type2 and type1 != "null" and type2 != "null":
+                print("error: type mismatch")
+                sys.exit(1)
+            if type1 != "bool[0]" and type1 != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type1
+        elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
+            # prefixIncrementExpression
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
+        elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
+            # postfixIncrementExpression
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
+        elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
+            # prefixDecrementExpression
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
+        elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
+            # postfixDecrementExpression
+            type = self.return_expressiontype(code.expression())
+            if type != "int[0]":
+                print("error: type cannot be used in arithmetic expression")
+                sys.exit(1)
+            return type
+        elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
+            # logicalNotExpression
+            return self.return_expressiontype(code.expression())
+        elif isinstance(code, Mx_parserParser.BitwiseNotExpressionContext):
+            # bitwiseNotExpression
+            return self.return_expressiontype(code.expression())
+        elif isinstance(code, Mx_parserParser.UnaryMinusExpressionContext):
+            # unaryMinusExpression
+            return self.return_expressiontype(code.expression())
+        elif isinstance(code, Mx_parserParser.FunctionCallContext):
+            # functionCall
+            name = code.IDENTIFIER().getText()
+            if name in self.function_definition_map:
+                func = self.function_definition_map[name][-1]
+                len1 = 0
+                if code.expressionLists() is not None:
+                    len1 = len(code.expressionLists().expression())
+                if len1 != len(func.parameterList):
+                    print("error: wrong number of arguments")
+                    sys.exit(1)
+                for i in range(len(func.parameterList)):
+                    if code.expressionLists() == None:
+                        print("error: type mismatch")
+                        sys.exit(1)
+                    type1 = self.return_expressiontype(
+                        code.expressionLists().expression(i)
+                    )
+                    type2 = func.parameterList[i].type
+                    if type1 != type2 and type1 != "null" and type2 != "null":
+                        print("error: type mismatch")
+                        sys.exit(1)
+                return func.returnType
+            else:
+                print("error: undefined function")
+                sys.exit(1)
+        elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
+            # memberFunctionCall
+            type = self.return_expressiontype(code.expression())
+            name = code.IDENTIFIER().getText()
+            if type in self.usertype_map:
+                type_ = self.usertype_map[type]
+                if name in type_.class_function_map:
+                    func = type_.class_function_map[name]
+                    len1 = 0
+                    if code.expressionLists() is not None:
+                        len1 = len(code.expressionLists().expression())
+                    if len1 != len(func.parameterList):
+                        print("error: wrong number of arguments")
+                        sys.exit(1)
+                    for i in range(len(func.parameterList)):
+                        if code.expressionLists() == None:
+                            print("error: type mismatch")
+                            sys.exit(1)
+                        type1 = self.return_expressiontype(
+                            code.expressionLists().expression(i)
+                        )
+                        type2 = func.parameterList[i].type
+                        if type1 != type2 and type1 != "null" and type2 != "null":
+                            print("error: type mismatch")
+                            sys.exit(1)
+                    return func.returnType
+                else:
+                    print("error: undefined function")
+                    sys.exit(1)
+            elif name == "size" and type[-1] == "]":  # 写的很糟糕
+                return "int[0]"
+            elif type == "string[0]":
+                if name == "length":
+                    return "int[0]"
+                elif name == "substring":
+                    return "string[0]"
+                elif name == "parseInt":
+                    return "int[0]"
+                elif name == "ord":
+                    return "int[0]"
+            else:
+                print("error: undefined function")
+                sys.exit(1)
+        elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
+            # memberMemberCall
+            type = self.return_expressiontype(code.expression())
+            name = code.IDENTIFIER().getText()
+            if type in self.usertype_map:
+                type_ = self.usertype_map[type]
+                if name in type_.class_member_map:
+                    mem = type_.class_member_map[name]
+                    return mem.type
+                else:
+                    print("error: undefined function")
+                    sys.exit(1)
+            elif name == "size" and type[-1] == "]":  # 写的很糟糕
+                return "int[0]"
+            elif type == "string[0]":
+                if name == "length":
+                    return "int[0]"
+                elif name == "substring":
+                    return "string[0]"
+                elif name == "parseInt":
+                    return "int[0]"
+                elif name == "ord":
+                    return "int[0]"
+            else:
+                print("error: undefined function")
+                sys.exit(1)
+        elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
+            # constantExpression
+            constant = code.constant()
+            if constant.INTEGER_CONSTANT() != None:
+                if print:
+                    print(constant.getText(), end=" ")
+                return "int[0]"
+            if constant.string_constant() != None:
+                return "string[0]"
+            if constant.array_constant() != None:
+                expressionlist = constant.array_constant().expression()
+                if len(expressionlist) == 0:
+                    return "null"
+                type1 = self.return_expressiontype(expressionlist[0])
+                for i in range(1, len(expressionlist)):
+                    type2 = self.return_expressiontype(expressionlist[i])
+                    if type2 != "null" and type1[:-3] != type2[:-3]:
+                        print("error: type mismatch")
+                        sys.exit(1)
+                return type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
+            if constant.getText() == "null":
+                return "null"
+            return "bool[0]"
+        elif isinstance(code, Mx_parserParser.NewVariableExpressionContext):
+            # newVariableExpression
+            return code.type_().getText() + "[0]"
+        elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
+            # newArrayExpression
+            expression = code.expression()
+            for i in range(len(expression)):
+                type_ = self.return_expressiontype(expression[i])
+                if type_ != "int[0]":
+                    print("error: type mismatch")
+                    sys.exit(1)
+
+            dimansion = len(code.square_brackets1())
+            type = arrayclass(code.type_().getText(), dimansion).to_string()
+            if code.array_constant() != None:
+                expressionlist = code.array_constant().expression()
+                if len(expressionlist) == 0:
+                    return type
+                type1 = self.return_expressiontype(expressionlist[0])
+                for i in range(1, len(expressionlist)):
+                    type2 = self.return_expressiontype(expressionlist[i])
+                    if type2 != "null" and type1[:-3] != type2[:-3]:
+                        print("error: type mismatch")
+                        sys.exit(1)
+                type2 = type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
+                if type2 != type:
+                    print("error: type mismatch")
+                    sys.exit(1)
+
+            return type
+        elif isinstance(code, Mx_parserParser.VariableExpressionContext):
+            # variableExpression
+            identifier = code.IDENTIFIER().getText()
+            name = identifier + str(len(self.variable_definition_map[identifier]))
+            return name
+        elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
+            # arrayExpression
+            expression = code.expression()
+            if isinstance(
+                code.expression(0), Mx_parserParser.NewArrayExpressionContext
+            ) or isinstance(
+                code.expression(0), Mx_parserParser.NewVariableExpressionContext
+            ):
+                print(
+                    "error: The shape of multidimensional array must be specified from left to right"
+                )
+                sys.exit(1)
+            for i in range(1, len(expression)):
+                type_ = self.return_expressiontype(expression[i])
+                if type_ != "int[0]":
+                    print("error: type mismatch")
+                    sys.exit(1)
+            dimansion = len(code.square_brackets1())
+            type = self.return_expressiontype(code.expression(0))
+            dimansion2 = int(type.split("[")[1].split("]")[0])
+            return type.split("[")[0] + "[" + str(dimansion2 - dimansion) + "]"
+        elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
+            # parenthesesExpression
+            return self.return_expressiontype(code.expression())
+        else:
+            name = code.getText()
+            # 如果没有匹配的规则，返回未知类型
+            return "unknown"
 
     def array_decode(self, code) -> arrayclass:
         return arrayclass(code.type_().getText(), (code.getChildCount() - 1) // 2)

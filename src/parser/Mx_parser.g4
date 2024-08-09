@@ -58,20 +58,18 @@ expression3: expression;
 
 // 表达式
 expression:
-	expression (square_brackets1 expression square_brackets2)* (
-		square_brackets1 expression? square_brackets2
-	) (square_brackets1 square_brackets2)*					# arrayExpression
-	| expression '++'										# postfixIncrementExpression
-	| expression '--'										# postfixDecrementExpression
-	| '++' expression										# prefixIncrementExpression
-	| '--' expression										# prefixDecrementExpression
-	| '!' expression										# logicalNotExpression
-	| '~' expression										# bitwiseNotExpression
-	| '-' expression										# unaryMinusExpression
-	| IDENTIFIER '(' expressionLists? ')'					# functionCall
-	| expression '.' IDENTIFIER ('(' expressionLists? ')')	# memberFunctionCall
-	| expression '.' IDENTIFIER								# memberMemberCall
-	| constant												# constantExpression
+	expression (square_brackets1 expression square_brackets2)+	# arrayExpression
+	| expression '++'											# postfixIncrementExpression
+	| expression '--'											# postfixDecrementExpression
+	| '++' expression											# prefixIncrementExpression
+	| '--' expression											# prefixDecrementExpression
+	| '!' expression											# logicalNotExpression
+	| '~' expression											# bitwiseNotExpression
+	| '-' expression											# unaryMinusExpression
+	| IDENTIFIER '(' expressionLists? ')'						# functionCall
+	| expression '.' IDENTIFIER ('(' expressionLists? ')')		# memberFunctionCall
+	| expression '.' IDENTIFIER									# memberMemberCall
+	| constant													# constantExpression
 	| 'new' type (square_brackets1 expression square_brackets2)* (
 		square_brackets1 expression? square_brackets2
 	) (square_brackets1 square_brackets2)* (array_constant)?	# newArrayExpression
