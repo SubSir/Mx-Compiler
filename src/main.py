@@ -655,39 +655,28 @@ class MyListener(Mx_parserListener):
             return t + "-1"
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
-            return self.return_expressiontype(code.expression())
+            t = self.return_expression2ir(code.expression())
+            print(t + "!" + " = xor i1 " + t + " 1")
+            return t + "!"
         elif isinstance(code, Mx_parserParser.BitwiseNotExpressionContext):
             # bitwiseNotExpression
-            return self.return_expressiontype(code.expression())
+            t = self.return_expression2ir(code.expression())
+            print(t + "~" + " = xor i32 " + t + " 1")
+            return t + "~"
         elif isinstance(code, Mx_parserParser.UnaryMinusExpressionContext):
             # unaryMinusExpression
-            return self.return_expressiontype(code.expression())
+            t = self.return_expression2ir(code.expression())
+            print(t + "-" + " = sub i32 0 " + t)
+            return t + "-"
         elif isinstance(code, Mx_parserParser.FunctionCallContext):
             # functionCall
             name = code.IDENTIFIER().getText()
-            if name in self.function_definition_map:
-                func = self.function_definition_map[name][-1]
-                len1 = 0
-                if code.expressionLists() is not None:
-                    len1 = len(code.expressionLists().expression())
-                if len1 != len(func.parameterList):
-                    print("error: wrong number of arguments")
-                    sys.exit(1)
-                for i in range(len(func.parameterList)):
-                    if code.expressionLists() == None:
-                        print("Type Mismatch")
-                        sys.exit(1)
-                    type1 = self.return_expressiontype(
-                        code.expressionLists().expression(i)
-                    )
-                    type2 = func.parameterList[i].type
-                    if type1 != type2 and type1 != "null" and type2 != "null":
-                        print("Type Mismatch")
-                        sys.exit(1)
-                return func.returnType
-            else:
-                print("error: undefined function")
-                sys.exit(1)
+            func = self.function_definition_map[name][-1]
+            func2ir = self.type2ir(func.returnType()) + '@' + name +'('
+            for i in range(len(func.parameterList)):
+                type2 = func.parameterList[i].type
+            func2ir
+            return func.returnType
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
             # memberFunctionCall
             type = self.return_expressiontype(code.expression())
@@ -844,7 +833,7 @@ class MyListener(Mx_parserListener):
             # 如果没有匹配的规则，返回未知类型
             return "unknown"
 
-    def type2ir(self, str):
+    def type2ir(self, str)->str:
         if str == "int[0]":
             return "i32"
         elif str == "bool[0]":
