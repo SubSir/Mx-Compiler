@@ -156,7 +156,7 @@ class MyListener(Mx_parserListener):
             if name in self.variable_definition_map:
                 type2 = self.variable_definition_map[name][-1].type
             else:
-                print("error: undeclared variable")
+                print("Undefined Identifier")
                 sys.exit(1)
 
             if type1 != type2 and type1 != "null" and type2 != "null":
@@ -302,7 +302,7 @@ class MyListener(Mx_parserListener):
                         sys.exit(1)
                 return func.returnType
             else:
-                print("error: undefined function")
+                print("Undefined Identifier")
                 sys.exit(1)
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
             # memberFunctionCall
@@ -331,7 +331,7 @@ class MyListener(Mx_parserListener):
                             sys.exit(1)
                     return func.returnType
                 else:
-                    print("error: undefined function")
+                    print("Undefined Identifier")
                     sys.exit(1)
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
                 return "int[0]"
@@ -345,7 +345,7 @@ class MyListener(Mx_parserListener):
                 elif name == "ord":
                     return "int[0]"
             else:
-                print("error: undefined function")
+                print("Undefined Identifier")
                 sys.exit(1)
         elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
             # memberMemberCall
@@ -357,7 +357,7 @@ class MyListener(Mx_parserListener):
                     mem = type_.class_member_map[name]
                     return mem.type
                 else:
-                    print("error: undefined function")
+                    print("Undefined Identifier")
                     sys.exit(1)
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
                 return "int[0]"
@@ -371,7 +371,7 @@ class MyListener(Mx_parserListener):
                 elif name == "ord":
                     return "int[0]"
             else:
-                print("error: undefined function")
+                print("Undefined Identifier")
                 sys.exit(1)
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
@@ -432,7 +432,7 @@ class MyListener(Mx_parserListener):
             if identifier in self.variable_definition_map:
                 type = self.variable_definition_map[identifier][-1].type
             else:
-                print("error: undeclared variable")
+                print("Undefined Identifier")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
@@ -544,7 +544,7 @@ class MyListener(Mx_parserListener):
             if name in self.variable_definition_map:
                 type2 = self.variable_definition_map[name][-1].type
             else:
-                print("error: undeclared variable")
+                print("Undefined Identifier")
                 sys.exit(1)
 
             if type1 != type2 and type1 != "null" and type2 != "null":
@@ -672,40 +672,40 @@ class MyListener(Mx_parserListener):
             # functionCall
             name = code.IDENTIFIER().getText()
             func = self.function_definition_map[name][-1]
-            func2ir = self.type2ir(func.returnType()) + '@' + name +'('
+            func2ir = self.type2ir(func.returnType()) + " @" + name + "("
+            result = "%" + name
             for i in range(len(func.parameterList)):
                 type2 = func.parameterList[i].type
-            func2ir
-            return func.returnType
+                func2ir += (
+                    self.type2ir(type2)
+                    + " "
+                    + self.return_expression2ir(code.expressionList().expression(i))
+                )
+            func2ir += ")"
+            print(result + " = call " + func2ir)
+            return result
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
             # memberFunctionCall
             type = self.return_expressiontype(code.expression())
             name = code.IDENTIFIER().getText()
-            if type in self.usertype_map:
-                type_ = self.usertype_map[type]
-                if name in type_.class_function_map:
-                    func = type_.class_function_map[name]
-                    len1 = 0
-                    if code.expressionLists() is not None:
-                        len1 = len(code.expressionLists().expression())
-                    if len1 != len(func.parameterList):
-                        print("error: wrong number of arguments")
-                        sys.exit(1)
-                    for i in range(len(func.parameterList)):
-                        if code.expressionLists() == None:
-                            print("Type Mismatch")
-                            sys.exit(1)
-                        type1 = self.return_expressiontype(
-                            code.expressionLists().expression(i)
-                        )
-                        type2 = func.parameterList[i].type
-                        if type1 != type2 and type1 != "null" and type2 != "null":
-                            print("Type Mismatch")
-                            sys.exit(1)
-                    return func.returnType
-                else:
-                    print("error: undefined function")
-                    sys.exit(1)
+            type_ = self.usertype_map[type]
+            if name in type_.class_function_map:
+                func = type_.class_function_map[name]
+                func2ir = (
+                    self.type2ir(func.returnType()) + " @" + type + "." + name + "("
+                )
+                result = "%" + type + "." + name
+                for i in range(len(func.parameterList)):
+                    type2 = func.parameterList[i].type
+                    func2ir += (
+                        self.type2ir(type2)
+                        + " "
+                        + self.return_expression2ir(code.expressionList().expression(i))
+                    )
+                func2ir += ")"
+                print(result + " = call " + func2ir)
+                return result
+
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
                 return "int[0]"
             elif type == "string[0]":
@@ -717,9 +717,6 @@ class MyListener(Mx_parserListener):
                     return "int[0]"
                 elif name == "ord":
                     return "int[0]"
-            else:
-                print("error: undefined function")
-                sys.exit(1)
         elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
             # memberMemberCall
             type = self.return_expressiontype(code.expression())
@@ -730,7 +727,7 @@ class MyListener(Mx_parserListener):
                     mem = type_.class_member_map[name]
                     return mem.type
                 else:
-                    print("error: undefined function")
+                    print("Undefined Identifier")
                     sys.exit(1)
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
                 return "int[0]"
@@ -744,7 +741,7 @@ class MyListener(Mx_parserListener):
                 elif name == "ord":
                     return "int[0]"
             else:
-                print("error: undefined function")
+                print("Undefined Identifier")
                 sys.exit(1)
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
@@ -833,7 +830,7 @@ class MyListener(Mx_parserListener):
             # 如果没有匹配的规则，返回未知类型
             return "unknown"
 
-    def type2ir(self, str)->str:
+    def type2ir(self, str) -> str:
         if str == "int[0]":
             return "i32"
         elif str == "bool[0]":
