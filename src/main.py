@@ -847,6 +847,14 @@ class MyListener(Mx_parserListener):
             # 如果没有匹配的规则，返回未知类型
             return "unknown"
 
+    def type2ir(self, str):
+        if str == "int[0]":
+            return "i32"
+        elif str == "bool[0]":
+            return "i1"
+        elif str == "string[0]":
+            return "i8*"
+
     def array_decode(self, code) -> arrayclass:
         return arrayclass(code.type_().getText(), (code.getChildCount() - 1) // 2)
 
