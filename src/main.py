@@ -587,76 +587,72 @@ class MyListener(Mx_parserListener):
             return "bool[0]"
         elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
             # muldivmodExpression
-            type1 = self.return_expressiontype(code.expression(0))
-            type2 = self.return_expressiontype(code.expression(1))
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            if type1 != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type1
+            t1 = self.return_expression2ir(code.expression(0))
+            t2 = self.return_expression2ir(code.expression(1))
+            result = "%" + t1 + "_" + t2
+            if code.MUL() != None:
+                op = "mul"
+            elif code.DIV() != None:
+                op = "sdiv"
+            else:
+                op = "srem"
+            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            return result
         elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
             # plusminusExpression
-            type1 = self.return_expressiontype(code.expression(0))
-            type2 = self.return_expressiontype(code.expression(1))
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            if type1 != "int[0]" and type1 != "string[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type1
+            t1 = self.return_expression2ir(code.expression(0))
+            t2 = self.return_expression2ir(code.expression(1))
+            result = "%" + t1 + "_" + t2
+            if code.PLUS() != None:
+                op = "add"
+            elif code.MINUS() != None:
+                op = "sub"
+            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            return result
         elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
             # shiftExpression
-            type1 = self.return_expressiontype(code.expression(0))
-            type2 = self.return_expressiontype(code.expression(1))
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            if type1 != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type1
+            t1 = self.return_expression2ir(code.expression(0))
+            t2 = self.return_expression2ir(code.expression(1))
+            result = "%" + t1 + "_" + t2
+            if code.LSHIFT() != None:
+                op = "shl"
+            elif code.RSHIFT() != None:
+                op = "ashr"
+            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            return result
         elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
             # andxororExpression
-            type1 = self.return_expressiontype(code.expression(0))
-            type2 = self.return_expressiontype(code.expression(1))
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            if type1 != "bool[0]" and type1 != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type1
+            t1 = self.return_expression2ir(code.expression(0))
+            t2 = self.return_expression2ir(code.expression(1))
+            result = "%" + t1 + "_" + t2
+            if code.AND() != None:
+                op = "and"
+            elif code.XOR() != None:
+                op = "xor"
+            else:
+                op = "or"
+            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            return result
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
-            type = self.return_expressiontype(code.expression())
-            if type != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type
+            t = self.return_expression2ir(code.expression())
+            print(t + " = add i32 " + t + " 1")
+            return t
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
-            type = self.return_expressiontype(code.expression())
-            if type != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type
+            t = self.return_expression2ir(code.expression())
+            print(t + "+1" + " = add i32 " + t + " 1")
+            return t + "+1"
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
-            type = self.return_expressiontype(code.expression())
-            if type != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type
+            t = self.return_expression2ir(code.expression())
+            print(t + " = sub i32 " + t + " 1")
+            return t
         elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
             # postfixDecrementExpression
-            type = self.return_expressiontype(code.expression())
-            if type != "int[0]":
-                print("Invalid Type")
-                sys.exit(1)
-            return type
+            t = self.return_expression2ir(code.expression())
+            print(t + "-1" + " = sub i32 " + t + " 1")
+            return t + "-1"
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
             return self.return_expressiontype(code.expression())
