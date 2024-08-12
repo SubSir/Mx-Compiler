@@ -15,8 +15,6 @@ build:
 
 # Define the run rule
 run:
-	@echo "Installing required Python packages..."
-	@pip install antlr4-python3-runtime
 	@echo "Running $(MAINFILE)..."
 	@python3 $(MAINFILE)
 

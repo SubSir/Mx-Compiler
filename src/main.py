@@ -145,7 +145,7 @@ class MyListener(Mx_parserListener):
     #     # 当访问到终端节点时调用此方法
     #     print(node.getText(), end="")
 
-    def return_expressiontype(self, code, print=False) -> str:
+    def return_expressiontype(self, code) -> str:
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
             type1 = self.return_expressiontype(code.expression())
@@ -160,7 +160,7 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
 
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             return self.return_expressiontype(code.expression())
         elif isinstance(code, Mx_parserParser.LogicExpressionContext):
@@ -168,18 +168,18 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != "bool[0]" or type2 != "bool[0]":
-                print("error: type mismatch")
+                print("Invalid Type")
                 sys.exit(1)
             return "bool[0]"
         elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
             # conditionalExpression
             if self.return_expressiontype(code.expression(0)) != "bool[0]":
-                print("error: type mismatch")
+                print("Invalid Type")
                 sys.exit(1)
             type1 = self.return_expressiontype(code.expression(1))
             type2 = self.return_expressiontype(code.expression(2))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
@@ -187,14 +187,14 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if (
                 type1 == "bool[0]"
                 and code.relationalOperator().getText() != "=="
                 and code.relationalOperator().getText() != "!="
             ):
-                print("error: bool type cannot be compared")
+                print("Invalid Type")
                 sys.exit(1)
             return "bool[0]"
         elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
@@ -202,10 +202,10 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
@@ -213,10 +213,10 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "int[0]" and type1 != "string[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
@@ -224,10 +224,10 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
@@ -235,38 +235,38 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "bool[0]" and type1 != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
             # postfixDecrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
@@ -291,14 +291,14 @@ class MyListener(Mx_parserListener):
                     sys.exit(1)
                 for i in range(len(func.parameterList)):
                     if code.expressionLists() == None:
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                     type1 = self.return_expressiontype(
                         code.expressionLists().expression(i)
                     )
                     type2 = func.parameterList[i].type
                     if type1 != type2 and type1 != "null" and type2 != "null":
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                 return func.returnType
             else:
@@ -320,14 +320,14 @@ class MyListener(Mx_parserListener):
                         sys.exit(1)
                     for i in range(len(func.parameterList)):
                         if code.expressionLists() == None:
-                            print("error: type mismatch")
+                            print("Type Mismatch")
                             sys.exit(1)
                         type1 = self.return_expressiontype(
                             code.expressionLists().expression(i)
                         )
                         type2 = func.parameterList[i].type
                         if type1 != type2 and type1 != "null" and type2 != "null":
-                            print("error: type mismatch")
+                            print("Type Mismatch")
                             sys.exit(1)
                     return func.returnType
                 else:
@@ -377,8 +377,8 @@ class MyListener(Mx_parserListener):
             # constantExpression
             constant = code.constant()
             if constant.INTEGER_CONSTANT() != None:
-                if print:
-                    print(constant.getText(), end=" ")
+                # if print:
+                #     print(constant.getText(), end=" ")
                 return "int[0]"
             if constant.string_constant() != None:
                 return "string[0]"
@@ -390,7 +390,7 @@ class MyListener(Mx_parserListener):
                 for i in range(1, len(expressionlist)):
                     type2 = self.return_expressiontype(expressionlist[i])
                     if type2 != "null" and type1[:-3] != type2[:-3]:
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                 return type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
             if constant.getText() == "null":
@@ -405,7 +405,7 @@ class MyListener(Mx_parserListener):
             for i in range(len(expression)):
                 type_ = self.return_expressiontype(expression[i])
                 if type_ != "int[0]":
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
 
             dimansion = len(code.square_brackets1())
@@ -418,11 +418,11 @@ class MyListener(Mx_parserListener):
                 for i in range(1, len(expressionlist)):
                     type2 = self.return_expressiontype(expressionlist[i])
                     if type2 != "null" and type1[:-3] != type2[:-3]:
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                 type2 = type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
                 if type2 != type:
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
 
             return type
@@ -450,7 +450,7 @@ class MyListener(Mx_parserListener):
             for i in range(1, len(expression)):
                 type_ = self.return_expressiontype(expression[i])
                 if type_ != "int[0]":
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
             dimansion = len(code.square_brackets1())
             type = self.return_expressiontype(code.expression(0))
@@ -547,7 +547,7 @@ class MyListener(Mx_parserListener):
                 sys.exit(1)
 
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             return self.return_expressiontype(code.expression())
         elif isinstance(code, Mx_parserParser.LogicExpressionContext):
@@ -555,18 +555,18 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != "bool[0]" or type2 != "bool[0]":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             return "bool[0]"
         elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
             # conditionalExpression
             if self.return_expressiontype(code.expression(0)) != "bool[0]":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             type1 = self.return_expressiontype(code.expression(1))
             type2 = self.return_expressiontype(code.expression(2))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
@@ -574,7 +574,7 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if (
                 type1 == "bool[0]"
@@ -589,10 +589,10 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
@@ -600,10 +600,10 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "int[0]" and type1 != "string[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
@@ -611,10 +611,10 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
@@ -622,38 +622,38 @@ class MyListener(Mx_parserListener):
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
             if type1 != type2 and type1 != "null" and type2 != "null":
-                print("error: type mismatch")
+                print("Type Mismatch")
                 sys.exit(1)
             if type1 != "bool[0]" and type1 != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type1
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
             # postfixDecrementExpression
             type = self.return_expressiontype(code.expression())
             if type != "int[0]":
-                print("error: type cannot be used in arithmetic expression")
+                print("Invalid Type")
                 sys.exit(1)
             return type
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
@@ -678,14 +678,14 @@ class MyListener(Mx_parserListener):
                     sys.exit(1)
                 for i in range(len(func.parameterList)):
                     if code.expressionLists() == None:
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                     type1 = self.return_expressiontype(
                         code.expressionLists().expression(i)
                     )
                     type2 = func.parameterList[i].type
                     if type1 != type2 and type1 != "null" and type2 != "null":
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                 return func.returnType
             else:
@@ -707,14 +707,14 @@ class MyListener(Mx_parserListener):
                         sys.exit(1)
                     for i in range(len(func.parameterList)):
                         if code.expressionLists() == None:
-                            print("error: type mismatch")
+                            print("Type Mismatch")
                             sys.exit(1)
                         type1 = self.return_expressiontype(
                             code.expressionLists().expression(i)
                         )
                         type2 = func.parameterList[i].type
                         if type1 != type2 and type1 != "null" and type2 != "null":
-                            print("error: type mismatch")
+                            print("Type Mismatch")
                             sys.exit(1)
                     return func.returnType
                 else:
@@ -764,8 +764,8 @@ class MyListener(Mx_parserListener):
             # constantExpression
             constant = code.constant()
             if constant.INTEGER_CONSTANT() != None:
-                if print:
-                    print(constant.getText(), end=" ")
+                # if print:
+                #     print(constant.getText(), end=" ")
                 return "int[0]"
             if constant.string_constant() != None:
                 return "string[0]"
@@ -777,7 +777,7 @@ class MyListener(Mx_parserListener):
                 for i in range(1, len(expressionlist)):
                     type2 = self.return_expressiontype(expressionlist[i])
                     if type2 != "null" and type1[:-3] != type2[:-3]:
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                 return type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
             if constant.getText() == "null":
@@ -792,7 +792,7 @@ class MyListener(Mx_parserListener):
             for i in range(len(expression)):
                 type_ = self.return_expressiontype(expression[i])
                 if type_ != "int[0]":
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
 
             dimansion = len(code.square_brackets1())
@@ -805,11 +805,11 @@ class MyListener(Mx_parserListener):
                 for i in range(1, len(expressionlist)):
                     type2 = self.return_expressiontype(expressionlist[i])
                     if type2 != "null" and type1[:-3] != type2[:-3]:
-                        print("error: type mismatch")
+                        print("Type Mismatch")
                         sys.exit(1)
                 type2 = type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
                 if type2 != type:
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
 
             return type
@@ -833,7 +833,7 @@ class MyListener(Mx_parserListener):
             for i in range(1, len(expression)):
                 type_ = self.return_expressiontype(expression[i])
                 if type_ != "int[0]":
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
             dimansion = len(code.square_brackets1())
             type = self.return_expressiontype(code.expression(0))
@@ -907,7 +907,7 @@ class MyListener(Mx_parserListener):
             if variableDeclarationpart.expression() != None:
                 type2 = self.return_expressiontype(variableDeclarationpart.expression())
                 if type2 != type_ and type2 != "null":
-                    print("error: type mismatch")
+                    print("Type Mismatch")
                     sys.exit(1)
 
                 if type2 == "null":
@@ -948,21 +948,21 @@ class MyListener(Mx_parserListener):
                 )
                 for i in member_list:
                     if i.name in class_.class_member_map:
-                        print("error: redeclaration")
+                        print("Multiple Definitions")
                         sys.exit(1)
                     class_.class_member_map[i.name] = i
             elif member.functionDefinition() != None:
                 self.priority += 1
                 function = self.functionDefinition_decode(member.functionDefinition())
                 if function.name in class_.class_function_map:
-                    print("error: redeclaration")
+                    print("Multiple Definitions")
                     sys.exit(1)
                 class_.class_function_map[function.name] = function
                 self.priority -= 1
             else:
                 self.priority += 1
                 if "construction" in class_.class_function_map:
-                    print("error: redeclaration")
+                    print("Multiple Definitions")
                     sys.exit(1)
                 if (
                     member.construction().IDENTIFIER().getText()
@@ -1021,14 +1021,14 @@ class MyListener(Mx_parserListener):
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
                 class_ = self.class_decode(child)
                 if class_.name in self.usertype_map:
-                    print("error: redeclaration")
+                    print("Multiple Definitions")
                     sys.exit(1)
                 self.usertype_map[class_.name] = class_
                 # self.variable_definition_map["this"] = [
                 #     parameterclass(class_.name, "this", None, self.priority)
                 # ]
                 if class_.name[:-3] in self.function_definition_map:
-                    print("Error: redeclaration")
+                    print("Multiple Definitions")
                     sys.exit(1)
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
                 returnType = self.type_to_string(child.returnType().getText())
@@ -1047,7 +1047,7 @@ class MyListener(Mx_parserListener):
                     and self.priority == 1
                 ):
                     if self.int_main_check:
-                        print("Error: Multiple definitions of main function")
+                        print("Multiple Definitions")
                         sys.exit(1)
                     self.int_main_check = True
                 func = functionclass(returnType, name, parameter_list, self.priority)
@@ -1056,7 +1056,7 @@ class MyListener(Mx_parserListener):
                     and self.enterclass == ""
                     and self.priority == self.function_definition_map[name][-1].piority
                 ):
-                    print("Error: redeclaration")
+                    print("Multiple Definitions")
                     sys.exit(1)
                 if not (
                     name in self.function_definition_map
@@ -1073,7 +1073,7 @@ class MyListener(Mx_parserListener):
                 #     else:
                 #         self.variable_definition_map[param.name] += [param]
                 if self.type_to_string(name) in self.usertype_map:
-                    print("Error: redeclaration")
+                    print("Multiple Definitions")
                     sys.exit(1)
         self.priority -= 1
 
@@ -1082,7 +1082,7 @@ class MyListener(Mx_parserListener):
         returnType = self.type_to_string(ctx.returnType().getText())
         name = ctx.IDENTIFIER().getText()
         if name == "this":
-            print("error: this is a reserved word.")
+            print("Invalid Identifier")
             sys.exit(1)
 
         parameterList = ctx.parameterList()
@@ -1109,7 +1109,7 @@ class MyListener(Mx_parserListener):
             and self.priority == self.function_definition_map[name][-1].priority
             and self.priority != 1
         ):
-            print("Error: redeclaration")
+            print("Multiple Definitions")
             sys.exit(1)
         if not (
             name in self.function_definition_map
@@ -1127,7 +1127,7 @@ class MyListener(Mx_parserListener):
             else:
                 self.variable_definition_map[param.name] += [param]
         if self.type_to_string(name) in self.usertype_map and self.priority != 1:
-            print("Error: redeclaration")
+            print("Multiple Definitions")
             sys.exit(1)
 
     def exitFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
@@ -1140,11 +1140,7 @@ class MyListener(Mx_parserListener):
                 and self.function_definition_stack[-1].name == "main"
             )
         ):
-            print(
-                "Error: Function "
-                + self.function_definition_stack[-1].name
-                + " does not return a value"
-            )
+            print("Missing Return Statement")
             sys.exit(1)
         for i in range(len(self.variable_definition_stack) - 1, -1, -1):
             if self.variable_definition_stack[i].priority <= self.priority:
@@ -1229,7 +1225,7 @@ class MyListener(Mx_parserListener):
                 i.name in self.variable_definition_map
                 and self.priority == self.variable_definition_map[i.name][-1].priority
             ):
-                print("Error: redeclaration")
+                print("Multiple Definitions")
                 sys.exit(1)
             if i.name not in self.variable_definition_map:
                 self.variable_definition_map[i.name] = [i]
@@ -1242,7 +1238,7 @@ class MyListener(Mx_parserListener):
                 i.name in self.function_definition_map
                 and i.priority == self.function_definition_map[i.name][-1].priority
             ):
-                print("Error: redeclaration")
+                print("Multiple Definitions")
                 sys.exit(1)
             if i.name not in self.function_definition_map:
                 self.function_definition_map[i.name] = [i]
@@ -1257,7 +1253,7 @@ class MyListener(Mx_parserListener):
                 and self.enterclass == ""
                 and self.variable_definition_map[i.name][-1].priority == i.priority
             ):
-                print("Error: redeclaration")
+                print("Multiple Definitions")
                 sys.exit(1)
             if not (
                 i.name in self.variable_definition_map
@@ -1313,7 +1309,7 @@ class MyListener(Mx_parserListener):
     #     class_ = self.class_decode(ctx)
     #     self.usertype_map[class_.name] = class_
     #     if class_.name[:-3] in self.function_definition_map:
-    #         print("Error: redeclaration")
+    #         print("Multiple Definitions")
     #         sys.exit(1)
 
     def enterType(self, ctx: Mx_parserParser.TypeContext):
@@ -1322,7 +1318,7 @@ class MyListener(Mx_parserListener):
             and self.type_to_string(ctx.IDENTIFIER().getText())
             not in self.usertype_map.keys()
         ):
-            print("Error: Undefined type")
+            print("Undefined Identifier")
             sys.exit(1)
 
     def enterExpressionStatement(self, ctx: Mx_parserParser.ExpressionStatementContext):
@@ -1332,7 +1328,7 @@ class MyListener(Mx_parserListener):
     def enterIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
         self.priority += 1
         if self.return_expressiontype(ctx.expression()) != "bool[0]":
-            print("Error: if statement condition is not bool")
+            print("Invalid Type")
             sys.exit(1)
 
     def exitIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
@@ -1358,7 +1354,7 @@ class MyListener(Mx_parserListener):
         self.loop += 1
         self.priority += 1
         if self.return_expressiontype(ctx.expression()) != "bool[0]":
-            print("Error: if statement condition is not bool")
+            print("Invalid Type")
             sys.exit(1)
 
     def exitWhileStatement(self, ctx: Mx_parserParser.WhileStatementContext):
@@ -1386,7 +1382,7 @@ class MyListener(Mx_parserListener):
         if expression != None:
             type = self.return_expressiontype(expression.expression())
             if type != "bool[0]":
-                print("Error: for statement condition is not bool")
+                print("Invalid Type")
                 sys.exit(1)
 
     def enterForStatement(self, ctx: Mx_parserParser.ForStatementContext):
@@ -1424,34 +1420,30 @@ class MyListener(Mx_parserListener):
                 and returntype != "bool[0]"
                 and returntype != "string[0]"
             ):
-                print(
-                    "Error: return statement type does not match function return type"
-                )
+                print("Type Mismatch")
                 sys.exit(1)
             self.function_definition_stack[-1].returned = True
         else:
             if returntype != "void[0]":
-                print(
-                    "Error: return statement type does not match function return type"
-                )
+                print("Type Mismatch")
                 sys.exit(1)
 
     def enterAssignmentStatement(self, ctx: Mx_parserParser.AssignmentStatementContext):
         if self.return_const_or_not(ctx.expression(0)):
-            print("Error: assignment statement type does not match variable type")
+            print("Invalid Type")
             sys.exit(1)
         if isinstance(ctx.expression(0), Mx_parserParser.VariableExpressionContext):
             if ctx.exception(0).IDENTIFIER().getText() == "this":
-                print("Error: this cannot be assigned")
+                print("Invalid Type")
                 sys.exit(1)
         type1 = self.return_expressiontype(ctx.expression(0))
         type2 = self.return_expressiontype(ctx.expression(1))
         if type1 != type2 and type2 != "null":
-            print("Error: assignment statement type does not match variable type")
+            print("Type Mismatch")
             sys.exit(1)
         if type2 == "null":
             if type1 == "int[0]" or type1 == "bool[0]" or type1 == "string[0]":
-                print("Error: null cannot be assigned to primitive type variable")
+                print("Type Mismatch")
                 sys.exit(1)
 
     def enterBlock(self, ctx):
@@ -1493,18 +1485,18 @@ class MyListener(Mx_parserListener):
 
     def enterBreakStatement(self, ctx):
         if self.loop == 0:
-            print("Error: break statement outside of loop")
+            print("Invalid Control Flow")
             sys.exit(1)
 
     def enterContinueStatement(self, ctx):
         if self.loop == 0:
-            print("Error: continue statement outside of loop")
+            print("Invalid Control Flow")
             sys.exit(1)
 
 
 class MyErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        print(f"Syntax error at line {line}:{column}. {msg}")
+        print("Invalid Identifier")
         sys.exit(1)
 
 
