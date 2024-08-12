@@ -443,9 +443,7 @@ class MyListener(Mx_parserListener):
             ) or isinstance(
                 code.expression(0), Mx_parserParser.NewVariableExpressionContext
             ):
-                print(
-                    "error: The shape of multidimensional array must be specified from left to right"
-                )
+                print("Invalid Identifier")
                 sys.exit(1)
             for i in range(1, len(expression)):
                 type_ = self.return_expressiontype(expression[i])
@@ -455,6 +453,9 @@ class MyListener(Mx_parserListener):
             dimansion = len(code.square_brackets1())
             type = self.return_expressiontype(code.expression(0))
             dimansion2 = int(type.split("[")[1].split("]")[0])
+            if dimansion2 - dimansion < 0:
+                print("Dimension Out Of Bound")
+                sys.exit(1)
             return type.split("[")[0] + "[" + str(dimansion2 - dimansion) + "]"
         elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
             # parenthesesExpression
@@ -1492,6 +1493,14 @@ class MyListener(Mx_parserListener):
         if self.loop == 0:
             print("Invalid Control Flow")
             sys.exit(1)
+
+    def enterFstring(self, ctx: Mx_parserParser.FstringContext):
+        expression = ctx.expression()
+        for e in expression:
+            type = self.return_expressiontype(e)
+            if type != "int[0]" and type != "string[0]" and type != "bool[0]":
+                print("Type Mismatch")
+                sys.exit(1)
 
 
 class MyErrorListener(ErrorListener):
