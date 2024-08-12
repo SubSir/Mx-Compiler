@@ -16,7 +16,7 @@ build:
 # Define the run rule
 run:
 	@echo "Running $(MAINFILE)..."
-	@python $(MAINFILE)
+	@python3 $(MAINFILE)
 
 # Default target is 'build'
 all: build
