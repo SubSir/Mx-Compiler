@@ -41,12 +41,14 @@ class parameterclass:
     name = ""
     value = ""
     priority = -1
+    size = 0
 
-    def __init__(self, type, name, value, priority):
+    def __init__(self, type, name, value, priority, size=0):
         self.type = type
         self.name = name
         self.value = value
         self.priority = priority
+        self.size = size
 
 
 class classclass:
@@ -707,7 +709,7 @@ class MyListener(Mx_parserListener):
                 return result
 
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
-                return "int[0]"
+                return str()
             elif type == "string[0]":
                 if name == "length":
                     return "int[0]"
@@ -852,6 +854,7 @@ class MyListener(Mx_parserListener):
                 code.IDENTIFIER().getText(),
                 None,
                 self.priority,
+                0,
             )
         else:
             return parameterclass(
@@ -859,6 +862,7 @@ class MyListener(Mx_parserListener):
                 code.IDENTIFIER().getText(),
                 None,
                 self.priority,
+                -1,  # 这里不知道
             )
 
     def parameterList_decode(self, code) -> list[parameterclass]:
