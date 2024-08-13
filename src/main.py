@@ -1303,7 +1303,7 @@ class MyListener(Mx_parserListener):
             and self.type_to_string(ctx.IDENTIFIER().getText())
             not in self.usertype_map.keys()
         ):
-            print("Undefined Identifier")
+            print("Invalid Identifier")
             sys.exit(1)
 
     def enterExpressionStatement(self, ctx: Mx_parserParser.ExpressionStatementContext):
