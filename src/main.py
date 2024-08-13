@@ -770,6 +770,10 @@ class MyListener(Mx_parserListener):
                 else:
                     fstring = constant.string_constant().fstring()
                     expressionlist = fstring.expression()
+                    middle = fstring.FSTRING_MIDDLE_PART()
+                    part1 = fstring.FSTRING_PART1().getText()[1:-1] + '\\00"'
+                    print("%" + str(len(string_)) + "_PART1")
+                    # for i in range(len(expressionlist)):
                 return result
             if constant.array_constant() != None:
                 expressionlist = constant.array_constant().expression()

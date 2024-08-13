@@ -154,7 +154,7 @@ BLOCK_COMMENT: '/*' .*? '*/' -> skip;
 
 // F-string的规则
 fstring:
-	FSTRING_PART1 (expression FSTRING_MIDDLE_PART)* FSTRING_PART2;
+	FSTRING_PART1 expression (FSTRING_MIDDLE_PART expression)* FSTRING_PART2;
 
 FSTRING_PART1: 'f"' ( ESC2 | ~[\r\n"$])* '$';
 
