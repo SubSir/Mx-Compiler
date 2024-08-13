@@ -710,7 +710,7 @@ class MyListener(Mx_parserListener):
                 self.type2ir(func.returnType())
                 + " @"
                 + type
-                + "."
+                + "_"
                 + name
                 + "("
                 + "%"
@@ -718,7 +718,7 @@ class MyListener(Mx_parserListener):
                 + " "
                 + self.return_expression2ir(code.expression())
             )  # void 有问题
-            result = "%" + type + "." + name
+            result = "%" + type + "_" + name
             for i in range(len(func.parameterList)):
                 type2 = func.parameterList[i].type
                 func2ir += (
@@ -737,20 +737,40 @@ class MyListener(Mx_parserListener):
             mem = type_.class_member_map[name]
             index = type_.class_member_index_map[name]
             caller = self.return_expression2ir(code.expression())
-            result = caller + "." + name
+            result = caller + "_" + name
             print(
-                result + " = getelementptr " + self.type2ir(type_) + ", ptr " + caller
+                result
+                + " = getelementptr "
+                + self.type2ir(type_)
+                + ", ptr "
+                + caller
+                + ", i32 0, i32 "
+                + str(index)
             )
-
+            return result
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
             constant = code.constant()
             if constant.INTEGER_CONSTANT() != None:
                 # if print:
                 #     print(constant.getText(), end=" ")
-                return "int[0]"
+                return constant.INTEGER_CONSTANT().getText()
             if constant.string_constant() != None:
-                return "string[0]"
+                string_ = constant.string_constant().getText()
+                result = "%" + str(len(string_))  # 可能有问题
+                if constant.string_constant().STRING_CONTENT() != None:
+                    print(
+                        result
+                        + " = private constant ["
+                        + str(len(string_) - 1)
+                        + " x i8] c"
+                        + string_[:-1]
+                        + '\\00"'
+                    )
+                else:
+                    fstring = constant.string_constant().fstring()
+                    expressionlist = fstring.expression()
+                return result
             if constant.array_constant() != None:
                 expressionlist = constant.array_constant().expression()
                 if len(expressionlist) == 0:
