@@ -58,6 +58,7 @@ class classclass:
     name = ""
     class_member_map = {}  # name -> parameterclass
     class_function_map = {}  # name -> functionclass
+    class_member_index_map = {}  # name -> index
 
     def __init__(self, name, class_member_map_=None, class_function_map_=None):
         self.name = name
@@ -361,23 +362,8 @@ class MyListener(Mx_parserListener):
                 if name in type_.class_member_map:
                     mem = type_.class_member_map[name]
                     return mem.type
-                else:
-                    print("Undefined Identifier")
-                    sys.exit(1)
-            elif name == "size" and type[-1] == "]":  # 写的很糟糕
-                return "int[0]"
-            elif type == "string[0]":
-                if name == "length":
-                    return "int[0]"
-                elif name == "substring":
-                    return "string[0]"
-                elif name == "parseInt":
-                    return "int[0]"
-                elif name == "ord":
-                    return "int[0]"
-            else:
-                print("Undefined Identifier")
-                sys.exit(1)
+            print("Undefined Identifier")
+            sys.exit(1)
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
             constant = code.constant()
@@ -696,21 +682,6 @@ class MyListener(Mx_parserListener):
             type_ = self.usertype_map[type]
             if name in type_.class_function_map:
                 func = type_.class_function_map[name]
-                func2ir = (
-                    self.type2ir(func.returnType()) + " @" + type + "." + name + "("
-                )
-                result = "%" + type + "." + name
-                for i in range(len(func.parameterList)):
-                    type2 = func.parameterList[i].type
-                    func2ir += (
-                        self.type2ir(type2)
-                        + " "
-                        + self.return_expression2ir(code.expressionList().expression(i))
-                    )
-                func2ir += ")"
-                print(result + " = call " + func2ir)
-                return result
-
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
                 index = int(type[-2]) - 1
                 return self.variable_definition_map[code.expression().getText()].size[
@@ -718,39 +689,59 @@ class MyListener(Mx_parserListener):
                 ]
             elif type == "string[0]":
                 if name == "length":
-                    return "int[0]"
+                    func = functionclass("int[0]", name, [], 0)
                 elif name == "substring":
-                    return "string[0]"
+                    func = functionclass(
+                        "string[0]",
+                        name,
+                        [
+                            parameterclass("int[0]", "a", 0, 0),
+                            parameterclass("int[0]", "b", 0, 0),
+                        ],
+                        0,
+                    )
                 elif name == "parseInt":
-                    return "int[0]"
+                    func = functionclass("int[0]", name, [], 0)
                 elif name == "ord":
-                    return "int[0]"
+                    func = functionclass(
+                        "string[0]", name, [parameterclass("int[0]", "a", 0, 0)], 0
+                    )
+            func2ir = (
+                self.type2ir(func.returnType())
+                + " @"
+                + type
+                + "."
+                + name
+                + "("
+                + "%"
+                + self.type2ir(type)
+                + " "
+                + self.return_expression2ir(code.expression())
+            )  # void 有问题
+            result = "%" + type + "." + name
+            for i in range(len(func.parameterList)):
+                type2 = func.parameterList[i].type
+                func2ir += (
+                    self.type2ir(type2)
+                    + " "
+                    + self.return_expression2ir(code.expressionList().expression(i))
+                )
+            func2ir += ")"
+            print(result + " = call " + func2ir)
+            return result
         elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
             # memberMemberCall
             type = self.return_expressiontype(code.expression())
             name = code.IDENTIFIER().getText()
-            if type in self.usertype_map:
-                type_ = self.usertype_map[type]
-                if name in type_.class_member_map:
-                    mem = type_.class_member_map[name]
-                    return mem.type
-                else:
-                    print("Undefined Identifier")
-                    sys.exit(1)
-            elif name == "size" and type[-1] == "]":  # 写的很糟糕
-                return "int[0]"
-            elif type == "string[0]":
-                if name == "length":
-                    return "int[0]"
-                elif name == "substring":
-                    return "string[0]"
-                elif name == "parseInt":
-                    return "int[0]"
-                elif name == "ord":
-                    return "int[0]"
-            else:
-                print("Undefined Identifier")
-                sys.exit(1)
+            type_ = self.usertype_map[type]
+            mem = type_.class_member_map[name]
+            index = type_.class_member_index_map[name]
+            caller = self.return_expression2ir(code.expression())
+            result = caller + "." + name
+            print(
+                result + " = getelementptr " + self.type2ir(type_) + ", ptr " + caller
+            )
+
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
             constant = code.constant()
@@ -932,6 +923,7 @@ class MyListener(Mx_parserListener):
         name = code.IDENTIFIER().getText() + "[0]"
         members = code.classMember()
         class_ = classclass(name)
+        index = 0
         for member in members:
             if member.variableDeclaration() != None:
                 member_list = self.variableDeclaration_decode(
@@ -942,6 +934,8 @@ class MyListener(Mx_parserListener):
                         print("Multiple Definitions")
                         sys.exit(1)
                     class_.class_member_map[i.name] = i
+                    class_.class_member_index_map[i.name] = index
+                    index += 1
             elif member.functionDefinition() != None:
                 self.priority += 1
                 function = self.functionDefinition_decode(member.functionDefinition())
