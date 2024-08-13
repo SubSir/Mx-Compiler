@@ -41,14 +41,17 @@ class parameterclass:
     name = ""
     value = ""
     priority = -1
-    size = 0
+    size = []
 
-    def __init__(self, type, name, value, priority, size=0):
+    def __init__(self, type, name, value, priority, size=None):
         self.type = type
         self.name = name
         self.value = value
         self.priority = priority
-        self.size = size
+        if size == None:
+            self.size = []
+        else:
+            self.size = size
 
 
 class classclass:
@@ -709,7 +712,10 @@ class MyListener(Mx_parserListener):
                 return result
 
             elif name == "size" and type[-1] == "]":  # 写的很糟糕
-                return str()
+                index = int(type[-2]) - 1
+                return self.variable_definition_map[code.expression().getText()].size[
+                    index
+                ]
             elif type == "string[0]":
                 if name == "length":
                     return "int[0]"
@@ -854,7 +860,6 @@ class MyListener(Mx_parserListener):
                 code.IDENTIFIER().getText(),
                 None,
                 self.priority,
-                0,
             )
         else:
             return parameterclass(
@@ -862,7 +867,6 @@ class MyListener(Mx_parserListener):
                 code.IDENTIFIER().getText(),
                 None,
                 self.priority,
-                -1,  # 这里不知道
             )
 
     def parameterList_decode(self, code) -> list[parameterclass]:
@@ -1305,7 +1309,7 @@ class MyListener(Mx_parserListener):
             and self.type_to_string(ctx.IDENTIFIER().getText())
             not in self.usertype_map.keys()
         ):
-            print("Undefined Identifier")
+            print("Invalid Type")
             sys.exit(1)
 
     def enterExpressionStatement(self, ctx: Mx_parserParser.ExpressionStatementContext):
