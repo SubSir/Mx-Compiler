@@ -144,55 +144,16 @@ class MyListener(Mx_parserListener):
     def return_expression2ir(self, code, print=False) -> str:
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
-            type1 = self.return_expressiontype(code.expression())
-            name = code.IDENTIFIER().getText()
-            if name == "this":
-                print("error: cannot assign to this")
-                sys.exit(1)
-            if name in self.variable_definition_map:
-                type2 = self.variable_definition_map[name][-1].type
-            else:
-                print("Undefined Identifier")
-                sys.exit(1)
-
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            return self.return_expressiontype(code.expression())
+            pass
         elif isinstance(code, Mx_parserParser.LogicExpressionContext):
             # logicExpression
-            type1 = self.return_expressiontype(code.expression(0))
-            type2 = self.return_expressiontype(code.expression(1))
-            if type1 != "bool[0]" or type2 != "bool[0]":
-                print("Type Mismatch")
-                sys.exit(1)
-            return "bool[0]"
+            pass
         elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
             # conditionalExpression
-            if self.return_expressiontype(code.expression(0)) != "bool[0]":
-                print("Type Mismatch")
-                sys.exit(1)
-            type1 = self.return_expressiontype(code.expression(1))
-            type2 = self.return_expressiontype(code.expression(2))
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            return type1
+            pass
         elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
             # relationalExpression
-            type1 = self.return_expressiontype(code.expression(0))
-            type2 = self.return_expressiontype(code.expression(1))
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            if (
-                type1 == "bool[0]"
-                and code.relationalOperator().getText() != "=="
-                and code.relationalOperator().getText() != "!="
-            ):
-                print("error: bool type cannot be compared")
-                sys.exit(1)
-            return "bool[0]"
+            pass
         elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
             # muldivmodExpression
             t1 = self.return_expression2ir(code.expression(0))
@@ -512,294 +473,32 @@ class MyListener(Mx_parserListener):
             return "i8*"
 
     def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
-        self.priority += 1
         for child in ctx.getChildren():
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
-                class_ = self.class_decode(child)
-                if class_.name in self.usertype_map:
-                    print("Multiple Definitions")
-                    sys.exit(1)
-                self.usertype_map[class_.name] = class_
-                # self.variable_definition_map["this"] = [
-                #     parameterclass(class_.name, "this", None, self.priority)
-                # ]
-                if class_.name[:-3] in self.function_definition_map:
-                    print("Multiple Definitions")
-                    sys.exit(1)
+                pass
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
-                returnType = self.type_to_string(child.returnType().getText())
-                name = child.IDENTIFIER().getText()
-                parameterList = child.parameterList()
-                parameter_list = []
-                num_parameters = 0
-                if parameterList is not None:
-                    num_parameters = len(parameterList.parameter())
-                    parameter_list = self.parameterList_decode(parameterList)
-
-                if (
-                    name == "main"
-                    and returnType == "int[0]"
-                    and num_parameters == 0
-                    and self.priority == 1
-                ):
-                    if self.int_main_check:
-                        print("Multiple Definitions")
-                        sys.exit(1)
-                    self.int_main_check = True
-                func = functionclass(returnType, name, parameter_list, self.priority)
-                if (
-                    name in self.function_definition_map
-                    and self.enterclass == ""
-                    and self.priority == self.function_definition_map[name][-1].piority
-                ):
-                    print("Multiple Definitions")
-                    sys.exit(1)
-                if not (
-                    name in self.function_definition_map
-                    and self.priority == self.function_definition_map[name][-1].priority
-                ):
-                    if name not in self.function_definition_map:
-                        self.function_definition_map[name] = []
-                    self.function_definition_map[name] += [func]
-                    # self.function_definition_stack.append(func)
-                # self.variable_definition_stack += parameter_list
-                # for param in parameter_list:
-                #     if param.name not in self.variable_definition_map:
-                #         self.variable_definition_map[param.name] = [param]
-                #     else:
-                #         self.variable_definition_map[param.name] += [param]
-                if self.type_to_string(name) in self.usertype_map:
-                    print("Multiple Definitions")
-                    sys.exit(1)
-        self.priority -= 1
+                pass
 
     def enterFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
-        self.priority += 1
-        returnType = self.type_to_string(ctx.returnType().getText())
-        name = ctx.IDENTIFIER().getText()
-        if name == "this":
-            print("Invalid Identifier")
-            sys.exit(1)
-
-        parameterList = ctx.parameterList()
-        parameter_list = []
-        num_parameters = 0
-        if parameterList is not None:
-            num_parameters = len(parameterList.parameter())
-            parameter_list = self.parameterList_decode(parameterList)
-
-        # if (
-        #     name == "main"
-        #     and returnType == "int[0]"
-        #     and num_parameters == 0
-        #     and self.priority == 1
-        # ):
-        #     if self.int_main_check:
-        #         print("Error: Multiple definitions of main function")
-        #         sys.exit(1)
-        #     self.int_main_check = True
-        func = functionclass(returnType, name, parameter_list, self.priority)
-        if (
-            name in self.function_definition_map
-            and self.enterclass == ""
-            and self.priority == self.function_definition_map[name][-1].priority
-            and self.priority != 1
-        ):
-            print("Multiple Definitions")
-            sys.exit(1)
-        if not (
-            name in self.function_definition_map
-            and self.priority == self.function_definition_map[name][-1].priority
-        ):
-            if name not in self.function_definition_map:
-                self.function_definition_map[name] = []
-            self.function_definition_map[name] += [func]
-        if self.priority == 1 or self.enterclass != "":
-            self.function_definition_stack.append(func)
-        self.variable_definition_stack += parameter_list
-        for param in parameter_list:
-            if param.name not in self.variable_definition_map:
-                self.variable_definition_map[param.name] = [param]
-            else:
-                self.variable_definition_map[param.name] += [param]
-        if self.type_to_string(name) in self.usertype_map and self.priority != 1:
-            print("Multiple Definitions")
-            sys.exit(1)
+        pass
 
     def exitFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
-        self.priority -= 1
-        if (
-            self.function_definition_stack[-1].returned == False
-            and self.function_definition_stack[-1].returnType != "void[0]"
-            and not (
-                self.function_definition_stack[-1].returnType == "int[0]"
-                and self.function_definition_stack[-1].name == "main"
-            )
-        ):
-            print("Missing Return Statement")
-            sys.exit(1)
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
-
-        for i in range(len(self.function_definition_stack) - 1, -1, -1):
-            if self.function_definition_stack[i].priority - 1 <= self.priority:
-                break
-            if len(
-                self.function_definition_map[self.function_definition_stack[i].name]
-                == 1
-            ):
-                self.function_definition_map.pop(self.function_definition_stack[i].name)
-            else:
-                self.function_definition_map[
-                    self.function_definition_stack[i].name
-                ].pop()
-            self.function_definition_stack.pop()
-            i -= 1
+        pass
 
     def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
-        self.priority -= 1
-        self.enterclass = ""
-        self.function_definition_map.pop("construction")
-        self.variable_definition_map.pop("this")
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
-
-        for i in range(len(self.function_definition_stack) - 1, -1, -1):
-            if self.function_definition_stack[i].priority - 1 <= self.priority:
-                break
-            if (
-                len(
-                    self.function_definition_map[self.function_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.function_definition_map.pop(self.function_definition_stack[i].name)
-            else:
-                self.function_definition_map[
-                    self.function_definition_stack[i].name
-                ].pop()
-            self.function_definition_stack.pop()
-            i -= 1
+        pass
 
     def enterClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
-        self.priority += 1
-        self.enterclass = ctx.IDENTIFIER().getText() + "[0]"
-        class_ = self.usertype_map[ctx.IDENTIFIER().getText() + "[0]"]
-        self.variable_definition_map["this"] = [
-            parameterclass(class_.name, "this", None, self.priority)
-        ]
-        for i in class_.class_member_map.values():
-            if (
-                i.name in self.variable_definition_map
-                and self.priority == self.variable_definition_map[i.name][-1].priority
-            ):
-                print("Multiple Definitions")
-                sys.exit(1)
-            if i.name not in self.variable_definition_map:
-                self.variable_definition_map[i.name] = [i]
-            else:
-                self.variable_definition_map[i.name] += [i]
-            self.variable_definition_stack.append(i)
-
-        for i in class_.class_function_map.values():
-            if (
-                i.name in self.function_definition_map
-                and i.priority == self.function_definition_map[i.name][-1].priority
-            ):
-                print("Multiple Definitions")
-                sys.exit(1)
-            if i.name not in self.function_definition_map:
-                self.function_definition_map[i.name] = [i]
-            else:
-                self.function_definition_map[i.name] += [i]
+        pass
 
     def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
-        list = self.variableDeclaration_decode(ctx)
-        for i in list:
-            if (
-                i.name in self.variable_definition_map
-                and self.enterclass == ""
-                and self.variable_definition_map[i.name][-1].priority == i.priority
-            ):
-                print("Multiple Definitions")
-                sys.exit(1)
-            if not (
-                i.name in self.variable_definition_map
-                and self.variable_definition_map[i.name][-1].priority == i.priority
-            ):
-                if i.name not in self.variable_definition_map:
-                    self.variable_definition_map[i.name] = [i]
-                else:
-                    self.variable_definition_map[i.name] += [i]
-                self.variable_definition_stack.append(i)
+        pass
 
     def enterElsestatement(self, ctx: Mx_parserParser.ElsestatementContext):
-        self.priority -= 1
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
-        self.priority += 1
+        pass
 
     def exitElsestatement(self, ctx: Mx_parserParser.ElsestatementContext):
-        self.priority -= 1
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
-        self.priority += 1
+        pass
 
     # def enterClassDefinition(self, ctx):
     #     class_ = self.class_decode(ctx)
@@ -809,120 +508,34 @@ class MyListener(Mx_parserListener):
     #         sys.exit(1)
 
     def enterType(self, ctx: Mx_parserParser.TypeContext):
-        if (
-            ctx.IDENTIFIER() != None
-            and self.type_to_string(ctx.IDENTIFIER().getText())
-            not in self.usertype_map.keys()
-        ):
-            print("Invalid Identifier")
-            sys.exit(1)
+        pass
 
     def enterExpressionStatement(self, ctx: Mx_parserParser.ExpressionStatementContext):
-        self.return_expressiontype(ctx.expression())
-        self.return_const_or_not(ctx.expression())
+        pass
 
     def enterIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
-        self.priority += 1
-        if self.return_expressiontype(ctx.expression()) != "bool[0]":
-            print("Invalid Type")
-            sys.exit(1)
+        pass
 
     def exitIfStatement(self, ctx: Mx_parserParser.IfStatementContext):
-        self.priority -= 1
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
+        pass
 
     def enterWhileStatement(self, ctx: Mx_parserParser.WhileStatementContext):
-        self.loop += 1
-        self.priority += 1
-        if self.return_expressiontype(ctx.expression()) != "bool[0]":
-            print("Invalid Type")
-            sys.exit(1)
+        pass
 
     def exitWhileStatement(self, ctx: Mx_parserParser.WhileStatementContext):
-        self.loop -= 1
-        self.priority -= 1
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
+        pass
 
     def enterForControl(self, ctx: Mx_parserParser.ForControlContext):
-        expression = ctx.expression2()
-        if expression != None:
-            type = self.return_expressiontype(expression.expression())
-            if type != "bool[0]":
-                print("Invalid Type")
-                sys.exit(1)
+        pass
 
     def enterForStatement(self, ctx: Mx_parserParser.ForStatementContext):
-        self.loop += 1
-        self.priority += 1
+        pass
 
     def exitForStatement(self, ctx: Mx_parserParser.ForStatementContext):
-        self.loop -= 1
-        self.priority -= 1
-        for i in range(len(self.variable_definition_stack) - 1, -1, -1):
-            if self.variable_definition_stack[i].priority <= self.priority:
-                break
-            if (
-                len(
-                    self.variable_definition_map[self.variable_definition_stack[i].name]
-                )
-                == 1
-            ):
-                self.variable_definition_map.pop(self.variable_definition_stack[i].name)
-            else:
-                self.variable_definition_map[
-                    self.variable_definition_stack[i].name
-                ].pop()
-            self.variable_definition_stack.pop()
-            i -= 1
+        pass
 
     def enterReturnStatement(self, ctx: Mx_parserParser.ReturnStatementContext):
-        returntype = self.function_definition_stack[-1].returnType
-        expression = ctx.expression()
-        if expression != None:
-            type1 = self.return_expressiontype(expression)
-            if type1 != returntype and not (
-                type1 == "null"
-                and returntype != "int[0]"
-                and returntype != "bool[0]"
-                and returntype != "string[0]"
-            ):
-                print("Type Mismatch")
-                sys.exit(1)
-            self.function_definition_stack[-1].returned = True
-        else:
-            if returntype != "void[0]":
-                print("Type Mismatch")
-                sys.exit(1)
+        pass
 
     def enterAssignmentStatement(self, ctx: Mx_parserParser.AssignmentStatementContext):
         pass
