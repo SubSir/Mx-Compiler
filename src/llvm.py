@@ -9,71 +9,14 @@ from antlr4.tree.Tree import ParseTreeWalker
 from antlr4.error.ErrorListener import ErrorListener
 
 
-class arrayclass:
-    type = ""
-    dimansion = 0
-
-    def __init__(self, type, dimansion):
-        self.type = type
-        self.dimansion = dimansion
-
-    def to_string(self) -> str:
-        return self.type + "[" + str(int(self.dimansion)) + "]"
-
-
-class functionclass:
-    returnType = ""
-    name = ""
-    parameterList = []
-    priority = -1
-    returned = 0
-    # body = []     语法检查尚不考虑
-
-    def __init__(self, returnType, name, parameterList, priority):
-        self.returnType = returnType
-        self.name = name
-        self.parameterList = parameterList
-        self.priority = priority
-
-
-class parameterclass:
-    type = ""
-    name = ""
-    value = ""
-    priority = -1
-    size = []
-
-    def __init__(self, type, name, value, priority, size=None):
-        self.type = type
-        self.name = name
-        self.value = value
-        self.priority = priority
-        if size == None:
-            self.size = []
-        else:
-            self.size = size
-
-
-class classclass:
-    name = ""
-    class_member_map = {}  # name -> parameterclass
-    class_function_map = {}  # name -> functionclass
-    class_member_index_map = {}  # name -> index
-
-    def __init__(self, name, class_member_map_=None, class_function_map_=None):
-        self.name = name
-        if class_member_map_ is None:
-            self.class_member_map = {}
-        else:
-            self.class_member_map = class_member_map_
-        if class_function_map_ is None:
-            self.class_function_map = {}
-        else:
-            self.class_function_map = class_function_map_
-
-
 # 定义一个监听器类来遍历和处理语法树
-class MyListener(Mx_parserListener):
+class MyListener2(Mx_parserListener):
+    varaible_cnt = 0
+    init_cnt = 0
+    global_str = ""
+    class_member_enum = {}  # A.x -> 0
+    function_definition_list = []  # [str]
+    variable_map = {}  # name -> (type, value)
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -85,63 +28,13 @@ class MyListener(Mx_parserListener):
     #     print(f"Existing rule: {rule_name}, Text: {rule_text}")
 
     def __init__(self) -> None:
-        print_ = functionclass(
-            "void[0]",
-            "print",
-            [parameterclass("string[0]", "__str", "", 0)],
-            0,
-        )
-        println = functionclass(
-            "void[0]",
-            "println",
-            [parameterclass("string[0]", "__str", "", 0)],
-            0,
-        )
-        printInt = functionclass(
-            "void[0]",
-            "printInt",
-            [parameterclass("int[0]", "__int", "", 0)],
-            0,
-        )
-        printlnInt = functionclass(
-            "void[0]",
-            "printlnInt",
-            [parameterclass("int[0]", "__int", "", 0)],
-            0,
-        )
-        getstring = functionclass(
-            "string[0]",
-            "getString",
-            [],
-            0,
-        )
-        getint = functionclass(
-            "int[0]",
-            "getInt",
-            [],
-            0,
-        )
-        tostring = functionclass(
-            "string[0]",
-            "toString",
-            [parameterclass("int[0]", "__int", "", 0)],
-            0,
-        )
-        self.function_definition_stack.append(print_)
-        self.function_definition_stack.append(println)
-        self.function_definition_stack.append(printlnInt)
-        self.function_definition_stack.append(printInt)
-        self.function_definition_stack.append(getstring)
-        self.function_definition_stack.append(getint)
-        self.function_definition_stack.append(tostring)
-        for i in self.function_definition_stack:
-            self.function_definition_map[i.name] = [i]
+        pass
 
     # def visitTerminal(self, node: TerminalNodeImpl):
     #     # 当访问到终端节点时调用此方法
     #     print(node.getText(), end="")
 
-    def return_expression2ir(self, code, print=False) -> str:
+    def return_expression2ir(self, code, stream) -> str:  # stream[0] 为流
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
             pass
@@ -156,33 +49,36 @@ class MyListener(Mx_parserListener):
             pass
         elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
             # muldivmodExpression
-            t1 = self.return_expression2ir(code.expression(0))
-            t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + t1 + "_" + t2
+            t1 = self.return_expression2ir(code.expression(0), stream)
+            t2 = self.return_expression2ir(code.expression(1), stream)
+            result = "%" + str(self.varaible_cnt)
+            self.varaible_cnt += 1
             if code.MUL() != None:
                 op = "mul"
             elif code.DIV() != None:
                 op = "sdiv"
             else:
                 op = "srem"
-            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            stream[0] += result + " = " + op + " i32 " + t1 + " " + t2
             return result
         elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
             # plusminusExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + t1 + "_" + t2
+            result = "%" + str(self.varaible_cnt)
+            self.varaible_cnt += 1
             if code.PLUS() != None:
                 op = "add"
             elif code.MINUS() != None:
                 op = "sub"
-            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            stream[0] += result + " = " + op + " i32 " + t1 + " " + t2
             return result
         elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
             # shiftExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + t1 + "_" + t2
+            result = "%" + str(self.varaible_cnt)
+            self.varaible_cnt += 1
             if code.LSHIFT() != None:
                 op = "shl"
             elif code.RSHIFT() != None:
@@ -193,20 +89,23 @@ class MyListener(Mx_parserListener):
             # andxororExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + t1 + "_" + t2
+            result = "%" + str(self.varaible_cnt)
+            self.varaible_cnt += 1
             if code.AND() != None:
                 op = "and"
             elif code.XOR() != None:
                 op = "xor"
             else:
                 op = "or"
-            print(result + " = " + op + " i32 " + t1 + " " + t2)
+            stream += result + " = " + op + " i32 " + t1 + " " + t2
             return result
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
+            result = "%" + str(self.varaible_cnt)
+            self.varaible_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + " = add i32 " + t + " 1")
-            return t
+            stream += result + " = add i32 " + t + " 1"
+            return result
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
             t = self.return_expression2ir(code.expression())
@@ -239,93 +138,13 @@ class MyListener(Mx_parserListener):
             return t + "-"
         elif isinstance(code, Mx_parserParser.FunctionCallContext):
             # functionCall
-            name = code.IDENTIFIER().getText()
-            func = self.function_definition_map[name][-1]
-            func2ir = self.type2ir(func.returnType()) + " @" + name + "("
-            result = "%" + name
-            for i in range(len(func.parameterList)):
-                type2 = func.parameterList[i].type
-                func2ir += (
-                    self.type2ir(type2)
-                    + " "
-                    + self.return_expression2ir(code.expressionList().expression(i))
-                )
-            func2ir += ")"
-            print(result + " = call " + func2ir)
-            return result
+            pass
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
             # memberFunctionCall
-            type = self.return_expressiontype(code.expression())
-            name = code.IDENTIFIER().getText()
-            type_ = self.usertype_map[type]
-            if name in type_.class_function_map:
-                func = type_.class_function_map[name]
-            elif name == "size" and type[-1] == "]":  # 写的很糟糕
-                index = int(type[-2]) - 1
-                return self.variable_definition_map[code.expression().getText()].size[
-                    index
-                ]
-            elif type == "string[0]":
-                if name == "length":
-                    func = functionclass("int[0]", name, [], 0)
-                elif name == "substring":
-                    func = functionclass(
-                        "string[0]",
-                        name,
-                        [
-                            parameterclass("int[0]", "a", 0, 0),
-                            parameterclass("int[0]", "b", 0, 0),
-                        ],
-                        0,
-                    )
-                elif name == "parseInt":
-                    func = functionclass("int[0]", name, [], 0)
-                elif name == "ord":
-                    func = functionclass(
-                        "string[0]", name, [parameterclass("int[0]", "a", 0, 0)], 0
-                    )
-            func2ir = (
-                self.type2ir(func.returnType())
-                + " @"
-                + type
-                + "_"
-                + name
-                + "("
-                + "%"
-                + self.type2ir(type)
-                + " "
-                + self.return_expression2ir(code.expression())
-            )  # void 有问题
-            result = "%" + type + "_" + name
-            for i in range(len(func.parameterList)):
-                type2 = func.parameterList[i].type
-                func2ir += (
-                    self.type2ir(type2)
-                    + " "
-                    + self.return_expression2ir(code.expressionList().expression(i))
-                )
-            func2ir += ")"
-            print(result + " = call " + func2ir)
-            return result
+            pass
         elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
             # memberMemberCall
-            type = self.return_expressiontype(code.expression())
-            name = code.IDENTIFIER().getText()
-            type_ = self.usertype_map[type]
-            mem = type_.class_member_map[name]
-            index = type_.class_member_index_map[name]
-            caller = self.return_expression2ir(code.expression())
-            result = caller + "_" + name
-            print(
-                result
-                + " = getelementptr "
-                + self.type2ir(type_)
-                + ", ptr "
-                + caller
-                + ", i32 0, i32 "
-                + str(index)
-            )
-            return result
+            pass
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
             constant = code.constant()
@@ -416,31 +235,7 @@ class MyListener(Mx_parserListener):
             return result
         elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
             # newArrayExpression
-            expression = code.expression()
-            for i in range(len(expression)):
-                type_ = self.return_expressiontype(expression[i])
-                if type_ != "int[0]":
-                    print("Type Mismatch")
-                    sys.exit(1)
-
-            dimansion = len(code.square_brackets1())
-            type = arrayclass(code.type_().getText(), dimansion).to_string()
-            if code.array_constant() != None:
-                expressionlist = code.array_constant().expression()
-                if len(expressionlist) == 0:
-                    return type
-                type1 = self.return_expressiontype(expressionlist[0])
-                for i in range(1, len(expressionlist)):
-                    type2 = self.return_expressiontype(expressionlist[i])
-                    if type2 != "null" and type1[:-3] != type2[:-3]:
-                        print("Type Mismatch")
-                        sys.exit(1)
-                type2 = type1.split("[")[0] + "[" + str(int(type1[-2]) + 1) + "]"
-                if type2 != type:
-                    print("Type Mismatch")
-                    sys.exit(1)
-                    # 没写
-            return type
+            pass
         elif isinstance(code, Mx_parserParser.VariableExpressionContext):
             # variableExpression
             identifier = code.IDENTIFIER().getText()
@@ -448,14 +243,7 @@ class MyListener(Mx_parserListener):
             return name
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
-            expression = code.expression()
-            for i in range(1, len(expression)):
-                pass
-
-            dimansion = len(code.square_brackets1())
-            type = self.return_expressiontype(code.expression(0))
-            dimansion2 = int(type.split("[")[1].split("]")[0])
-            return type.split("[")[0] + "[" + str(dimansion2 - dimansion) + "]"
+            pass
         elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
             # parenthesesExpression
             return self.return_expressiontype(code.expression())
@@ -465,19 +253,139 @@ class MyListener(Mx_parserListener):
             return "unknown"
 
     def type2ir(self, str) -> str:
-        if str == "int[0]":
+        if str == "int":
             return "i32"
-        elif str == "bool[0]":
+        elif str == "bool":
             return "i1"
-        elif str == "string[0]":
-            return "i8*"
+        return "ptr"
 
     def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
+        class_definition_str = ""
+        variable_definition_str = ""
+        function_definition_str = ""
         for child in ctx.getChildren():
             if isinstance(child, Mx_parserParser.ClassDefinitionContext):
-                pass
+                class_definition_str += "%" + child.IDENTIFIER().getText() + " = type {"
+                classmember = child.classMember()
+                cnt = 0
+                function_definition_str += (
+                    "declare void @" + child.IDENTIFIER().getText() + "_new()\n"
+                )
+                for i in range(len(classmember)):
+                    ii = classmember[i]
+                    if ii.variableDeclaration() != None:
+                        type = ii.variableDeclaration().type().getText()
+                        name = ii.variableDeclaration().IDENTIFIER().getText()
+                        class_definition_str += self.type2ir(type)
+                        if i < len(classmember) - 1:
+                            class_definition_str += ", "
+                        self.class_member_enum[child.IDENTIFIER().getText() + name] = (
+                            cnt
+                        )
+                        cnt += 1
+                    elif ii.functionDefinition() != None:
+                        type = ii.functionDefinition().returnType().getText()
+                        name = ii.functionDefinition().IDENTIFIER().getText()
+                        function_definition_str += (
+                            "declare "
+                            + self.type2ir(type)
+                            + " @"
+                            + child.IDENTIFIER().getText()
+                            + name
+                            + "( ptr"
+                        )
+                        parameterlist = self.parameterList_decode2name(
+                            ii.functionDefinition().parameterList()
+                        )
+                        for i in parameterlist:
+                            function_definition_str += ", " + self.type2ir(i[0])
+                        function_definition_str += ")\n"
+
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
-                pass
+                type = child.returnType().getText()
+                name = child.IDENTIFIER().getText()
+                function_definition_str += (
+                    "declare "
+                    + self.type2ir(type)
+                    + " @"
+                    + child.IDENTIFIER().getText()
+                    + name
+                )
+                parameterlist += self.parameterList_decode2type(child.parameterList())
+                function_definition_str += "\n"
+            elif isinstance(child, Mx_parserParser.VariableDeclarationContext):
+                if child.type_() != None:
+                    type = self.type2ir(child.type().getText())
+                else:
+                    type = "ptr"
+                default = "0"
+                if type == "ptr":
+                    default = "null"
+                for i in child.variableDeclarationparts():
+                    name = i.IDENTIFIER().getText()
+                    variable_definition_str += "@" + name + " = global " + type + " "
+                    if i.expression() == None:
+                        variable_definition_str += default
+                    else:
+                        init = 1
+                        if isinstance(i.expression(), Mx_parserParser.constant()):
+                            constant = Mx_parserParser.constant()
+                            if constant.INTEGER_CONSTANT() != None:
+                                init = 0
+                                variable_definition_str += (
+                                    constant.INTEGER_CONSTANT().getText()
+                                )
+                            elif constant.getText() == "true":
+                                init = 0
+                                variable_definition_str += "1"
+                            elif constant.getText() == "false":
+                                init = 0
+                                variable_definition_str += "0"
+                        if init:
+                            variable_definition_str += default
+                            init_func = (
+                                "define void @init"
+                                + str(self.init_cnt)
+                                + " (){\n  entry:\n"
+                            )
+
+    def parameterList_decode2type(
+        self, code: Mx_parserParser.ParameterListContext
+    ) -> str:  # (i1, i32)
+        parameterlist = code.parameter()
+        if parameterlist == None:
+            return "()"
+        ans = "("
+        for i in range(len(parameterlist)):
+            parameter = parameterlist[i]
+            if parameter.type() != None:
+                ans += self.type2ir(parameter.type().getText())
+            else:
+                ans += "ptr"
+            if i < len(parameterlist) - 1:
+                ans += ", "
+        ans += ")"
+        return ans
+
+    def parameterList_decode2name(
+        self, code: Mx_parserParser.ParameterListContext
+    ) -> list:  # [(type, name)]
+        parameterlist = code.parameter()
+        if parameterlist == None:
+            return []
+        ans = []
+        for i in range(len(parameterlist)):
+            parameter = parameterlist[i]
+            if parameter.type() != None:
+                ans.append(
+                    (
+                        self.type2ir(parameter.type().getText()),
+                        parameter.IDENTIFIER().getText(),
+                    )
+                )
+            else:
+                ans.append(("ptr", parameter.IDENTIFIER().getText()))
+        return ans
 
     def enterFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
         pass
@@ -545,6 +453,9 @@ class MyListener(Mx_parserListener):
 #     code = f.read()
 def main(code):
 
+    with open("./src/head.ll", "r") as f:
+        print(f.read())
+
     # 创建输入流和语法分析器
     input_stream = InputStream(code)
     lexer = Mx_parserLexer(input_stream)
@@ -555,7 +466,7 @@ def main(code):
     tree = parser.program()
 
     # 创建监听器实例并遍历语法树
-    listener = MyListener()
+    listener = MyListener2()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
