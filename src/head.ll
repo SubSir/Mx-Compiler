@@ -22,3 +22,5 @@ declare ptr @__newPtrArray(i32)
 declare ptr @__newIntArray(i32)
 declare ptr @__newBoolArray(i32)
 declare ptr @malloc(i32)
+
+@.string.0 = global [ 1 x i8 ] c"\00"

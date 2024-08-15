@@ -11,12 +11,13 @@ from antlr4.error.ErrorListener import ErrorListener
 
 # 定义一个监听器类来遍历和处理语法树
 class MyListener2(Mx_parserListener):
-    varaible_cnt = 0
+    variable_cnt = 0
     init_cnt = 0
+    label_cnt = 0
     global_str = ""
     class_member_enum = {}  # A.x -> 0
     function_definition_list = []  # [str]
-    variable_map = {}  # name -> (type, value)
+    variable_map = {}  # name -> (type, value) e.g. (int, 0)
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -34,108 +35,384 @@ class MyListener2(Mx_parserListener):
     #     # 当访问到终端节点时调用此方法
     #     print(node.getText(), end="")
 
-    def return_expression2ir(self, code, stream) -> str:  # stream[0] 为流
+    def variable_map_find(self, index: str) -> str:
+        value = self.variable_map[index]
+        if value[0] != "":
+            return value
+        return self.variable_map_find(value)
+
+    def return_expression2ir(
+        self, code, stream
+    ) -> str:  # stream[0] 为流, 返回variable_map的index
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
-            pass
+            type = self.variable_map[code.IDENTIFIER().getText()][0]
+            t1 = self.variable_map[code.IDENTIFIER().getText()][1]
+            t2 = self.return_expression2ir(code.expression(), stream)
+            if self.type2ir(type) == "ptr" and type != "string":
+                self.variable_map[code.IDENTIFIER().getText()] = ("", t2)
+                return t1
+
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            if type == "string":
+                stream[0] += (
+                    result
+                    + " = call ptr @string.add( ptr "
+                    + self.variable_map[t2][1]
+                    + ", ptr @.string.0) \n"
+                )
+            else:
+                stream[0] += (
+                    result
+                    + " = add "
+                    + self.type2ir(type)
+                    + self.variable_map[t2][1]
+                    + ", 0\n"
+                )
+            self.variable_map[code.IDENTIFIER().getText()] = (type, result)
+            return code.IDENTIFIER().getText()
         elif isinstance(code, Mx_parserParser.LogicExpressionContext):
             # logicExpression
-            pass
+            t1 = self.return_expression2ir(code.expression(0), stream)
+            t2 = self.return_expression2ir(code.expression(1), stream)
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            if code.logicOperator().getText() == "&&":
+                stream[0] += (
+                    result
+                    + " = and i1 "
+                    + self.variable_map[t1][1]
+                    + ", "
+                    + self.variable_map[t2][1]
+                    + "\n"
+                )
+            else:
+                stream[0] += (
+                    result
+                    + " = or i1 "
+                    + self.variable_map[t1][1]
+                    + ", "
+                    + self.variable_map[t2][1]
+                    + "\n"
+                )
+            self.variable_map[code.getText()] = ("bool", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
             # conditionalExpression
-            pass
+            t1 = self.return_expression2ir(code.expression(0), stream)
+            t2 = self.return_expression2ir(code.expression(1), stream)
+            t3 = self.return_expression2ir(code.expression(2), stream)
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream[0] += (
+                "br i1 "
+                + self.variable_map[t1][1]
+                + ", label %"
+                + str(self.label_cnt)
+                + ", label %"
+                + str(self.label_cnt + 1)
+                + "\n\n"
+            )
+            stream[0] += str(self.label_cnt) + ": \n"
+            stream[0] += "br label %" + str(self.label_cnt + 2) + "\n\n"
+            stream[0] += str(self.label_cnt + 1) + ": \n"
+            stream[0] += "br label %" + str(self.label_cnt + 2) + "\n\n"
+            stream[0] += str(self.label_cnt + 2) + ": \n"
+            type = self.variable_map[t2][0]
+            stream[0] += (
+                result
+                + " = phi "
+                + self.type2ir(type)
+                + " [ "
+                + self.variable_map[t2][1]
+                + ", %"
+                + str(self.label_cnt)
+                + " ], [ "
+                + self.variable_map[t3][1]
+                + ", %"
+                + str(self.label_cnt + 1)
+                + " ]\n"
+            )
+            self.variable_map[code.getText()] = (type, result)
+            self.label_cnt += 3
+            return code.getText()
         elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
             # relationalExpression
-            pass
+            t1 = self.return_expression2ir(code.expression(0), stream)
+            t2 = self.return_expression2ir(code.expression(1), stream)
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            if self.variable_map[t1][0] == "int":
+                if code.relationalOperator().getText() == "<":
+                    stream[0] += (
+                        result
+                        + " = icmp slt i32 "
+                        + self.variable_map[t1][1]
+                        + ", "
+                        + self.variable_map[t2][1]
+                        + "\n"
+                    )
+                elif code.relationalOperator().getText() == ">":
+                    stream[0] += (
+                        result
+                        + " = icmp sgt i32 "
+                        + self.variable_map[t1][1]
+                        + ", "
+                        + self.variable_map[t2][1]
+                        + "\n"
+                    )
+                elif code.relationalOperator().getText() == "<=":
+                    stream[0] += (
+                        result
+                        + " = icmp sle i32 "
+                        + self.variable_map[t1][1]
+                        + ", "
+                        + self.variable_map[t2][1]
+                        + "\n"
+                    )
+                elif code.relationalOperator().getText() == ">=":
+                    stream[0] += (
+                        result
+                        + " = icmp sge i32 "
+                        + self.variable_map[t1][1]
+                        + ", "
+                        + self.variable_map[t2][1]
+                        + "\n"
+                    )
+                elif code.relationalOperator().getText() == "==":
+                    stream[0] += (
+                        result
+                        + " = icmp eq i32 "
+                        + self.variable_map[t1][1]
+                        + ", "
+                        + self.variable_map[t2][1]
+                        + "\n"
+                    )
+                else:
+                    stream[0] += (
+                        result
+                        + " = icmp ne i32 "
+                        + self.variable_map[t1][1]
+                        + ", "
+                        + self.variable_map[t2][1]
+                        + "\n"
+                    )
+            else:
+                if code.relationalOperator().getText() == "<":
+                    stream[0] += (
+                        result
+                        + " = call i1 @string.less(ptr "
+                        + self.variable_map[t1][1]
+                        + ", ptr "
+                        + self.variable_map[t2][1]
+                        + ")\n"
+                    )
+                elif code.relationalOperator().getText() == ">":
+                    stream[0] += (
+                        result
+                        + " = call i1 @string.greater(ptr "
+                        + self.variable_map[t1][1]
+                        + ", ptr "
+                        + self.variable_map[t2][1]
+                        + ")\n"
+                    )
+                elif code.relationalOperator().getText() == "<=":
+                    stream[0] += (
+                        result
+                        + " = call i1 @string.lessOrEqual(ptr "
+                        + self.variable_map[t1][1]
+                        + ", ptr "
+                        + self.variable_map[t2][1]
+                        + ")\n"
+                    )
+                elif code.relationalOperator().getText() == ">=":
+                    stream[0] += (
+                        result
+                        + " = call i1 @string.greaterOrEqual(ptr "
+                        + self.variable_map[t1][1]
+                        + ", ptr "
+                        + self.variable_map[t2][1]
+                        + ")\n"
+                    )
+                elif code.relationalOperator().getText() == "==":
+                    stream[0] += (
+                        result
+                        + " = call i1 @string.equal(ptr "
+                        + self.variable_map[t1][1]
+                        + ", ptr "
+                        + self.variable_map[t2][1]
+                        + ")\n"
+                    )
+                else:
+                    stream[0] += (
+                        result
+                        + " = call i1 @string.notEqual(ptr "
+                        + self.variable_map[t1][1]
+                        + ", ptr "
+                        + self.variable_map[t2][1]
+                        + ")\n"
+                    )
+            self.variable_map[code.getText()] = ("bool", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
             # muldivmodExpression
             t1 = self.return_expression2ir(code.expression(0), stream)
             t2 = self.return_expression2ir(code.expression(1), stream)
-            result = "%" + str(self.varaible_cnt)
-            self.varaible_cnt += 1
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             if code.MUL() != None:
                 op = "mul"
             elif code.DIV() != None:
                 op = "sdiv"
             else:
                 op = "srem"
-            stream[0] += result + " = " + op + " i32 " + t1 + " " + t2
-            return result
+            stream[0] += (
+                result
+                + " = "
+                + op
+                + " i32 "
+                + self.variable_map[t1][1]
+                + " "
+                + self.variable_map[t2][1]
+                + "\n"
+            )
+            self.varaible_map[code.getText()] = ("int", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.PlusminusExpressionContext):
             # plusminusExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + str(self.varaible_cnt)
-            self.varaible_cnt += 1
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             if code.PLUS() != None:
                 op = "add"
             elif code.MINUS() != None:
                 op = "sub"
-            stream[0] += result + " = " + op + " i32 " + t1 + " " + t2
-            return result
+            stream[0] += (
+                result
+                + " = "
+                + op
+                + " i32 "
+                + self.variable_map[t1][1]
+                + " "
+                + self.variable_map[t2][1]
+                + "\n"
+            )
+            self.varaible_map[code.getText()] = ("int", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.ShiftExpressionContext):
             # shiftExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + str(self.varaible_cnt)
-            self.varaible_cnt += 1
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             if code.LSHIFT() != None:
                 op = "shl"
             elif code.RSHIFT() != None:
                 op = "ashr"
-            print(result + " = " + op + " i32 " + t1 + " " + t2)
-            return result
+            stream[0] += (
+                result
+                + " = "
+                + op
+                + " i32 "
+                + self.variable_map[t1][1]
+                + " "
+                + self.variable_map[t2][1]
+                + "\n"
+            )
+            self.varaible_map[code.getText()] = ("int", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
             # andxororExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + str(self.varaible_cnt)
-            self.varaible_cnt += 1
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             if code.AND() != None:
                 op = "and"
             elif code.XOR() != None:
                 op = "xor"
             else:
                 op = "or"
-            stream += result + " = " + op + " i32 " + t1 + " " + t2
-            return result
+            stream += (
+                result
+                + " = "
+                + op
+                + " i32 "
+                + self.variable_map[t1][1]
+                + " "
+                + self.variable_map[t2][1]
+                + "\n"
+            )
+            self.varaible_map[code.getText()] = ("int", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
-            result = "%" + str(self.varaible_cnt)
-            self.varaible_cnt += 1
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            stream += result + " = add i32 " + t + " 1"
-            return result
+            stream += result + " = add i32 " + self.variable_map[t][1] + " 1\n"
+            self.varaible_map[t] = ("int", result)
+            return t
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + "+1" + " = add i32 " + t + " 1")
-            return t + "+1"
+            variable_map_t = self.variable_map[t][1]
+            stream += result + " = add i32 " + variable_map_t + " 1\n"
+            self.varaible_map[t] = ("int", result)
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream += result + " = add i32 " + variable_map_t + " 0\n"
+            self.varaible_map[t + "_tmp"] = ("int", result)
+            return t + "tmp"
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + " = sub i32 " + t + " 1")
+            stream += result + " = sub i32 " + self.variable_map[t][1] + " 1\n"
+            self.varaible_map[t] = ("int", result)
             return t
         elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
             # postfixDecrementExpression
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + "-1" + " = sub i32 " + t + " 1")
-            return t + "-1"
+            variable_map_t = self.variable_map[t][1]
+            stream += result + " = sub i32 " + variable_map_t + " 1\n"
+            self.varaible_map[t] = ("int", result)
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream += result + " = add i32 " + variable_map_t + " 0\n"
+            self.varaible_map[t + "_tmp"] = ("int", result)
+            return t + "tmp"
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + "!" + " = xor i1 " + t + " 1")
-            return t + "!"
+            stream[0] += result + " = xor i1 " + self.variable_map[t][1] + " 1\n"
+            self.variable_map[code.getText()] = ("bool", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.BitwiseNotExpressionContext):
             # bitwiseNotExpression
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + "~" + " = xor i32 " + t + " 1")
-            return t + "~"
+            stream[0] += result + " = xor i32 " + self.variable_map[t][1] + " -1\n"
+            self.variable_map[code.getText()] = ("int", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.UnaryMinusExpressionContext):
             # unaryMinusExpression
+            result = "%" + str(self.variable_cnt)
+            self.variable_cnt += 1
             t = self.return_expression2ir(code.expression())
-            print(t + "-" + " = sub i32 0 " + t)
-            return t + "-"
+            stream[0] += result + " = sub i32 0 " + self.variable_map[t][1] + "\n"
+            self.variable_map[code.getText()] = ("int", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.FunctionCallContext):
             # functionCall
             pass
@@ -321,9 +598,12 @@ class MyListener2(Mx_parserListener):
                 default = "0"
                 if type == "ptr":
                     default = "null"
+                    if child.type().getText() == "string":
+                        default = "@.string.0"
                 for i in child.variableDeclarationparts():
                     name = i.IDENTIFIER().getText()
                     variable_definition_str += "@" + name + " = global " + type + " "
+                    self.variable_map[name] = (type, "@" + name)
                     if i.expression() == None:
                         variable_definition_str += default
                     else:
@@ -341,6 +621,9 @@ class MyListener2(Mx_parserListener):
                             elif constant.getText() == "false":
                                 init = 0
                                 variable_definition_str += "0"
+                            elif constant.string_constant() != None:
+                                init = 0
+                                variable_definition_str += default
                         if init:
                             variable_definition_str += default
                             init_func = (
@@ -348,6 +631,24 @@ class MyListener2(Mx_parserListener):
                                 + str(self.init_cnt)
                                 + " (){\n  entry:\n"
                             )
+                            exp = self.return_expression2ir(
+                                i.expression(), [init_func]
+                            )[1]
+                            init_func += (
+                                "    store "
+                                + type
+                                + " "
+                                + exp
+                                + ", ptr @"
+                                + name
+                                + "\n"
+                            )
+                            init_func += "    ret void\n}\n"
+                            self.function_definition_list.append(init_func)
+                            self.init_cnt += 1
+        self.global_str += class_definition_str
+        self.global_str += function_definition_str
+        self.global_str += variable_definition_str
 
     def parameterList_decode2type(
         self, code: Mx_parserParser.ParameterListContext
