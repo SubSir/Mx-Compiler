@@ -84,6 +84,7 @@ class MyListener(Mx_parserListener):
     loop = 0
     enterclass = ""
     ans = ""
+    add_end = []
 
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
@@ -104,11 +105,6 @@ class MyListener(Mx_parserListener):
 
         if token_type == 51:  # IDENTIFIER
             if (
-                text in self.function_definition_map
-                and len(self.function_definition_map[text]) > 1
-            ):
-                text += str(len(self.function_definition_map[text]))
-            elif (
                 text in self.variable_definition_map
                 and len(self.variable_definition_map[text]) > 1
             ):
@@ -678,6 +674,47 @@ class MyListener(Mx_parserListener):
             )
         return class_
 
+    def array_init(self, returntype):
+        if returntype[-1] != "]":
+            return
+        cnt = 0
+        for i in returntype:
+            if i == "[":
+                cnt += 1
+        type1 = "class_" + returntype[: -2 * cnt] + str(cnt)
+        if cnt > 1:
+            type2 = "class_" + returntype[: -2 * cnt] + str(cnt)
+            class_ = (
+                "class "
+                + type1
+                + "{\n int size;\n ptr[] value;\n void init(int s) { \n size = s; \n value = new ptr[s]; \n for(int i = 0;i < s;i++){value[i] = new "
+                + type2
+                + ";\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n size = s; \n value = new ptr[s]; \n for(int i = 0;i < s;i++){value[i] = new "
+                + type2
+                + ";\n value[i].list_init(num-1, x);}\n  }\n }; \n"
+            )
+        else:
+            type2 = returntype[: -2 * cnt]
+            class_ = (
+                "class "
+                + type1
+                + "{\n int size;\n "
+                + type2
+                + "[] value;\n void init(int s) { \n size = s; \n value = new "
+                + type2
+                + "[s]; \n }\n void list_init(int num, int[] x){ \n int s = x[num-1];size = s; \n value = new "
+                + type2
+                + "[s]; } }; \n"
+            )
+        if class_ not in self.add_end:
+            self.add_end.append(class_)
+        self.array_init(returntype[:-2])
+
+    def enterNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
+        dimansion = len(ctx.square_brackets1())
+        returntype = ctx.type_().getText() + "[]" * dimansion
+        self.array_init(returntype)
+
     def enterConstruction(self, ctx: Mx_parserParser.ConstructionContext):
         self.function_definition_stack.append(
             functionclass(
@@ -1220,7 +1257,10 @@ def main(code) -> str:
     if listener.int_main_check == False:
         print("Error: No main function")
         sys.exit(1)
-    return listener.ans
+    return_ans = ""
+    for i in listener.add_end:
+        return_ans += i
+    return return_ans + listener.ans
 
 
 # with open("in.txt", "r") as f:

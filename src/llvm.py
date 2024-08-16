@@ -594,9 +594,23 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
             t1 = self.return_expression2ir(code.expression(0))
-            list = []
-            for i in range(1, len(code.expression())):
-                list.append(self.return_expression2ir(code.expression(i)))
+            t2 = self.return_expression2ir(code.expression(1))
+            stream[0] += (
+                result
+                + " = getelementptr "
+                + self.type2ir(self.variable_map[identifier][0][:-2])
+                + ", "
+                + self.type2ir(self.variable_map[identifier][0])
+                + " "
+                + self.variable_map[t1][1]
+                + +", "
+                + self.type2ir(self.variable_map[t2][0])
+                + " "
+                + self.variable_map[t2][1]
+                + "\n"
+            )
+            self.variable_map[code.getText()] = result
+            return code.getText()
         elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
             # parenthesesExpression
             return self.return_expression2ir(code.expression())
@@ -770,7 +784,7 @@ class MyListener2(Mx_parserListener):
 
     def parameterList_decode2name(
         self, code: Mx_parserParser.ParameterListContext
-    ) -> list:  # [(type, name)]
+    ) -> list:  # [(type, name)] [(string, x)]
         parameterlist = code.parameter()
         if parameterlist == None:
             return []
@@ -780,16 +794,38 @@ class MyListener2(Mx_parserListener):
             if parameter.type() != None:
                 ans.append(
                     (
-                        self.type2ir(parameter.type().getText()),
+                        parameter.type().getText(),
                         parameter.IDENTIFIER().getText(),
                     )
                 )
             else:
-                ans.append(("ptr", parameter.IDENTIFIER().getText()))
+                ans.append(
+                    (
+                        parameter.arrayType().getText(),
+                        parameter.IDENTIFIER().getText(),
+                    )
+                )
         return ans
 
     def enterFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
-        pass
+        func_str = (
+            "define "
+            + self.type2ir(ctx.returnType().getText())
+            + " @"
+            + ctx.IDENTIFIER().getText()
+        )
+        parameterlist = self.parameterList_decode2name(ctx.parameterList())
+        parameterstr = "("
+        for i in range(len(parameterlist)):
+            self.variable_map[parameterlist[i][1]] = (
+                self.type2ir(parameterlist[i][0]),
+                "%" + parameterlist[i][1],
+            )
+            parameterstr += parameterlist[i][0] + " %" + parameterlist[i][1]
+            if i < len(parameterlist) - 1:
+                parameterstr += ", "
+        parameterstr += ")"
+        func_str += parameterstr + " {\n"
 
     def exitFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
         pass
