@@ -58,7 +58,7 @@ expression3: expression;
 
 // 表达式
 expression:
-	expression (square_brackets1 expression square_brackets2)+	# arrayExpression
+	expression (square_brackets1 expression square_brackets2)	# arrayExpression
 	| expression '++'											# postfixIncrementExpression
 	| expression '--'											# postfixDecrementExpression
 	| '++' expression											# prefixIncrementExpression
@@ -70,9 +70,9 @@ expression:
 	| expression '.' IDENTIFIER ('(' expressionLists? ')')		# memberFunctionCall
 	| expression '.' IDENTIFIER									# memberMemberCall
 	| constant													# constantExpression
-	| 'new' type (square_brackets1 expression square_brackets2)* (
-		square_brackets1 expression? square_brackets2
-	) (square_brackets1 square_brackets2)* (array_constant)?	# newArrayExpression
+	| 'new' type (square_brackets1 expression square_brackets2)+ (
+		square_brackets1 square_brackets2
+	)* (array_constant)?										# newArrayExpression
 	| 'new' type ('(' ')')?										# newVariableExpression
 	| IDENTIFIER												# variableExpression
 	| expression (MUL | DIV | MOD) expression					# muldivmodExpression

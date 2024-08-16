@@ -14,10 +14,13 @@ class MyListener2(Mx_parserListener):
     variable_cnt = 0
     init_cnt = 0
     label_cnt = 0
+    string_cnt = 1
     global_str = ""
     class_member_enum = {}  # A.x -> 0
+    class_size_map = {}  # class_name -> size
     function_definition_list = []  # [str]
     variable_map = {}  # name -> (type, value) e.g. (int, 0)
+    function_definition_map = {}  # name -> returnType
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -35,49 +38,35 @@ class MyListener2(Mx_parserListener):
     #     # 当访问到终端节点时调用此方法
     #     print(node.getText(), end="")
 
-    def variable_map_find(self, index: str) -> str:
-        value = self.variable_map[index]
-        if value[0] != "":
-            return value
-        return self.variable_map_find(value)
-
     def return_expression2ir(
         self, code, stream
     ) -> str:  # stream[0] 为流, 返回variable_map的index
+        result = "%" + str(self.variable_cnt)
+        self.variable_cnt += 1
         if isinstance(code, Mx_parserParser.ExpressionListContext):
             # expressionList
             type = self.variable_map[code.IDENTIFIER().getText()][0]
             t1 = self.variable_map[code.IDENTIFIER().getText()][1]
             t2 = self.return_expression2ir(code.expression(), stream)
-            if self.type2ir(type) == "ptr" and type != "string":
-                self.variable_map[code.IDENTIFIER().getText()] = ("", t2)
-                return t1
-
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
-            if type == "string":
-                stream[0] += (
-                    result
-                    + " = call ptr @string.add( ptr "
-                    + self.variable_map[t2][1]
-                    + ", ptr @.string.0) \n"
-                )
-            else:
-                stream[0] += (
-                    result
-                    + " = add "
-                    + self.type2ir(type)
-                    + self.variable_map[t2][1]
-                    + ", 0\n"
-                )
+            type2 = self.variable_map[t2][0]
+            stream[0] += (
+                "store "
+                + self.type2ir(type2)
+                + " "
+                + self.variable_map[t2][1]
+                + ", "
+                + self.type2ir(type)
+                + " "
+                + result
+                + "\n"
+            )
             self.variable_map[code.IDENTIFIER().getText()] = (type, result)
             return code.IDENTIFIER().getText()
         elif isinstance(code, Mx_parserParser.LogicExpressionContext):
             # logicExpression
             t1 = self.return_expression2ir(code.expression(0), stream)
             t2 = self.return_expression2ir(code.expression(1), stream)
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             if code.logicOperator().getText() == "&&":
                 stream[0] += (
                     result
@@ -103,8 +92,7 @@ class MyListener2(Mx_parserListener):
             t1 = self.return_expression2ir(code.expression(0), stream)
             t2 = self.return_expression2ir(code.expression(1), stream)
             t3 = self.return_expression2ir(code.expression(2), stream)
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             stream[0] += (
                 "br i1 "
                 + self.variable_map[t1][1]
@@ -141,8 +129,7 @@ class MyListener2(Mx_parserListener):
             # relationalExpression
             t1 = self.return_expression2ir(code.expression(0), stream)
             t2 = self.return_expression2ir(code.expression(1), stream)
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             if self.variable_map[t1][0] == "int":
                 if code.relationalOperator().getText() == "<":
                     stream[0] += (
@@ -259,8 +246,7 @@ class MyListener2(Mx_parserListener):
             # muldivmodExpression
             t1 = self.return_expression2ir(code.expression(0), stream)
             t2 = self.return_expression2ir(code.expression(1), stream)
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             if code.MUL() != None:
                 op = "mul"
             elif code.DIV() != None:
@@ -283,8 +269,17 @@ class MyListener2(Mx_parserListener):
             # plusminusExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+            if self.variable_map[t1][0] == "string":
+                stream[0] += (
+                    result
+                    + " = call ptr @string.concat(ptr "
+                    + self.variable_map[t1][1]
+                    + ", ptr "
+                    + self.variable_map[t2][1]
+                    + ")\n"
+                )
+                self.variable_map[code.getText()] = ("string", result)
+                return code.getText()
             if code.PLUS() != None:
                 op = "add"
             elif code.MINUS() != None:
@@ -305,8 +300,7 @@ class MyListener2(Mx_parserListener):
             # shiftExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             if code.LSHIFT() != None:
                 op = "shl"
             elif code.RSHIFT() != None:
@@ -327,8 +321,7 @@ class MyListener2(Mx_parserListener):
             # andxororExpression
             t1 = self.return_expression2ir(code.expression(0))
             t2 = self.return_expression2ir(code.expression(1))
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             if code.AND() != None:
                 op = "and"
             elif code.XOR() != None:
@@ -349,16 +342,14 @@ class MyListener2(Mx_parserListener):
             return code.getText()
         elif isinstance(code, Mx_parserParser.PrefixIncrementExpressionContext):
             # prefixIncrementExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             stream += result + " = add i32 " + self.variable_map[t][1] + " 1\n"
             self.varaible_map[t] = ("int", result)
             return t
         elif isinstance(code, Mx_parserParser.PostfixIncrementExpressionContext):
             # postfixIncrementExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             variable_map_t = self.variable_map[t][1]
             stream += result + " = add i32 " + variable_map_t + " 1\n"
@@ -370,16 +361,14 @@ class MyListener2(Mx_parserListener):
             return t + "tmp"
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             stream += result + " = sub i32 " + self.variable_map[t][1] + " 1\n"
             self.varaible_map[t] = ("int", result)
             return t
         elif isinstance(code, Mx_parserParser.PostfixDecrementExpressionContext):
             # postfixDecrementExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             variable_map_t = self.variable_map[t][1]
             stream += result + " = sub i32 " + variable_map_t + " 1\n"
@@ -391,97 +380,152 @@ class MyListener2(Mx_parserListener):
             return t + "tmp"
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             stream[0] += result + " = xor i1 " + self.variable_map[t][1] + " 1\n"
             self.variable_map[code.getText()] = ("bool", result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.BitwiseNotExpressionContext):
             # bitwiseNotExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             stream[0] += result + " = xor i32 " + self.variable_map[t][1] + " -1\n"
             self.variable_map[code.getText()] = ("int", result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.UnaryMinusExpressionContext):
             # unaryMinusExpression
-            result = "%" + str(self.variable_cnt)
-            self.variable_cnt += 1
+
             t = self.return_expression2ir(code.expression())
             stream[0] += result + " = sub i32 0 " + self.variable_map[t][1] + "\n"
             self.variable_map[code.getText()] = ("int", result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.FunctionCallContext):
             # functionCall
-            pass
+
+            type = self.function_definition_map[code.IDENTIFIER().getText()]
+            expressionlist = "()"
+            if code.expressionLists() != None:
+                expressionlist = self.expressionLists_decode(
+                    code.expressionLists(), stream
+                )
+            stream[0] += (
+                result
+                + " = call "
+                + self.type2ir(type)
+                + " @"
+                + code.IDENTIFIER().getText()
+                + expressionlist
+                + "\n"
+            )
+            self.variable_map[code.getText()] = result
+            return code.getText()
         elif isinstance(code, Mx_parserParser.MemberFunctionCallContext):
             # memberFunctionCall
-            pass
+
+            t = self.return_expression2ir(code.expression())
+            type = self.function_definition_map[code.IDENTIFIER().getText()]
+            expressionlist = "(ptr " + self.variable_map[t][1] + ")"
+            name = self.variable_map[t][0] + code.IDENTIFIER().getText()
+            if code.expressionLists() != None:
+                expressionlist = self.expressionLists_decode(
+                    code.expressionLists(), stream
+                )
+                expressionlist = (
+                    "(ptr " + self.variable_map[t][1] + ", " + expressionlist[1:]
+                )
+            stream[0] += (
+                result
+                + " = call "
+                + self.type2ir(type)
+                + " @"
+                + name
+                + expressionlist
+                + "\n"
+            )
+            self.variable_map[code.getText()] = result
+            return code.getText()
         elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
             # memberMemberCall
-            pass
+            t = self.return_expression2ir(code.expression())
+            index = self.variable_map[t][0] + "." + code.IDENTIFIER().getText()
+            stream[0] += (
+                result
+                + " = getelementptr "
+                + self.type2ir(self.variable_map[t][0])
+                + ", ptr "
+                + self.type2ir(self.variable_map[t][1])
+                + ", i32 0, i32 "
+                + str(self.class_member_enum[index])
+                + "\n"
+            )
+            self.variable_map[code.getText()] = result
+            return code.getText()
         elif isinstance(code, Mx_parserParser.ConstantExpressionContext):
             # constantExpression
             constant = code.constant()
             if constant.INTEGER_CONSTANT() != None:
                 # if print:
                 #     print(constant.getText(), end=" ")
-                return constant.INTEGER_CONSTANT().getText()
+                value = constant.INTEGER_CONSTANT().getText()
+                self.variable_map[value] = ("int", value)
+                return value
             if constant.string_constant() != None:
-                string_ = constant.string_constant().getText()
-                string_ = string_.replace('\\"', "\\22")
-                string_ = string_.replace("\\n", "\\0A")
-                result = "%" + str(len(string_))  # 可能有问题
                 if constant.string_constant().STRING_CONTENT() != None:
-                    print(
-                        result
-                        + " = private constant ["
+                    string_ = constant.string_constant().getText()
+                    string_ = string_.replace('\\"', "\\22")
+                    string_ = string_.replace("\\n", "\\0A")
+                    self.global_str += (
+                        "@string."
+                        + str(self.string_cnt)
+                        + " = global [ "
                         + str(len(string_) - 1)
                         + " x i8] c"
-                        + string_[:-1]
-                        + '\\00"'
+                        + string_[1:-1]
+                        + "\\00"
                     )
+                    self.variable_map[code.getText()] = (
+                        "string",
+                        "@string." + str(self.string_cnt),
+                    )
+                    return code.getText()
                 else:
-                    fstring = constant.string_constant().fstring()
-                    expressionlist = fstring.expression()
-                    middle = fstring.FSTRING_MIDDLE_PART()
-                    part1 = fstring.FSTRING_PART1().getText()[1:-1] + '\\00"'
-                    part2 = fstring.FSTRING_PART2().getText()[1:-1] + '\\00"'
-                    print(
-                        "%"
-                        + str(len(string_))
-                        + "_PART1 = private constant ["
-                        + str(len(part1))
-                        + " x i8] c"
-                        + part1
-                    )
-                    print(
-                        "%"
-                        + str(len(string_))
-                        + "_PART2 = private constant ["
-                        + str(len(part2))
-                        + " x i8] c"
-                        + part2
-                    )
-                    for i in range(len(expressionlist)):
-                        expression = expressionlist[i]
-                        if isinstance(
-                            expression, Mx_parserParser.ConstantExpressionContext
-                        ):
-                            if expression.INTEGER_CONSTANT() != None:
-                                print(
-                                    result
-                                    + "_"
-                                    + str(i)
-                                    + " = private constant ["
-                                    + str(len(string_))
-                                )
-
-                    # 先放着，写好了字符串拼接和转换为字符串再来
+                    pass  # fstring 没写
+                    # fstring = constant.string_constant().fstring()
+                    # expressionlist = fstring.expression()
+                    # middle = fstring.FSTRING_MIDDLE_PART()
+                    # part1 = fstring.FSTRING_PART1().getText()[1:-1] + '\\00"'
+                    # part2 = fstring.FSTRING_PART2().getText()[1:-1] + '\\00"'
+                    # print(
+                    #     "%"
+                    #     + str(len(string_))
+                    #     + "_PART1 = private constant ["
+                    #     + str(len(part1))
+                    #     + " x i8] c"
+                    #     + part1
+                    # )
+                    # print(
+                    #     "%"
+                    #     + str(len(string_))
+                    #     + "_PART2 = private constant ["
+                    #     + str(len(part2))
+                    #     + " x i8] c"
+                    #     + part2
+                    # )
                     # for i in range(len(expressionlist)):
-                return result
+                    #     expression = expressionlist[i]
+                    #     if isinstance(
+                    #         expression, Mx_parserParser.ConstantExpressionContext
+                    #     ):
+                    #         if expression.INTEGER_CONSTANT() != None:
+                    #             print(
+                    #                 result
+                    #                 + "_"
+                    #                 + str(i)
+                    #                 + " = private constant ["
+                    #                 + str(len(string_))
+                    #             )
+
+                    # for i in range(len(expressionlist)):
             # if constant.array_constant() != None:
             #     expressionlist = constant.array_constant().expression()
             #     if len(expressionlist) == 0:
@@ -494,36 +538,68 @@ class MyListener2(Mx_parserListener):
 
             # 这个难说，看在哪里初始化
             if constant.getText() == "null":
-                return "null"  # 这个应该没有
+                self.variable_map["null"] = ("null", "null")
+                return "null"
             if constant.getText() == "True":
-                return 1
-            return 0
+                self.variable_map["1"] = ("bool", "1")
+                return "1"
+            self.variable_map["0"] = ("bool", "0")
+            return "0"
         elif isinstance(code, Mx_parserParser.NewVariableExpressionContext):
             # newVariableExpression
-            result = "%new" + code.type().getText()
-            print(
+            stream[0] += (
                 result
-                + " = call "
-                + self.type2ir(code.type().getText())
-                + " @"
-                + code.type().getText()
-                + "_new()"  # 你需要手写int string, 这里认为默认构造没有参数的
+                + " = call ptr @malloc "
+                + str(self.class_size_map[code.type_().getText()])
+                + "\n"
+            )  # 只有自定义类型
+            self.variable_map[code.getText()] = (code.type_().getText(), result)
+            stream[0] += (
+                "call void @" + code.type_().getText() + "_new(ptr " + result + ")"
             )
-            return result
+            return code.getText()
         elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
             # newArrayExpression
-            pass
+            if code.type_().getText() == "int":  # 没写多维和自定义
+                stream[0] += (
+                    result
+                    + " = call ptr @__newIntArray(i32 "
+                    + code.expression(0).getText()
+                    + ")\n"
+                )
+            elif code.type_().getText() == "bool":
+                stream[0] += (
+                    result
+                    + " = call ptr @__newBoolArray(i32 "
+                    + code.expression(0).getText()
+                    + ")\n"
+                )
+            self.variable_map[code.getText()] = ("ptr", result)
+            return code.getText()
         elif isinstance(code, Mx_parserParser.VariableExpressionContext):
             # variableExpression
             identifier = code.IDENTIFIER().getText()
-            name = identifier + str(len(self.variable_definition_map[identifier]))
-            return name
+            value = self.variable_map[identifier][1]
+            if value[0] == "@":
+                stream += (
+                    result
+                    + " = load "
+                    + self.type2ir(self.variable_map[identifier][0])
+                    + ", ptr "
+                    + value
+                    + "\n"
+                )
+                return result
+            return value
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
-            pass
+            t1 = self.return_expression2ir(code.expression(0))
+            list = []
+            for i in range(1, len(code.expression())):
+                list.append(self.return_expression2ir(code.expression(i)))
         elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
             # parenthesesExpression
-            return self.return_expressiontype(code.expression())
+            return self.return_expression2ir(code.expression())
         else:
             name = code.getText()
             # 如果没有匹配的规则，返回未知类型
@@ -534,6 +610,8 @@ class MyListener2(Mx_parserListener):
             return "i32"
         elif str == "bool":
             return "i1"
+        elif str == "void":
+            return "void"
         return "ptr"
 
     def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
@@ -546,7 +624,10 @@ class MyListener2(Mx_parserListener):
                 classmember = child.classMember()
                 cnt = 0
                 function_definition_str += (
-                    "declare void @" + child.IDENTIFIER().getText() + "_new()\n"
+                    "declare void @" + child.IDENTIFIER().getText() + "_new(ptr)\n"
+                )
+                self.function_definition_map[child.IDENTIFIER().getText() + "_new"] = (
+                    "void"
                 )
                 for i in range(len(classmember)):
                     ii = classmember[i]
@@ -571,12 +652,16 @@ class MyListener2(Mx_parserListener):
                             + name
                             + "( ptr"
                         )
+                        self.function_definition_map[
+                            child.IDENTIFIER().getText() + name
+                        ] = self.type2ir(type)
                         parameterlist = self.parameterList_decode2name(
                             ii.functionDefinition().parameterList()
                         )
                         for i in parameterlist:
                             function_definition_str += ", " + self.type2ir(i[0])
                         function_definition_str += ")\n"
+                self.class_size_map[child.IDENTIFIER().getText()] = cnt * 4
 
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
                 type = child.returnType().getText()
@@ -586,7 +671,9 @@ class MyListener2(Mx_parserListener):
                     + self.type2ir(type)
                     + " @"
                     + child.IDENTIFIER().getText()
-                    + name
+                )
+                self.function_definition_map[child.IDENTIFIER().getText()] = (
+                    self.type2ir(type)
                 )
                 parameterlist += self.parameterList_decode2type(child.parameterList())
                 function_definition_str += "\n"
@@ -649,6 +736,19 @@ class MyListener2(Mx_parserListener):
         self.global_str += class_definition_str
         self.global_str += function_definition_str
         self.global_str += variable_definition_str
+
+    def expressionLists_decode(
+        self, code: Mx_parserParser.ExpressionListsContext, stream
+    ) -> str:  # (i1 %1, i32 %2)
+        expressionlist = code.expression()
+        ans = "("
+        for i in range(len(expressionlist)):
+            t = self.return_expression2ir(expressionlist[i], stream)
+            ans += self.variable_map[t][0] + " " + self.variable_map[t][1]
+            if i < len(expressionlist) - 1:
+                ans += ", "
+        ans += ")"
+        return ans
 
     def parameterList_decode2type(
         self, code: Mx_parserParser.ParameterListContext

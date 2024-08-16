@@ -460,13 +460,12 @@ class MyListener(Mx_parserListener):
                 if type_ != "int[0]":
                     print("Type Mismatch")
                     sys.exit(1)
-            dimansion = len(code.square_brackets1())
             type = self.return_expressiontype(code.expression(0))
             dimansion2 = int(type.split("[")[1].split("]")[0])
-            if dimansion2 - dimansion < 0:
+            if dimansion2 - 1 < 0:
                 print("Dimension Out Of Bound")
                 sys.exit(1)
-            return type.split("[")[0] + "[" + str(dimansion2 - dimansion) + "]"
+            return type.split("[")[0] + "[" + str(dimansion2 - 1) + "]"
         elif isinstance(code, Mx_parserParser.ParenthesesExpressionContext):
             # parenthesesExpression
             return self.return_expressiontype(code.expression())
