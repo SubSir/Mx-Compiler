@@ -111,6 +111,8 @@ class MyListener(Mx_parserListener):
                 text += str(len(self.variable_definition_map[text]))
         # 输出节点的文本和类型
         self.ans += text + " "
+        if text == ";":
+            self.ans += "\n"
 
     def __init__(self, lexer: Mx_parserLexer) -> None:
         self.lexer = lexer
@@ -702,7 +704,7 @@ class MyListener(Mx_parserListener):
                 + type2
                 + "[] value;\n void init(int s) { \n size = s; \n value = new "
                 + type2
-                + "[s]; \n }\n void list_init(int num, int[] x){ \n int s = x[num-1];size = s; \n value = new "
+                + "[s]; \n }\n void list_init(int num, int[] x){\n if (num == 0){\n return; }\n int s = x[num-1];size = s; \n value = new "
                 + type2
                 + "[s]; } }; \n"
             )
