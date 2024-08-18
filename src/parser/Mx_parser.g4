@@ -42,19 +42,21 @@ statement:
 	| 'for' '(' forControl ')' statement					# forStatement
 	| 'return' expression? ';'								# returnStatement
 	| variableDeclaration									# privatevariableDeclaration
-	| expression '=' expression ';'							# assignmentStatement
+	| assignment ';'										# assignmentStatement
 	| '{' statement* '}'									# block
 	| 'break' ';'											# breakStatement
 	| 'continue' ';'										# continueStatement;
 
 elsestatement: 'else' statement;
 
+assignment: expression '=' expression;
+
 // for循环控制结构
 forControl: (expression1? ';' expression2? ';' expression3?);
 
-expression1: expression;
+expression1: expression | assignment;
 expression2: expression;
-expression3: expression;
+expression3: expression | assignment;
 
 // 表达式
 expression:
@@ -82,7 +84,6 @@ expression:
 	| '(' expression ')'										# parenthesesExpression
 	| expression relationalOperator expression					# relationalExpression
 	| expression logicOperator expression						# logicExpression
-	| IDENTIFIER '=' expression									# expressionList
 	| <assoc = right> expression '?' expression ':' expression	# conditionalExpression;
 
 square_brackets1: '[';

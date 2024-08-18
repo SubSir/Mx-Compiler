@@ -169,24 +169,24 @@ class MyListener(Mx_parserListener):
             self.function_definition_map[i.name] = [i]
 
     def return_expressiontype(self, code) -> str:
-        if isinstance(code, Mx_parserParser.ExpressionListContext):
-            # expressionList
-            type1 = self.return_expressiontype(code.expression())
-            name = code.IDENTIFIER().getText()
-            if name == "this":
-                print("error: cannot assign to this")
-                sys.exit(1)
-            if name in self.variable_definition_map:
-                type2 = self.variable_definition_map[name][-1].type
-            else:
-                print("Undefined Identifier")
-                sys.exit(1)
+        # if isinstance(code, Mx_parserParser.ExpressionListContext):
+        #     # expressionList
+        #     type1 = self.return_expressiontype(code.expression())
+        #     name = code.IDENTIFIER().getText()
+        #     if name == "this":
+        #         print("error: cannot assign to this")
+        #         sys.exit(1)
+        #     if name in self.variable_definition_map:
+        #         type2 = self.variable_definition_map[name][-1].type
+        #     else:
+        #         print("Undefined Identifier")
+        #         sys.exit(1)
 
-            if type1 != type2 and type1 != "null" and type2 != "null":
-                print("Type Mismatch")
-                sys.exit(1)
-            return self.return_expressiontype(code.expression())
-        elif isinstance(code, Mx_parserParser.LogicExpressionContext):
+        #     if type1 != type2 and type1 != "null" and type2 != "null":
+        #         print("Type Mismatch")
+        #         sys.exit(1)
+        #     return self.return_expressiontype(code.expression())
+        if isinstance(code, Mx_parserParser.LogicExpressionContext):
             # logicExpression
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
@@ -1157,12 +1157,12 @@ class MyListener(Mx_parserListener):
                 print("Type Mismatch")
                 sys.exit(1)
 
-    def enterAssignmentStatement(self, ctx: Mx_parserParser.AssignmentStatementContext):
+    def enterAssignment(self, ctx: Mx_parserParser.AssignmentContext):
         if self.return_const_or_not(ctx.expression(0)):
             print("Invalid Type")
             sys.exit(1)
         if isinstance(ctx.expression(0), Mx_parserParser.VariableExpressionContext):
-            if ctx.exception(0).IDENTIFIER().getText() == "this":
+            if ctx.expression(0).IDENTIFIER().getText() == "this":
                 print("Invalid Type")
                 sys.exit(1)
         type1 = self.return_expressiontype(ctx.expression(0))
@@ -1262,7 +1262,7 @@ def main(code) -> str:
     return_ans = ""
     for i in listener.add_end:
         return_ans += i
-    return return_ans + listener.ans
+    return return_ans + listener.ans[:-6]
 
 
 # with open("in.txt", "r") as f:
