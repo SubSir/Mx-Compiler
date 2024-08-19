@@ -4,3 +4,5 @@ testcases/
 __pycache__/
 *.txt
 ravel/
+test
+llvm.ll
