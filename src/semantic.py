@@ -687,13 +687,13 @@ class MyListener(Mx_parserListener):
                 cnt += 1
         type1 = "class_" + returntype[: -2 * cnt] + str(cnt)
         if cnt > 1:
-            type2 = "class_" + returntype[: -2 * cnt] + str(cnt)
+            type2 = "class_" + returntype[: -2 * cnt] + str(cnt-1)
             class_ = (
                 "class "
                 + type1
-                + "{\n int size;\n ptr[] value;\n void init(int s) { \n this.size = s; \n this.value = new ptr[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+                + "{\n int size;\n " +type2 + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new " +  type2+"[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
                 + type2
-                + ";\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new ptr[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+                + ";\n}\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new " + type2+"[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
                 + type2
                 + ";\n this.value[i].list_init(num-1, x);}\n  }\n }; \n"
             )

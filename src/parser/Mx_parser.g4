@@ -4,7 +4,7 @@ grammar Mx_parser;
 program: (
 		functionDefinition
 		| classDefinition
-		| variableDeclaration
+		| variableDeclaration ';'
 	)* EOF;
 
 // 函数定义
@@ -16,20 +16,20 @@ classDefinition: 'class' IDENTIFIER '{' classMember* '}' ';';
 
 // 变量声明
 variableDeclaration:
-	type variableDeclarationparts (',' variableDeclarationparts)* ';'
+	type variableDeclarationparts (',' variableDeclarationparts)*
 	| arrayType variableDeclarationparts (
 		',' variableDeclarationparts
-	)* ';';
+	)*;
 
 variableDeclarationparts: IDENTIFIER ('=' expression)?;
 
 // 类成员
 classMember:
-	variableDeclaration
+	variableDeclaration ';'
 	| construction
 	| functionDefinition;
 
-construction: IDENTIFIER '(' parameterList? ')' functionBody;
+construction: IDENTIFIER '(' ')' functionBody;
 // 函数体
 functionBody: '{' (statement)* '}';
 
@@ -41,7 +41,7 @@ statement:
 	| 'while' '(' expression ')' statement					# whileStatement
 	| 'for' '(' forControl ')' statement					# forStatement
 	| 'return' expression? ';'								# returnStatement
-	| variableDeclaration									# privatevariableDeclaration
+	| variableDeclaration ';'								# privatevariableDeclaration
 	| assignment ';'										# assignmentStatement
 	| '{' statement* '}'									# block
 	| 'break' ';'											# breakStatement
@@ -54,7 +54,7 @@ assignment: expression '=' expression;
 // for循环控制结构
 forControl: (expression1? ';' expression2? ';' expression3?);
 
-expression1: expression | assignment;
+expression1: expression | assignment | variableDeclaration;
 expression2: expression;
 expression3: expression | assignment;
 
