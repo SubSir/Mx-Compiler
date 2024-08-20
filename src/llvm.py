@@ -12,6 +12,7 @@ from antlr4.error.ErrorListener import ErrorListener
 # 定义一个监听器类来遍历和处理语法树
 class MyListener2(Mx_parserListener):
     variable_cnt = 0
+    enter_class = ""
     init_cnt = 0
     label_cnt = 0
     string_cnt = 1
@@ -587,13 +588,13 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.MemberMemberCallContext):
             # memberMemberCall
             t = self.return_expression2ir(code.expression(), stream)
-            index = self.variable_map[t][0] + "." + code.IDENTIFIER().getText()
+            index = self.variable_map[t][0] + code.IDENTIFIER().getText()
             stream[0] += (
                 result
                 + " = getelementptr %"
                 + self.variable_map[t][0]
                 + ", ptr "
-                + self.type2ir(self.variable_map[t][1])
+                + self.variable_map[t][1]
                 + ", i32 0, i32 "
                 + str(self.class_member_enum[index])
                 + "\n\t\t"
@@ -710,7 +711,7 @@ class MyListener2(Mx_parserListener):
             for i in expressionlist:
                 list.append(self.return_expression2ir(i, stream))
             stream[0] += (
-                result + " = call ptr @__newIntArray( i32" + str(len(list)) + ")\n\t\t"
+                result + " = call ptr @__newIntArray( i32 " + str(len(list)) + ")\n\t\t"
             )
             tmp = result
             for i in range(len(list)):
@@ -731,7 +732,7 @@ class MyListener2(Mx_parserListener):
                     + result
                     + "\n\t\t"
                 )
-            type_ = "class_" + code.type_() + str(cnt)
+            type_ = "class_" + code.type_().getText() + str(cnt)
             stream[0] += (
                 "call void @"
                 + type_
@@ -760,7 +761,7 @@ class MyListener2(Mx_parserListener):
                 )
                 self.variable_map[result] = (self.variable_map[identifier][0], result)
                 return result
-            return value
+            return identifier
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
             t1 = self.return_expression2ir(code.expression(0), stream)
@@ -770,17 +771,17 @@ class MyListener2(Mx_parserListener):
                 + " = getelementptr %"
                 + self.variable_map[t1][0]
                 + ", ptr "
-                + self.type2ir(self.variable_map[t1][1])
+                + self.variable_map[t1][1]
                 + ", i32 0, i32 1\n\t\t"
             )
             value = result
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
-            type_ = self.type2ir(self.variable_map[identifier][0][:-2])
+            type_ = self.variable_map[t1][0][:-2]
             stream[0] += (
                 result
                 + " = getelementptr "
-                + type_
+                + self.type2ir(type_)
                 + ", ptr "
                 + value
                 + ", "
@@ -817,6 +818,7 @@ class MyListener2(Mx_parserListener):
                 class_definition_str += "%" + child.IDENTIFIER().getText() + " = type {"
                 classmember = child.classMember()
                 cnt = 0
+                var_list = []
                 # function_definition_str += (
                 #     "declare void @" + child.IDENTIFIER().getText() + "_new(ptr)\n\t\t"
                 # )
@@ -826,15 +828,20 @@ class MyListener2(Mx_parserListener):
                 for i in range(len(classmember)):
                     ii = classmember[i]
                     if ii.variableDeclaration() != None:
-                        type = ii.variableDeclaration().type_().getText()
-                        name = ii.variableDeclaration().IDENTIFIER().getText()
-                        class_definition_str += self.type2ir(type)
-                        if i < len(classmember) - 1:
-                            class_definition_str += ", "
-                        self.class_member_enum[child.IDENTIFIER().getText() + name] = (
-                            cnt
-                        )
-                        cnt += 1
+                        declare = ii.variableDeclaration()
+                        if declare.type_() != None:
+                            type = declare.type_().getText()
+                        else:
+                            type = declare.arrayType().getText()
+                        type = self.arraytype_transform(type)
+                        for parts in declare.variableDeclarationparts():
+                            name = parts.IDENTIFIER().getText()
+                            var_list.append(self.type2ir(type))
+
+                            self.class_member_enum[
+                                child.IDENTIFIER().getText() + name
+                            ] = cnt
+                            cnt += 1
                     elif ii.functionDefinition() != None:
                         type = ii.functionDefinition().returnType().getText()
                         name = ii.functionDefinition().IDENTIFIER().getText()
@@ -848,7 +855,7 @@ class MyListener2(Mx_parserListener):
                         # )
                         self.function_definition_map[
                             child.IDENTIFIER().getText() + name
-                        ] = self.type2ir(type)
+                        ] = type
                         # parameterlist = self.parameterList_decode2name(
                         #     ii.functionDefinition().parameterList()
                         # )
@@ -856,6 +863,11 @@ class MyListener2(Mx_parserListener):
                         #     function_definition_str += ", " + self.type2ir(i[0])
                         # function_definition_str += ")\n\t\t"
                 self.class_size_map[child.IDENTIFIER().getText()] = cnt * 4
+                for i in range(len(var_list)):
+                    class_definition_str += var_list[i]
+                    if i != len(var_list) - 1:
+                        class_definition_str += ", "
+                class_definition_str += "}\n"
 
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
                 type = child.returnType().getText()
@@ -866,9 +878,7 @@ class MyListener2(Mx_parserListener):
                 #     + " @"
                 #     + child.IDENTIFIER().getText()
                 # )
-                self.function_definition_map[child.IDENTIFIER().getText()] = (
-                    self.type2ir(type)
-                )
+                self.function_definition_map[child.IDENTIFIER().getText()] = type
                 # function_definition_str += self.parameterList_decode2type(
                 #     child.parameterList()
                 # )
@@ -880,10 +890,11 @@ class MyListener2(Mx_parserListener):
                 else:
                     type = "ptr"
                     type_ = child.arrayType().getText()
+                type_ = self.arraytype_transform(type_)
                 default = "0"
                 if type == "ptr":
                     default = "null"
-                    if child.type().getText() == "string":
+                    if child.type_() != None and child.type_().getText() == "string":
                         default = "@.string.0"
                 for i in child.variableDeclarationparts():
                     name = i.IDENTIFIER().getText()
@@ -893,8 +904,10 @@ class MyListener2(Mx_parserListener):
                         variable_definition_str += default
                     else:
                         init = 1
-                        if isinstance(i.expression(), Mx_parserParser.constant()):
-                            constant = Mx_parserParser.constant()
+                        if isinstance(
+                            i.expression(), Mx_parserParser.ConstantExpressionContext
+                        ):
+                            constant = i.expression().constant()
                             if constant.INTEGER_CONSTANT() != None:
                                 init = 0
                                 variable_definition_str += (
@@ -916,10 +929,11 @@ class MyListener2(Mx_parserListener):
                                 + str(self.init_cnt)
                                 + " (){\n\t\t  entry:\n\t\t"
                             )
-                            exp = self.return_expression2ir(
-                                i.expression(), [init_func]
-                            )[1]
-                            init_func += (
+                            stream = [init_func]
+                            exp = self.variable_map[
+                                self.return_expression2ir(i.expression(), stream)
+                            ][1]
+                            stream[0] += (
                                 "    store "
                                 + type
                                 + " "
@@ -928,8 +942,8 @@ class MyListener2(Mx_parserListener):
                                 + name
                                 + "\n\t\t"
                             )
-                            init_func += "    ret void\n\t\t}\n\t\t"
-                            self.function_definition_list.append(init_func)
+                            stream[0] += "    ret void\n\n}\n\n"
+                            self.function_definition_list.append(stream[0])
                             self.init_cnt += 1
                     variable_definition_str += "\n"
         self.global_str += class_definition_str
@@ -980,10 +994,10 @@ class MyListener2(Mx_parserListener):
         ans = []
         for i in range(len(parameterlist)):
             parameter = parameterlist[i]
-            if parameter.type() != None:
+            if parameter.type_() != None:
                 ans.append(
                     (
-                        parameter.type().getText(),
+                        parameter.type_().getText(),
                         parameter.IDENTIFIER().getText(),
                     )
                 )
@@ -997,30 +1011,50 @@ class MyListener2(Mx_parserListener):
         return ans
 
     def enterFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
+        type_ = ctx.returnType().getText()
         func_str = (
             "define "
-            + self.type2ir(ctx.returnType().getText())
+            + self.type2ir(type_)
             + " @"
+            + self.enter_class
             + ctx.IDENTIFIER().getText()
         )
         parameterlist = self.parameterList_decode2name(ctx.parameterList())
         parameterstr = "("
+        if self.enter_class != "":
+            parameterstr += "ptr %this"
+            self.variable_map["this"] = (self.enter_class, "%this")
+            self.variable_map["%this"] = (self.enter_class, "%this")
         for i in range(len(parameterlist)):
             self.variable_map[parameterlist[i][1]] = (
-                self.type2ir(parameterlist[i][0]),
+                self.arraytype_transform(parameterlist[i][0]),
                 "%" + parameterlist[i][1],
             )
-            parameterstr += parameterlist[i][0] + " %" + parameterlist[i][1]
-            if i < len(parameterlist) - 1:
-                parameterstr += ", "
+            parameterstr += (
+                ", " + self.type2ir(parameterlist[i][0]) + " %" + parameterlist[i][1]
+            )
         parameterstr += ")"
         func_str += parameterstr + " {\n\t\t"
+        if ctx.IDENTIFIER().getText() == "main":
+            for i in range(self.init_cnt):
+                func_str += "call void @init" + str(i) + "()\n\t\t"
         statement_list = ctx.functionBody().statement()
         stream = [func_str]
         for i in range(len(statement_list)):
             self.statement_decode2ir(statement_list[i], stream)
+        default = self.return_default(type_)
+        stream[0] += "ret " + self.type2ir(type_) + " " + default
         stream[0] += "\n}\n\t\t"
         self.function_definition_list.append(stream[0])
+
+    def return_default(self, code: str) -> str:
+        if code == "void":
+            return ""
+        if code == "bool" or code == "int":
+            return "0"
+        if code == "string":
+            return "@.string.0"
+        return "null"
 
     def statement_decode2ir(self, code: Mx_parserParser.StatementContext, stream):
         stream[0] += "\n; statement: " + code.getText() + "\n\n\t\t"
@@ -1113,7 +1147,7 @@ class MyListener2(Mx_parserListener):
                 else:
                     assignment = code.forControl().expression3().assignment()
                     self.assignment_decode2ir(assignment, stream)
-            stream[0] += "br label %.label" + str(label_cnt+3) + "\n\t"
+            stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             return
         elif isinstance(code, Mx_parserParser.ReturnStatementContext):
@@ -1142,24 +1176,32 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.PrivatevariableDeclarationContext):
             variabledeclare = code.variableDeclaration()
             if variabledeclare.type_() != None:
-                type_ = variabledeclare.type_()
-                if type_ == "int" or type_ == "bool":
-                    default = "0"
-                elif type_ == "string":
-                    default = "@.string.0"
+                type_ = variabledeclare.type_().getText()
+            else:
+                type_ = variabledeclare.arrayType().getText()
+            type_ = self.arraytype_transform(type_)
+            default = self.return_default(type_)
+            for i in variabledeclare.variableDeclarationparts():
+                if i.expression() != None:
+                    t = self.return_expression2ir(i.expression(), stream)
+                    self.variable_map[i.IDENTIFIER().getText()] = self.variable_map[t]
                 else:
-                    default = "null"
-                for i in variabledeclare.variableDeclarationparts():
-                    if i.expression() != None:
-                        t = self.return_expression2ir(i.expression(), stream)
-                        self.variable_map[i.IDENTIFIER()] = self.variable_map[t]
-                    else:
-                        self.variable_map[i.IDENTIFIER()] = [type_, default]
+                    self.variable_map[i.IDENTIFIER().getText()] = [type_, default]
+
+    def arraytype_transform(self, code: str) -> str:
+        if code[-1] != "]":
+            return code
+        cnt = 0
+        for i in code:
+            if i == "[":
+                cnt += 1
+        return "class_" + code[: -2 * cnt] + str(cnt)
 
     def assignment_decode2ir(self, code: Mx_parserParser.AssignmentContext, stream):
         t1 = self.return_expression2ir(code.expression(0), stream)
         t2 = self.return_expression2ir(code.expression(1), stream)
-        if self.variable_map[code.expression(0).getText()][1][0] == "@":
+        name = code.expression(0).getText()
+        if self.variable_map[name][1][0] == "@":
             stream[0] += (
                 "store "
                 + self.type2ir(self.variable_map[t2][0])
@@ -1167,7 +1209,7 @@ class MyListener2(Mx_parserListener):
                 + self.variable_map[t2][1]
                 + ", "
                 + "ptr "
-                + self.variable_map[code.expression(0).getText()][1]
+                + self.variable_map[name][1]
                 + "\n\t\t"
             )
         else:
@@ -1177,10 +1219,10 @@ class MyListener2(Mx_parserListener):
         pass
 
     def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
-        pass
+        self.enter_class = ""
 
     def enterClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
-        pass
+        self.enter_class = ctx.IDENTIFIER().getText()
 
     def enterVariableDeclaration(self, ctx: Mx_parserParser.VariableDeclarationContext):
         pass
@@ -1238,7 +1280,9 @@ def main(code):
 
     return_str = ""
     with open("./src/head.ll", "r") as f:
-        return_str+=f.read()
+        return_str += f.read()
+
+    return_str += "\n\n"
 
     # 创建输入流和语法分析器
     input_stream = InputStream(code)
@@ -1254,9 +1298,9 @@ def main(code):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    return_str+=listener.global_str
+    return_str += listener.global_str
     for i in listener.function_definition_list:
-        return_str+=i
+        return_str += i
     return return_str
 
 

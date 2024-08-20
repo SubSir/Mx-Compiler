@@ -104,11 +104,13 @@ class MyListener(Mx_parserListener):
         token_type = node.getSymbol().type
 
         if token_type == 51:  # IDENTIFIER
+            if text in self.variable_definition_map and self.variable_definition_map[text][-1].priority == self.priority and self.enterclass!="" and text != "this":
+                text += "this."
             if (
                 text in self.variable_definition_map
-                and len(self.variable_definition_map[text]) > 1
+                # and self.variable_definition_map[text].priority > 1
             ):
-                text += str(len(self.variable_definition_map[text]))
+                text += str(self.variable_definition_map[text][-1].priority)
         # 输出节点的文本和类型
         self.ans += text + " "
         if text == ";":
@@ -689,11 +691,11 @@ class MyListener(Mx_parserListener):
             class_ = (
                 "class "
                 + type1
-                + "{\n int size;\n ptr[] value;\n void init(int s) { \n size = s; \n value = new ptr[s]; \n for(int i = 0;i < s;i++){value[i] = new "
+                + "{\n int size;\n ptr[] value;\n void init(int s) { \n this.size = s; \n this.value = new ptr[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
                 + type2
-                + ";\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n size = s; \n value = new ptr[s]; \n for(int i = 0;i < s;i++){value[i] = new "
+                + ";\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new ptr[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
                 + type2
-                + ";\n value[i].list_init(num-1, x);}\n  }\n }; \n"
+                + ";\n this.value[i].list_init(num-1, x);}\n  }\n }; \n"
             )
         else:
             type2 = returntype[: -2 * cnt]
@@ -702,9 +704,9 @@ class MyListener(Mx_parserListener):
                 + type1
                 + "{\n int size;\n "
                 + type2
-                + "[] value;\n void init(int s) { \n size = s; \n value = new "
+                + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new "
                 + type2
-                + "[s]; \n }\n void list_init(int num, int[] x){\n if (num == 0){\n return; }\n int s = x[num-1];size = s; \n value = new "
+                + "[s]; \n }\n void list_init(int num, int[] x){\n if (num == 0){\n return; }\n int s = x[num-1];this.size = s; \n this.value = new "
                 + type2
                 + "[s]; } }; \n"
             )
@@ -783,7 +785,7 @@ class MyListener(Mx_parserListener):
                 if (
                     name in self.function_definition_map
                     and self.enterclass == ""
-                    and self.priority == self.function_definition_map[name][-1].piority
+                    and self.priority == self.function_definition_map[name][-1].priority
                 ):
                     print("Multiple Definitions")
                     sys.exit(1)
