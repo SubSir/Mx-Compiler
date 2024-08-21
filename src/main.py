@@ -10,3 +10,4 @@ with open("semantic.txt", "w") as f:
 code3 = llvm.main(code2)
 with open("llvm.ll", "w") as f:
     f.write(code3)
+print(code3)

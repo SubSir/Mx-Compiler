@@ -1411,7 +1411,7 @@ class MyListener2(Mx_parserListener):
             )
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
-            print(tmp_stream[0])
+            # print(tmp_stream[0])
             return
         elif isinstance(code, Mx_parserParser.ReturnStatementContext):
             if code.expression() != None:
