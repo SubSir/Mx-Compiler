@@ -714,13 +714,15 @@ class MyListener2(Mx_parserListener):
             if constant.string_constant() != None:
                 if constant.string_constant().STRING_CONTENT() != None:
                     string_ = constant.string_constant().getText()
+                    _string = string_.replace("\\","")
+                    len_ = len(_string)
                     string_ = string_.replace('\\"', "\\22")
-                    string_ = string_.replace("\\n\t\t", "\\0A")
+                    string_ = string_.replace("\\n", "\\0A")
                     self.global_str += (
                         "@string."
                         + str(self.string_cnt)
                         + " = global [ "
-                        + str(len(string_) - 1)
+                        + str(len_ - 1)
                         + " x i8] c"
                         + string_[:-1]
                         + '\\00"\n'
