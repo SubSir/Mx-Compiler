@@ -83,6 +83,7 @@ class MyListener(Mx_parserListener):
     priority = 0
     loop = 0
     enterclass = ""
+    enterfunction = ""
     ans = ""
     add_end = []
 
@@ -104,10 +105,10 @@ class MyListener(Mx_parserListener):
         token_type = node.getSymbol().type
 
         if token_type == 51:  # IDENTIFIER
-            if text in self.variable_definition_map and self.variable_definition_map[text][-1].priority == self.priority and self.enterclass!="" and text != "this":
-                text += "this."
+            if text in self.variable_definition_map and self.variable_definition_map[text][-1].priority == self.priority and self.enterclass!="" and text != "this" and self.enterfunction != "":
+                text = "this." + text
             if (
-                text in self.variable_definition_map
+                text in self.variable_definition_map and self.enterclass == ""
                 # and self.variable_definition_map[text].priority > 1
             ):
                 text += str(self.variable_definition_map[text][-1].priority)
@@ -815,12 +816,10 @@ class MyListener(Mx_parserListener):
         if name == "this":
             print("Invalid Identifier")
             sys.exit(1)
-
+        self.enterfunction = name
         parameterList = ctx.parameterList()
         parameter_list = []
-        num_parameters = 0
         if parameterList is not None:
-            num_parameters = len(parameterList.parameter())
             parameter_list = self.parameterList_decode(parameterList)
 
         # if (
@@ -863,6 +862,7 @@ class MyListener(Mx_parserListener):
 
     def exitFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
         self.priority -= 1
+        self.enterfunction = ""
         if (
             self.function_definition_stack[-1].returned == False
             and self.function_definition_stack[-1].returnType != "void[0]"
