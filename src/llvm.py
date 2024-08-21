@@ -302,7 +302,7 @@ class MyListener2(Mx_parserListener):
             if self.variable_map[t1][0] == "string":
                 stream[0] += (
                     result
-                    + " = call ptr @string.concat(ptr "
+                    + " = call ptr @string.add(ptr "
                     + self.variable_map[t1][1]
                     + ", ptr "
                     + self.variable_map[t2][1]
@@ -580,6 +580,66 @@ class MyListener2(Mx_parserListener):
             # memberFunctionCall
 
             t = self.return_expression2ir(code.expression(), stream)
+            if self.variable_map[t][0] == "string":
+                func = code.IDENTIFIER().getText()
+                if func == "length":
+                    stream[0] += (
+                        result
+                        + " = call "
+                        + self.type2ir("int")
+                        + " @string.length("
+                        + self.type2ir("string")
+                        + " "
+                        + self.variable_map[t][1]
+                        + ")\n\t\t"
+                    )
+                    self.variable_map[code.getText()] = ("int", result)
+                    return code.getText()
+                elif func == "substring":
+                    expressionlist = self.expressionLists_decode(
+                        code.expressionLists(), stream
+                    )
+                    stream[0] += (
+                        result
+                        + " = call "
+                        + self.type2ir("string")
+                        + " @string.substring("
+                        + self.type2ir("string")
+                        + " "
+                        + self.variable_map[t][1]
+                        + ","+ expressionlist[1:-1] + ")\n\t\t"
+                    )
+                    self.variable_map[code.getText()] = ("string", result)
+                    return code.getText()
+                elif func == "parseInt":
+                    stream[0] += (
+                        result
+                        + " = call "
+                        + self.type2ir("int")
+                        + " @string.parseInt("
+                        + self.type2ir("string")
+                        + " "
+                        + self.variable_map[t][1]
+                        + ")\n\t\t"
+                    )
+                    self.variable_map[code.getText()] = ("int", result)
+                    return code.getText()
+                elif func == "ord":
+                    expressionlist = self.expressionLists_decode(
+                        code.expressionLists(), stream
+                    )
+                    stream[0] += (
+                        result
+                        + " = call "
+                        + self.type2ir("int")
+                        + " @string.ord("
+                        + self.type2ir("string")
+                        + " "
+                        + self.variable_map[t][1]
+                        + ","+ expressionlist[1:-1] + ")\n\t\t"
+                    )
+                    self.variable_map[code.getText()] = ("int", result)
+                    return code.getText()
             name = self.variable_map[t][0] + code.IDENTIFIER().getText()
             type = self.function_definition_map[name]
             expressionlist = "(ptr " + self.variable_map[t][1] + ")"
