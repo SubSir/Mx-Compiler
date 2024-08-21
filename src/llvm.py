@@ -1535,15 +1535,21 @@ class MyListener2(Mx_parserListener):
                 t2 = self.return_expression2ir(
                     code.forControl().expression2().expression(), stream
                 )
-            stream[0] += (
-                "br i1 "
-                + self.variable_map[t2][1]
-                + ", label %.label"
-                + str(label_cnt + 1)
-                + ", label %.label"
-                + str(label_cnt + 2)
-                + "\n\t\t"
-            )
+                stream[0] += (
+                    "br i1 "
+                    + self.variable_map[t2][1]
+                    + ", label %.label"
+                    + str(label_cnt + 1)
+                    + ", label %.label"
+                    + str(label_cnt + 2)
+                    + "\n\t\t"
+                )
+            else:
+                stream[0] += (
+                    "br label %.label"
+                    + str(label_cnt + 1)
+                    + "\n\t\t"
+                )
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
             # print(tmp_stream[0])
