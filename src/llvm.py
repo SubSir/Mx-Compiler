@@ -1286,28 +1286,77 @@ class MyListener2(Mx_parserListener):
             return
         elif isinstance(code, Mx_parserParser.WhileStatementContext):
             label_cnt = self.label_cnt
-            self.label_cnt += 3
+            self.label_cnt += 4
+
+            stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
+            tmp_label1 = self.label_str
+            tmp_me = copy.deepcopy(self)
+            tmp_me.copy(self)
+            tmp_stream = [""]
+            tmp_stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
+            tmp_me.label_str = ".label" + str(label_cnt + 1)
+            tmp_me.loop_stack.append(label_cnt)
+            tmp_me.statement_decode2ir(code.statement(), tmp_stream)
+            tmp_me.loop_stack.pop()
+            tmp_stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
+            tmp_stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
+            tmp_me.label_str = ".label" + str(label_cnt)
+            tmp_label2 = tmp_me.label_str
+            tmp_stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
+            forcontrol = "\n.label" + str(label_cnt + 3) + ":\n\t\t"
+            # self.label_str = ".label" + str(label_cnt + 3)
+            tmp_cnt = tmp_me.variable_cnt
+            tmp_map = {}
+            for i in self.variable_map:
+                if (
+                    i in self.write_map and self.write_map[i] == ""
+                ) and tmp_me.variable_map[i][1] != self.variable_map[i][1]:
+                    result = "%var" + str(tmp_cnt)
+                    tmp_cnt += 1
+                    forcontrol += (
+                        result
+                        + " = phi "
+                        + self.type2ir(self.variable_map[i][0])
+                        + "["
+                        + tmp_me.variable_map[i][1]
+                        + ", %"
+                        + tmp_label2
+                        + "], ["
+                        + self.variable_map[i][1]
+                        + ", %"
+                        + tmp_label1
+                        + "]\n\t\t"
+                    )
+                    self.variable_map[i] = (self.variable_map[i][0], result)
+                    tmp_map[i] = (self.variable_map[i][0], result)
+            stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
+            self.label_str = ".label" + str(label_cnt + 1)
+            self.loop_stack.append(label_cnt)
+            self.statement_decode2ir(code.statement(), stream)
+            self.loop_stack.pop()
             stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt)
-            t = self.return_expression2ir(code.expression(), stream)
+            stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
+            for i in tmp_map:
+                self.variable_map[i] = tmp_map[i]
+            stream[0] += forcontrol
+            self.variable_cnt = tmp_cnt
+            t2 = self.return_expression2ir(
+                code.expression(), stream
+            )
             stream[0] += (
                 "br i1 "
-                + self.variable_map[t][1]
+                + self.variable_map[t2][1]
                 + ", label %.label"
                 + str(label_cnt + 1)
                 + ", label %.label"
                 + str(label_cnt + 2)
                 + "\n\t\t"
             )
-            stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
-            self.label_str = ".label" + str(label_cnt + 1)
-            self.loop_stack.append(label_cnt)
-            self.statement_decode2ir(code.statement(), stream)
-            self.loop_stack.pop()
-            stream[0] += "br label %.label" + +str(label_cnt) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
+            # print(tmp_stream[0])
             return
         elif isinstance(code, Mx_parserParser.ForStatementContext):
             label_cnt = self.label_cnt
