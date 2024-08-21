@@ -408,7 +408,7 @@ class MyListener2(Mx_parserListener):
             self.variable_cnt += 1
             stream[0] += result + " = add i32 " + variable_map_t + ", 0\n\t\t"
             self.variable_map[t + "_tmp"] = ("int", result)
-            return t + "tmp"
+            return t + "_tmp"
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
             t = self.return_expression2ir(code.expression(), stream)
@@ -447,7 +447,7 @@ class MyListener2(Mx_parserListener):
             self.variable_cnt += 1
             stream[0] += result + " = add i32 " + variable_map_t + ", 0\n\t\t"
             self.variable_map[t + "_tmp"] = ("int", result)
-            return t + "tmp"
+            return t + "_tmp"
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
             t = self.return_expression2ir(code.expression(), stream)
