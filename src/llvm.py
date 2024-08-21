@@ -716,6 +716,12 @@ class MyListener2(Mx_parserListener):
                     string_ = constant.string_constant().getText()
                     _string = string_.replace("\\","")
                     len_ = len(_string)
+                    i = 0
+                    while(i< len(string_)):
+                        if string_[i:i+2] == "\\\\":
+                            i+=1
+                            len_+=1
+                        i+=1
                     string_ = string_.replace('\\"', "\\22")
                     string_ = string_.replace("\\n", "\\0A")
                     self.global_str += (
