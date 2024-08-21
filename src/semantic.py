@@ -695,7 +695,7 @@ class MyListener(Mx_parserListener):
                 + type2
                 + ";\n}\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new " + type2+"[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
                 + type2
-                + ";\n this.value[i].list_init(num-1, x);}\n  }\n }; \n"
+                + ";\n this.value[i].list_init(num-1, x);}\n}\nint size(){\n return this.size;\n}\n\n }; \n"
             )
         else:
             type2 = returntype[: -2 * cnt]
@@ -708,7 +708,7 @@ class MyListener(Mx_parserListener):
                 + type2
                 + "[s]; \n }\n void list_init(int num, int[] x){\n if (num == 0){\n return; }\n int s = x[num-1];this.size = s; \n this.value = new "
                 + type2
-                + "[s]; } }; \n"
+                + "[s]; }  \nint size(){\n return this.size;\n}\n}; \n"
             )
         if class_ not in self.add_end:
             self.add_end.append(class_)
