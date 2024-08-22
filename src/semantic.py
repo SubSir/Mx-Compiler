@@ -108,7 +108,7 @@ class MyListener(Mx_parserListener):
 
         if token_type == 51:  # IDENTIFIER
             if (
-                text in self.variable_definition_map
+                text in self.variable_definition_map and text != "this"
                 and (
                     self.enterclass == ""
                     or (text not in self.usertype_map[self.enterclass].class_member_map)
