@@ -189,7 +189,15 @@ class MyListener(Mx_parserListener):
         #         print("Type Mismatch")
         #         sys.exit(1)
         #     return self.return_expressiontype(code.expression())
-        if isinstance(code, Mx_parserParser.LogicExpressionContext):
+        if isinstance(code, Mx_parserParser.LogicANDExpressionContext):
+            # logicExpression
+            type1 = self.return_expressiontype(code.expression(0))
+            type2 = self.return_expressiontype(code.expression(1))
+            if type1 != "bool[0]" or type2 != "bool[0]":
+                print("Invalid Type")
+                sys.exit(1)
+            return "bool[0]"
+        elif isinstance(code, Mx_parserParser.LogicORExpressionContext):
             # logicExpression
             type1 = self.return_expressiontype(code.expression(0))
             type2 = self.return_expressiontype(code.expression(1))
@@ -538,9 +546,11 @@ class MyListener(Mx_parserListener):
             return True
         elif isinstance(code, Mx_parserParser.AndxororExpressionContext):
             return True
-        elif isinstance(code, Mx_parserParser.LogicExpressionContext):
+        elif isinstance(code, Mx_parserParser.LogicANDExpressionContext):
             return True
-        elif isinstance(code, Mx_parserParser.ExpressionListContext):
+        elif isinstance(code, Mx_parserParser.LogicORExpressionContext):
+            return True
+        elif isinstance(code, Mx_parserParser.ExpressionListsContext):
             return True
 
     def array_decode(self, code) -> arrayclass:
@@ -666,7 +676,7 @@ class MyListener(Mx_parserListener):
                 class_.class_function_map["construction"] = functionclass(
                     "void[0]",
                     "construction",
-                    self.parameterList_decode(member.construction().parameterList()),
+                    [],
                     self.priority,
                 )
                 self.priority -= 1
@@ -725,7 +735,7 @@ class MyListener(Mx_parserListener):
             functionclass(
                 "void[0]",
                 "construction",
-                self.parameterList_decode(ctx.parameterList()),
+                [],
                 self.priority,
             )
         )

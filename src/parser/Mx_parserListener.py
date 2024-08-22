@@ -332,6 +332,24 @@ class Mx_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by Mx_parserParser#logicANDExpression.
+    def enterLogicANDExpression(self, ctx:Mx_parserParser.LogicANDExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#logicANDExpression.
+    def exitLogicANDExpression(self, ctx:Mx_parserParser.LogicANDExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Mx_parserParser#logicORExpression.
+    def enterLogicORExpression(self, ctx:Mx_parserParser.LogicORExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#logicORExpression.
+    def exitLogicORExpression(self, ctx:Mx_parserParser.LogicORExpressionContext):
+        pass
+
+
     # Enter a parse tree produced by Mx_parserParser#variableExpression.
     def enterVariableExpression(self, ctx:Mx_parserParser.VariableExpressionContext):
         pass
@@ -413,15 +431,6 @@ class Mx_parserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Mx_parserParser#logicExpression.
-    def enterLogicExpression(self, ctx:Mx_parserParser.LogicExpressionContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#logicExpression.
-    def exitLogicExpression(self, ctx:Mx_parserParser.LogicExpressionContext):
-        pass
-
-
     # Enter a parse tree produced by Mx_parserParser#memberMemberCall.
     def enterMemberMemberCall(self, ctx:Mx_parserParser.MemberMemberCallContext):
         pass
@@ -464,15 +473,6 @@ class Mx_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by Mx_parserParser#expressionLists.
     def exitExpressionLists(self, ctx:Mx_parserParser.ExpressionListsContext):
-        pass
-
-
-    # Enter a parse tree produced by Mx_parserParser#logicOperator.
-    def enterLogicOperator(self, ctx:Mx_parserParser.LogicOperatorContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#logicOperator.
-    def exitLogicOperator(self, ctx:Mx_parserParser.LogicOperatorContext):
         pass
 
 

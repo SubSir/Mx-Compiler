@@ -83,15 +83,13 @@ expression:
 	| expression (AND | XOR | OR) expression					# andxororExpression
 	| '(' expression ')'										# parenthesesExpression
 	| expression relationalOperator expression					# relationalExpression
-	| expression logicOperator expression						# logicExpression
+	| expression '&&' expression								# logicANDExpression
+	| expression '||' expression								# logicORExpression
 	| <assoc = right> expression '?' expression ':' expression	# conditionalExpression;
 
 square_brackets1: '[';
 square_brackets2: ']';
 expressionLists: expression (',' expression)*;
-
-// 逻辑运算符
-logicOperator: '&&' | '||';
 
 // 运算符
 PLUS: '+';
