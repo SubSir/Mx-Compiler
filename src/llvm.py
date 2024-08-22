@@ -429,23 +429,49 @@ class MyListener2(Mx_parserListener):
                         + ")\n\t\t"
                     )
                 elif code.relationalOperator().getText() == "==":
-                    stream[0] += (
-                        result
-                        + " = call i1 @string.equal(ptr "
-                        + self.variable_map[t1][1]
-                        + ", ptr "
-                        + self.variable_map[t2][1]
-                        + ")\n\t\t"
-                    )
+                    if (
+                        self.variable_map[t1][1] == "null"
+                        or self.variable_map[t2][1] == "null"
+                    ):
+                        stream[0] += (
+                            result
+                            + " = icmp eq ptr "
+                            + self.variable_map[t1][1]
+                            + ", "
+                            + self.variable_map[t2][1]
+                            + "\n\t\t"
+                        )
+                    else:
+                        stream[0] += (
+                            result
+                            + " = call i1 @string.equal(ptr "
+                            + self.variable_map[t1][1]
+                            + ", ptr "
+                            + self.variable_map[t2][1]
+                            + ")\n\t\t"
+                        )
                 else:
-                    stream[0] += (
-                        result
-                        + " = call i1 @string.notEqual(ptr "
-                        + self.variable_map[t1][1]
-                        + ", ptr "
-                        + self.variable_map[t2][1]
-                        + ")\n\t\t"
-                    )
+                    if (
+                        self.variable_map[t1][1] == "null"
+                        or self.variable_map[t2][1] == "null"
+                    ):
+                        stream[0] += (
+                            result
+                            + " = icmp ne ptr "
+                            + self.variable_map[t1][1]
+                            + ", "
+                            + self.variable_map[t2][1]
+                            + "\n\t\t"
+                        )
+                    else:
+                        stream[0] += (
+                            result
+                            + " = call i1 @string.notEqual(ptr "
+                            + self.variable_map[t1][1]
+                            + ", ptr "
+                            + self.variable_map[t2][1]
+                            + ")\n\t\t"
+                        )
             self.variable_map[code.getText()] = ("bool", result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.MuldivmodExpressionContext):
@@ -725,16 +751,22 @@ class MyListener2(Mx_parserListener):
                 )
                 self.variable_map[code.getText()] = ("string", result)
                 return code.getText()
+            ptr = 0
             if self.enter_class != "":
                 tmp = self.enter_class + text
                 if tmp in self.function_definition_map:
                     text = tmp
+                    ptr = 1
             type = self.function_definition_map[text]
             expressionlist = "()"
             if code.expressionLists() != None:
                 expressionlist = self.expressionLists_decode(
                     code.expressionLists(), stream
                 )
+                if ptr ==1:
+                    expressionlist = '(ptr %this, ' + expressionlist[1:]
+            elif ptr ==1:
+                expressionlist = '(ptr %this)'
             if type != "void":
                 stream[0] += (
                     result
