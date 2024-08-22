@@ -688,6 +688,10 @@ class MyListener2(Mx_parserListener):
                 )
                 self.variable_map[code.getText()] = ("string", result)
                 return code.getText()
+            if self.enter_class != "":
+                tmp = self.enter_class + text
+                if tmp in self.function_definition_map:
+                    text = tmp
             type = self.function_definition_map[text]
             expressionlist = "()"
             if code.expressionLists() != None:
@@ -1038,6 +1042,37 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.VariableExpressionContext):
             # variableExpression
             identifier = code.IDENTIFIER().getText()
+            if self.enter_class!= "":
+                index = self.enter_class + identifier
+                if index in self.class_member_enum:
+                    t = "this"
+                    stream[0] += (
+                        result
+                        + " = getelementptr %"
+                        + self.variable_map[t][0]
+                        + ", ptr "
+                        + self.variable_map[t][1]
+                        + ", i32 0, i32 "
+                        + str(self.class_member_enum[index][0])
+                        + "\n\t\t"
+                    )
+                    ptr = result
+                    result = "%var" + str(self.variable_cnt)
+                    self.variable_cnt += 1
+                    stream[0] += (
+                        result
+                        + " = load "
+                        + self.type2ir(self.class_member_enum[index][1])
+                        + ", ptr "
+                        + ptr
+                        + "\n\t\t"
+                    )
+                    self.variable_map[code.getText()] = (
+                        self.class_member_enum[index][1],
+                        result,
+                    )
+                    self.write_map[code.getText()] = ptr
+                    return code.getText()
             value = self.variable_map[identifier][1]
             if self.write_map[identifier] != "":
                 stream[0] += (
@@ -1146,7 +1181,7 @@ class MyListener2(Mx_parserListener):
 
     def enterConstruction(self, ctx: Mx_parserParser.ConstructionContext):
         func_str = (
-            "define void @" + ctx.IDENTIFIER().getText() + "_new(ptr){\nentry:\n\t\t"
+            "define void @" + ctx.IDENTIFIER().getText() + "_new(ptr %this){\nentry:\n\t\t"
         )
         self.label_str = "entry"
         statement_list = ctx.functionBody().statement()
@@ -1166,7 +1201,7 @@ class MyListener2(Mx_parserListener):
                 classmember = child.classMember()
                 cnt = 0
                 var_list = []
-                contruct = 0
+                construct = 0
                 # function_definition_str += (
                 #     "declare void @" + child.IDENTIFIER().getText() + "_new(ptr)\n\t\t"
                 # )
@@ -1213,7 +1248,7 @@ class MyListener2(Mx_parserListener):
                         # function_definition_str += ")\n\t\t"
                     else:
                         construct = 1
-                if contruct == 0:
+                if construct == 0:
                     function_definition_str += (
                         "define void @"
                         + child.IDENTIFIER().getText()
@@ -1383,8 +1418,6 @@ class MyListener2(Mx_parserListener):
         parameterstr = "("
         if self.enter_class != "":
             parameterstr += "ptr %this"
-            self.variable_map["this"] = (self.enter_class, "%this")
-            self.write_map["this"] = ""
         for i in range(len(parameterlist)):
             type = parameterlist[i][0]
             if not self.isPrivate(self.enter_class):
@@ -1782,6 +1815,8 @@ class MyListener2(Mx_parserListener):
 
     def enterClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         self.enter_class = ctx.IDENTIFIER().getText()
+        self.variable_map["this"] = (self.enter_class, "%this")
+        self.write_map["this"] = ""
 
 
 # with open("in.txt", "r") as f:

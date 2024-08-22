@@ -105,8 +105,6 @@ class MyListener(Mx_parserListener):
         token_type = node.getSymbol().type
 
         if token_type == 51:  # IDENTIFIER
-            if text in self.variable_definition_map and self.variable_definition_map[text][-1].priority == self.priority and self.enterclass!="" and text != "this" and self.enterfunction != "":
-                text = "this." + text
             if (
                 text in self.variable_definition_map and self.enterclass == "" and (len(self.ans) <2 or self.ans[-2]!='.')
                 # and self.variable_definition_map[text].priority > 1
