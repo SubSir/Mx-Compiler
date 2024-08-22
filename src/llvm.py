@@ -1557,7 +1557,7 @@ class MyListener2(Mx_parserListener):
                             + "]\n\t\t"
                         )
                         self.variable_map[j] = (self.variable_map[j][0], result)
-                        return
+                        
         if label in self.branch_map and len(self.branch_map[label]) == 1:
             self.variable_map = self.branch_map[label][0][1]
 
