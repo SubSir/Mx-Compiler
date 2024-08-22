@@ -86,6 +86,8 @@ class MyListener(Mx_parserListener):
     enterfunction = ""
     ans = ""
     add_end = []
+    variable_cnt_map = {}
+    variable_cnt_map2 = {}
 
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
@@ -106,10 +108,16 @@ class MyListener(Mx_parserListener):
 
         if token_type == 51:  # IDENTIFIER
             if (
-                text in self.variable_definition_map and self.enterclass == "" and (len(self.ans) <2 or self.ans[-2]!='.')
+                text in self.variable_definition_map
+                and (
+                    self.enterclass == ""
+                    or (text not in self.usertype_map[self.enterclass].class_member_map)
+                )
+                and (len(self.ans) < 2 or self.ans[-2] != ".")
                 # and self.variable_definition_map[text].priority > 1
             ):
-                text += str(self.variable_definition_map[text][-1].priority)
+                t = self.variable_definition_map[text][-1]
+                text += str(self.variable_cnt_map2[(t.name, t.priority)])
         # 输出节点的文本和类型
         self.ans += text + " "
         if text == ";":
@@ -696,13 +704,19 @@ class MyListener(Mx_parserListener):
                 cnt += 1
         type1 = "class_" + returntype[: -2 * cnt] + str(cnt)
         if cnt > 1:
-            type2 = "class_" + returntype[: -2 * cnt] + str(cnt-1)
+            type2 = "class_" + returntype[: -2 * cnt] + str(cnt - 1)
             class_ = (
                 "class "
                 + type1
-                + "{\n int size;\n " +type2 + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new " +  type2+"[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+                + "{\n int size;\n "
                 + type2
-                + ";\n}\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new " + type2+"[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+                + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new "
+                + type2
+                + "[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+                + type2
+                + ";\n}\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new "
+                + type2
+                + "[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
                 + type2
                 + ";\n this.value[i].list_init(num-1, x);}\n}\nint size(){\n return this.size;\n}\n\n }; \n"
             )
@@ -864,6 +878,13 @@ class MyListener(Mx_parserListener):
                 self.variable_definition_map[param.name] = [param]
             else:
                 self.variable_definition_map[param.name] += [param]
+            if param.name not in self.variable_cnt_map:
+                self.variable_cnt_map[param.name] = 0
+            else:
+                self.variable_cnt_map[param.name] += 1
+            self.variable_cnt_map2[(param.name, param.priority)] = (
+                self.variable_cnt_map[param.name]
+            )
         if self.type_to_string(name) in self.usertype_map and self.priority != 1:
             print("Multiple Definitions")
             sys.exit(1)
@@ -970,6 +991,11 @@ class MyListener(Mx_parserListener):
                 self.variable_definition_map[i.name] = [i]
             else:
                 self.variable_definition_map[i.name] += [i]
+            if i.name not in self.variable_cnt_map:
+                self.variable_cnt_map[i.name] = 0
+            else:
+                self.variable_cnt_map[i.name] += 1
+            self.variable_cnt_map2[(i.name, i.priority)] = self.variable_cnt_map[i.name]
             self.variable_definition_stack.append(i)
 
         for i in class_.class_function_map.values():
@@ -1002,6 +1028,13 @@ class MyListener(Mx_parserListener):
                     self.variable_definition_map[i.name] = [i]
                 else:
                     self.variable_definition_map[i.name] += [i]
+                if i.name not in self.variable_cnt_map:
+                    self.variable_cnt_map[i.name] = 0
+                else:
+                    self.variable_cnt_map[i.name] += 1
+                self.variable_cnt_map2[(i.name, i.priority)] = self.variable_cnt_map[
+                    i.name
+                ]
                 self.variable_definition_stack.append(i)
 
     def enterElsestatement(self, ctx: Mx_parserParser.ElsestatementContext):
