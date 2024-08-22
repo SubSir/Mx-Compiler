@@ -66,6 +66,20 @@ class MyListener2(Mx_parserListener):
             return True
         return False
 
+    def transform_string(self, str: str):
+        string_ = str[1:-1]
+        _string = string_.replace("\\", "")
+        len_ = len(_string)
+        i = 0
+        while i < len(string_):
+            if string_[i : i + 2] == "\\\\":
+                i += 1
+                len_ += 1
+            i += 1
+        string_ = string_.replace('\\"', "\\22")
+        string_ = string_.replace("\\n", "\\0A")
+        return '"' + string_ + '\\00"', len_ + 1
+
     def return_expression2ir(
         self, code, stream
     ) -> str:  # stream[0] 为流, 返回variable_map的index
@@ -145,12 +159,19 @@ class MyListener2(Mx_parserListener):
                 self.variable_map[i] = (self.variable_map[i][0], result)
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
-            stream[0]+=(result + " = phi " + self.type2ir(type1) + "[" + name1 + ", %"
-                    + tmp_label1
-                    + "], [0, %"
-                    + tmp_label2
-                    + "]\n\t\t")
-            self.variable_map[code.getText()] = (type1, result)  
+            stream[0] += (
+                result
+                + " = phi "
+                + self.type2ir(type1)
+                + "["
+                + name1
+                + ", %"
+                + tmp_label1
+                + "], [0, %"
+                + tmp_label2
+                + "]\n\t\t"
+            )
+            self.variable_map[code.getText()] = (type1, result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.LogicORExpressionContext):
             # LogicExpression
@@ -210,14 +231,21 @@ class MyListener2(Mx_parserListener):
                 self.variable_map[i] = (self.variable_map[i][0], result)
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
-            stream[0]+=(result + " = phi " + self.type2ir(type1) + "[" + name1 + ", %"
-                    + tmp_label1
-                    + "], ["
-                    + name2
-                    + ", %"
-                    + tmp_label2
-                    + "]\n\t\t")
-            self.variable_map[code.getText()] = (type1, result)  
+            stream[0] += (
+                result
+                + " = phi "
+                + self.type2ir(type1)
+                + "["
+                + name1
+                + ", %"
+                + tmp_label1
+                + "], ["
+                + name2
+                + ", %"
+                + tmp_label2
+                + "]\n\t\t"
+            )
+            self.variable_map[code.getText()] = (type1, result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.ConditionalExpressionContext):
             # conditionalExpression
@@ -284,15 +312,22 @@ class MyListener2(Mx_parserListener):
                 self.variable_map[i] = (self.variable_map[i][0], result)
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
-            if type1!="void":
-                stream[0]+=(result + " = phi " + self.type2ir(type1) + "[" + name1 + ", %"
-                        + tmp_label1
-                        + "], ["
-                        + name2
-                        + ", %"
-                        + tmp_label2
-                        + "]\n\t\t")
-            self.variable_map[code.getText()] = (type1, result)  
+            if type1 != "void":
+                stream[0] += (
+                    result
+                    + " = phi "
+                    + self.type2ir(type1)
+                    + "["
+                    + name1
+                    + ", %"
+                    + tmp_label1
+                    + "], ["
+                    + name2
+                    + ", %"
+                    + tmp_label2
+                    + "]\n\t\t"
+                )
+            self.variable_map[code.getText()] = (type1, result)
             return code.getText()
         elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
             # relationalExpression
@@ -750,7 +785,9 @@ class MyListener2(Mx_parserListener):
                         + self.type2ir("string")
                         + " "
                         + self.variable_map[t][1]
-                        + ","+ expressionlist[1:-1] + ")\n\t\t"
+                        + ","
+                        + expressionlist[1:-1]
+                        + ")\n\t\t"
                     )
                     self.variable_map[code.getText()] = ("string", result)
                     return code.getText()
@@ -779,7 +816,9 @@ class MyListener2(Mx_parserListener):
                         + self.type2ir("string")
                         + " "
                         + self.variable_map[t][1]
-                        + ","+ expressionlist[1:-1] + ")\n\t\t"
+                        + ","
+                        + expressionlist[1:-1]
+                        + ")\n\t\t"
                     )
                     self.variable_map[code.getText()] = ("int", result)
                     return code.getText()
@@ -857,24 +896,15 @@ class MyListener2(Mx_parserListener):
             if constant.string_constant() != None:
                 if constant.string_constant().STRING_CONTENT() != None:
                     string_ = constant.string_constant().getText()
-                    _string = string_.replace("\\","")
-                    len_ = len(_string)
-                    i = 0
-                    while(i< len(string_)):
-                        if string_[i:i+2] == "\\\\":
-                            i+=1
-                            len_+=1
-                        i+=1
-                    string_ = string_.replace('\\"', "\\22")
-                    string_ = string_.replace("\\n", "\\0A")
+                    _string, len_ = self.transform_string(string_)
                     self.global_str += (
                         "@string."
                         + str(self.string_cnt)
                         + " = global [ "
-                        + str(len_ - 1)
+                        + str(len_)
                         + " x i8] c"
-                        + string_[:-1]
-                        + '\\00"\n'
+                        + _string
+                        + "\n"
                     )
                     self.variable_map[code.getText()] = (
                         "string",
@@ -1042,7 +1072,7 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.VariableExpressionContext):
             # variableExpression
             identifier = code.IDENTIFIER().getText()
-            if self.enter_class!= "":
+            if self.enter_class != "":
                 index = self.enter_class + identifier
                 if index in self.class_member_enum:
                     t = "this"
@@ -1132,12 +1162,7 @@ class MyListener2(Mx_parserListener):
             _tmp = result
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
-            stream[0]+=(
-                result
-                + " = load ptr, ptr "
-                + _tmp
-                + "\n\t\t"
-            )
+            stream[0] += result + " = load ptr, ptr " + _tmp + "\n\t\t"
             value = result
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
@@ -1190,7 +1215,9 @@ class MyListener2(Mx_parserListener):
 
     def enterConstruction(self, ctx: Mx_parserParser.ConstructionContext):
         func_str = (
-            "define void @" + ctx.IDENTIFIER().getText() + "_new(ptr %this){\nentry:\n\t\t"
+            "define void @"
+            + ctx.IDENTIFIER().getText()
+            + "_new(ptr %this){\nentry:\n\t\t"
         )
         self.label_str = "entry"
         statement_list = ctx.functionBody().statement()
@@ -1321,9 +1348,6 @@ class MyListener2(Mx_parserListener):
                             elif constant.getText() == "false":
                                 init = 0
                                 variable_definition_str += "0"
-                            elif constant.string_constant() != None:
-                                init = 0
-                                variable_definition_str += default
                         if init:
                             variable_definition_str += default
                             init_func = (
@@ -1571,28 +1595,34 @@ class MyListener2(Mx_parserListener):
             stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt)
             stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
-            stream[0]+= "\n.label" + str(label_cnt + 3) + ":\n\t\t"
+            stream[0] += "\n.label" + str(label_cnt + 3) + ":\n\t\t"
             topo_list = []
             for i in tmp_var_map:
-                if (
-                    i in self.write_map and self.write_map[i] == ""
-                ) and tmp_var_map[i][1] != self.variable_map[i][1]:
+                if (i in self.write_map and self.write_map[i] == "") and tmp_var_map[i][
+                    1
+                ] != self.variable_map[i][1]:
                     result = "%var" + str(self.variable_cnt)
                     self.variable_cnt += 1
-                    topo_list.append((self.variable_map[i][1] ,result,(
-                        result
-                        + " = phi "
-                        + self.type2ir(self.variable_map[i][0])
-                        + "["
-                        + tmp_var_map[i][1]
-                        + ", %"
-                        + tmp_label1
-                        + "], ["
-                        + self.variable_map[i][1]
-                        + ", %"
-                        + tmp_label2
-                        + "]\n\t\t"
-                    )))
+                    topo_list.append(
+                        (
+                            self.variable_map[i][1],
+                            result,
+                            (
+                                result
+                                + " = phi "
+                                + self.type2ir(self.variable_map[i][0])
+                                + "["
+                                + tmp_var_map[i][1]
+                                + ", %"
+                                + tmp_label1
+                                + "], ["
+                                + self.variable_map[i][1]
+                                + ", %"
+                                + tmp_label2
+                                + "]\n\t\t"
+                            ),
+                        )
+                    )
                     self.variable_map[i] = (self.variable_map[i][0], result)
             while topo_list:
                 for i in topo_list:
@@ -1604,9 +1634,7 @@ class MyListener2(Mx_parserListener):
                     if flag == 0:
                         stream[0] += i[2]
                         topo_list.remove(i)
-            t2 = self.return_expression2ir(
-                code.expression(), stream
-            )
+            t2 = self.return_expression2ir(code.expression(), stream)
             stream[0] += (
                 "br i1 "
                 + self.variable_map[t2][1]
@@ -1687,28 +1715,34 @@ class MyListener2(Mx_parserListener):
                     assignment = code.forControl().expression3().assignment()
                     self.assignment_decode2ir(assignment, stream)
             stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
-            stream[0]+= "\n.label" + str(label_cnt + 3) + ":\n\t\t"
+            stream[0] += "\n.label" + str(label_cnt + 3) + ":\n\t\t"
             topo_list = []
             for i in tmp_var_map:
-                if (
-                    i in self.write_map and self.write_map[i] == ""
-                ) and tmp_var_map[i][1] != self.variable_map[i][1]:
+                if (i in self.write_map and self.write_map[i] == "") and tmp_var_map[i][
+                    1
+                ] != self.variable_map[i][1]:
                     result = "%var" + str(self.variable_cnt)
                     self.variable_cnt += 1
-                    topo_list.append((self.variable_map[i][1] ,result,(
-                        result
-                        + " = phi "
-                        + self.type2ir(self.variable_map[i][0])
-                        + "["
-                        + tmp_var_map[i][1]
-                        + ", %"
-                        + tmp_label1
-                        + "], ["
-                        + self.variable_map[i][1]
-                        + ", %"
-                        + tmp_label2
-                        + "]\n\t\t"
-                    )))
+                    topo_list.append(
+                        (
+                            self.variable_map[i][1],
+                            result,
+                            (
+                                result
+                                + " = phi "
+                                + self.type2ir(self.variable_map[i][0])
+                                + "["
+                                + tmp_var_map[i][1]
+                                + ", %"
+                                + tmp_label1
+                                + "], ["
+                                + self.variable_map[i][1]
+                                + ", %"
+                                + tmp_label2
+                                + "]\n\t\t"
+                            ),
+                        )
+                    )
                     self.variable_map[i] = (self.variable_map[i][0], result)
             while topo_list:
                 for i in topo_list:
@@ -1734,11 +1768,7 @@ class MyListener2(Mx_parserListener):
                     + "\n\t\t"
                 )
             else:
-                stream[0] += (
-                    "br label %.label"
-                    + str(label_cnt + 1)
-                    + "\n\t\t"
-                )
+                stream[0] += "br label %.label" + str(label_cnt + 1) + "\n\t\t"
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
             # print(tmp_stream[0])
@@ -1864,4 +1894,3 @@ if __name__ == "__main__":
     with open("llvm.ll", "w") as f:
         f.write(code2)
     print(code2)
-
