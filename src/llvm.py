@@ -27,6 +27,7 @@ class MyListener2(Mx_parserListener):
     write_map = {}  # name -> ptr
     function_definition_map = {}  # name -> returnType
     loop_stack = []
+    branch_map = {}
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -56,6 +57,7 @@ class MyListener2(Mx_parserListener):
         self.write_map = copy.deepcopy(other.write_map)
         self.function_definition_map = copy.deepcopy(other.function_definition_map)
         self.loop_stack = copy.deepcopy(other.loop_stack)
+        self.branch_map = copy.deepcopy(other.branch_map)
         return
 
     # def visitTerminal(self, node: TerminalNodeImpl):
@@ -1491,6 +1493,42 @@ class MyListener2(Mx_parserListener):
             return "@.string.0"
         return "null"
 
+    def branch_map_record(self, label: int):
+        if label in self.branch_map:
+            self.branch_map[label].append((self.label_str, self.variable_map.copy()))
+        else:
+            self.branch_map[label] = [(self.label_str, self.variable_map.copy())]
+
+    def branch_map_decode(self, label: int, stream):
+        if label in self.branch_map and len(self.branch_map[label]) > 1:
+            m = self.branch_map[label]
+            i0 = m[0]
+            for i in range(1, len(m)):
+                for j in i0[1]:
+                    if (j in self.write_map and self.write_map[j] == "") and i0[1][j][
+                        1
+                    ] != m[i][1][j][1]:
+                        result = "%var" + str(self.variable_cnt)
+                        self.variable_cnt += 1
+                        stream[0] += (
+                            result
+                            + " = phi "
+                            + self.type2ir(i0[1][j][0])
+                            + " ["
+                            + i0[1][j][1]
+                            + ", %"
+                            + i0[0]
+                            + "], ["
+                            + m[i][1][j][1]
+                            + ", %"
+                            + m[i][0]
+                            + "]\n\t\t"
+                        )
+                        self.variable_map[j] = (self.variable_map[j][0], result)
+                        return
+        if label in self.branch_map and len(self.branch_map[label]) == 1:
+            self.variable_map = self.branch_map[label][0][1]
+
     def statement_decode2ir(self, code: Mx_parserParser.StatementContext, stream):
         stream[0] += "\n; statement: " + code.getText() + "\n\n\t\t"
         if isinstance(code, Mx_parserParser.EmptyStatementContext):
@@ -1562,7 +1600,6 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.WhileStatementContext):
             label_cnt = self.label_cnt
             self.label_cnt += 4
-
             stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             tmp_label1 = self.label_str
             tmp_me = copy.deepcopy(self)
@@ -1573,9 +1610,11 @@ class MyListener2(Mx_parserListener):
             tmp_me.loop_stack.append(label_cnt)
             tmp_me.statement_decode2ir(code.statement(), tmp_stream)
             tmp_me.loop_stack.pop()
+            tmp_me.branch_map_record(label_cnt)
             tmp_stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
             tmp_stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             tmp_me.label_str = ".label" + str(label_cnt)
+            tmp_me.branch_map_decode(label_cnt, tmp_stream)
             tmp_label2 = tmp_me.label_str
             tmp_stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             # self.label_str = ".label" + str(label_cnt + 3)
@@ -1593,11 +1632,14 @@ class MyListener2(Mx_parserListener):
             self.loop_stack.append(label_cnt)
             self.statement_decode2ir(code.statement(), stream)
             self.loop_stack.pop()
+            self.branch_map_record(label_cnt)
             stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt)
+            self.branch_map_decode(label_cnt, stream)
             stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt + 3) + ":\n\t\t"
+            self.label_str = ".label" + str(label_cnt + 3)
             topo_list = []
             for i in tmp_var_map:
                 if (i in self.write_map and self.write_map[i] == "") and tmp_var_map[i][
@@ -1637,6 +1679,7 @@ class MyListener2(Mx_parserListener):
                         stream[0] += i[2]
                         topo_list.remove(i)
             t2 = self.return_expression2ir(code.expression(), stream)
+            self.branch_map_record(label_cnt + 2)
             stream[0] += (
                 "br i1 "
                 + self.variable_map[t2][1]
@@ -1648,6 +1691,7 @@ class MyListener2(Mx_parserListener):
             )
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
+            self.branch_map_decode(label_cnt + 2, stream)
             # print(tmp_stream[0])
             return
         elif isinstance(code, Mx_parserParser.ForStatementContext):
@@ -1677,9 +1721,11 @@ class MyListener2(Mx_parserListener):
             tmp_me.loop_stack.append(label_cnt)
             tmp_me.statement_decode2ir(code.statement(), tmp_stream)
             tmp_me.loop_stack.pop()
+            tmp_me.branch_map_record(label_cnt)
             tmp_stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
             tmp_stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             tmp_me.label_str = ".label" + str(label_cnt)
+            tmp_me.branch_map_decode(label_cnt, tmp_stream)
             if code.forControl().expression3() != None:
                 if code.forControl().expression3().expression() != None:
                     tmp_me.return_expression2ir(
@@ -1705,9 +1751,11 @@ class MyListener2(Mx_parserListener):
             self.loop_stack.append(label_cnt)
             self.statement_decode2ir(code.statement(), stream)
             self.loop_stack.pop()
+            self.branch_map_record(label_cnt)
             stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt)
+            self.branch_map_decode(label_cnt, stream)
             if code.forControl().expression3() != None:
                 if code.forControl().expression3().expression() != None:
                     self.return_expression2ir(
@@ -1718,6 +1766,7 @@ class MyListener2(Mx_parserListener):
                     self.assignment_decode2ir(assignment, stream)
             stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt + 3) + ":\n\t\t"
+            self.label_str = ".label" + str(label_cnt + 3)
             topo_list = []
             for i in tmp_var_map:
                 if (i in self.write_map and self.write_map[i] == "") and tmp_var_map[i][
@@ -1760,6 +1809,7 @@ class MyListener2(Mx_parserListener):
                 t2 = self.return_expression2ir(
                     code.forControl().expression2().expression(), stream
                 )
+                self.branch_map_record(label_cnt + 2)
                 stream[0] += (
                     "br i1 "
                     + self.variable_map[t2][1]
@@ -1773,6 +1823,7 @@ class MyListener2(Mx_parserListener):
                 stream[0] += "br label %.label" + str(label_cnt + 1) + "\n\t\t"
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
+            self.branch_map_decode(label_cnt + 2, stream)
             # print(tmp_stream[0])
             return
         elif isinstance(code, Mx_parserParser.ReturnStatementContext):
@@ -1792,8 +1843,10 @@ class MyListener2(Mx_parserListener):
             for i in range(len(code.statement())):
                 self.statement_decode2ir(code.statement(i), stream)
         elif isinstance(code, Mx_parserParser.BreakStatementContext):
+            self.branch_map_record(self.loop_stack[-1] + 2)
             stream[0] += "br label %.label" + str(self.loop_stack[-1] + 2) + "\n\t"
         elif isinstance(code, Mx_parserParser.ContinueStatementContext):
+            self.branch_map_record(self.loop_stack[-1])
             stream[0] += "br label %.label" + str(self.loop_stack[-1]) + "\n\t"
         elif isinstance(code, Mx_parserParser.AssignmentStatementContext):
             code = code.assignment()
