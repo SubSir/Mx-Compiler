@@ -1116,7 +1116,7 @@ class MyListener(Mx_parserListener):
             self.variable_definition_stack.pop()
             i -= 1
 
-    def enterForControl(self, ctx: Mx_parserParser.ForControlContext):
+    def exitForControl(self, ctx: Mx_parserParser.ForControlContext):
         expression = ctx.expression2()
         if expression != None:
             type = self.return_expressiontype(expression.expression())

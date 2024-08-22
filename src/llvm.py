@@ -1129,6 +1129,15 @@ class MyListener2(Mx_parserListener):
                 + self.variable_map[t1][1]
                 + ", i32 0, i32 1\n\t\t"
             )
+            _tmp = result
+            result = "%var" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream[0]+=(
+                result
+                + " = load ptr, ptr "
+                + _tmp
+                + "\n\t\t"
+            )
             value = result
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
@@ -1851,4 +1860,8 @@ def main(code):
 
 if __name__ == "__main__":
     code = sys.stdin.read()
-    main(code)
+    code2 = main(code)
+    with open("llvm.ll", "w") as f:
+        f.write(code2)
+    print(code2)
+
