@@ -120,40 +120,76 @@ class MyListener2(Mx_parserListener):
             # conditionalExpression
             label_cnt = self.label_cnt
             self.label_cnt += 3
-            t1 = self.return_expression2ir(code.expression(0), stream)
-            t2 = self.return_expression2ir(code.expression(1), stream)
-            t3 = self.return_expression2ir(code.expression(2), stream)
-
+            t = self.return_expression2ir(code.expression(0), stream)
             stream[0] += (
                 "br i1 "
-                + self.variable_map[t1][1]
+                + self.variable_map[t][1]
                 + ", label %.label"
                 + str(label_cnt)
                 + ", label %.label"
                 + str(label_cnt + 1)
-                + "\n\t\t\n\t"
+                + "\n\t"
             )
-            stream[0] += "\n.label" + str(label_cnt) + ": \n\t\t"
-            stream[0] += "br label %.label" + str(label_cnt + 2) + "\n\t\t\n\t"
-            stream[0] += "\n.label" + str(label_cnt + 1) + ": \n\t\t"
-            stream[0] += "br label %.label" + str(label_cnt + 2) + "\n\t\t\n\t"
-            stream[0] += "\n.label" + str(label_cnt + 2) + ": \n\t\t"
-            type = self.variable_map[t2][0]
-            stream[0] += (
-                result
-                + " = phi "
-                + self.type2ir(type)
-                + " [ "
-                + self.variable_map[t2][1]
-                + ", %.label"
-                + str(label_cnt)
-                + " ], [ "
-                + self.variable_map[t3][1]
-                + ", %.label"
-                + str(label_cnt + 1)
-                + " ]\n\t\t"
-            )
-            self.variable_map[code.getText()] = (type, result)
+            tmp_map = self.variable_map.copy()
+            stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
+            self.label_str = ".label" + str(label_cnt)
+            t1 = self.return_expression2ir(code.expression(1), stream)
+            type1 = self.variable_map[t1][0]
+            name1 = self.variable_map[t1][1]
+            stream[0] += "br label %.label" + str(label_cnt + 2) + "\n\t"
+            tmp_label1 = self.label_str
+            change_map = {}
+            for i in tmp_map:
+                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
+                    1
+                ] != self.variable_map[i][1]:
+                    change_map[i] = (self.variable_map[i][1], tmp_map[i][1])
+            stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
+            self.label_str = ".label" + str(label_cnt + 1)
+            self.variable_map = tmp_map.copy()
+            t2 = self.return_expression2ir(code.expression(2), stream)
+            name2 = self.variable_map[t2][1]
+            for i in tmp_map:
+                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
+                    1
+                ] != self.variable_map[i][1]:
+                    if i in change_map:
+                        change_map[i] = (change_map[i][0], self.variable_map[i][1])
+                    else:
+                        change_map[i] = (tmp_map[i][1], self.variable_map[i][1])
+            stream[0] += "br label %.label" + str(label_cnt + 2) + "\n\t"
+            tmp_label2 = self.label_str
+            stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
+            self.label_str = ".label" + str(label_cnt + 2)
+            for i in change_map:
+                result = "%var" + str(self.variable_cnt)
+                self.variable_cnt += 1
+                stream[0] += (
+                    result
+                    + " = phi "
+                    + self.type2ir(self.variable_map[i][0])
+                    + "["
+                    + change_map[i][0]
+                    + ", %"
+                    + tmp_label1
+                    + "], ["
+                    + change_map[i][1]
+                    + ", %"
+                    + tmp_label2
+                    + "]\n\t\t"
+                )
+                self.variable_map[i] = (self.variable_map[i][0], result)
+            result = "%var" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            if type1!="void":
+                stream[0]+=(result + " = phi " + self.type2ir(type1) + "[" + name1 + ", %"
+                        + tmp_label1
+                        + "], ["
+                        + name2
+                        + ", %"
+                        + tmp_label2
+                        + "]\n\t\t")
+            self.variable_map[code.getText()] = (type1, result)  
             return code.getText()
         elif isinstance(code, Mx_parserParser.RelationalExpressionContext):
             # relationalExpression
