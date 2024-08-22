@@ -1264,6 +1264,7 @@ class MyListener2(Mx_parserListener):
                             cnt += 1
                     elif ii.functionDefinition() != None:
                         type = ii.functionDefinition().returnType().getText()
+                        type = self.arraytype_transform(type)
                         name = ii.functionDefinition().IDENTIFIER().getText()
                         # function_definition_str += (
                         #     "declare "
@@ -1299,6 +1300,7 @@ class MyListener2(Mx_parserListener):
 
             elif isinstance(child, Mx_parserParser.FunctionDefinitionContext):
                 type = child.returnType().getText()
+                type = self.arraytype_transform(type)
                 name = child.IDENTIFIER().getText()
                 # function_definition_str += (
                 #     "declare "
@@ -1808,12 +1810,15 @@ class MyListener2(Mx_parserListener):
         type_ = self.arraytype_transform(type_)
         default = self.return_default(type_)
         for i in variabledeclare.variableDeclarationparts():
-            self.write_map[i.IDENTIFIER().getText()] = ""
+            name = i.IDENTIFIER().getText()
+            if name == "d1":
+                print("")
+            self.write_map[name] = ""
             if i.expression() != None:
                 t = self.return_expression2ir(i.expression(), stream)
-                self.variable_map[i.IDENTIFIER().getText()] = self.variable_map[t]
+                self.variable_map[name] = self.variable_map[t]
             else:
-                self.variable_map[i.IDENTIFIER().getText()] = [type_, default]
+                self.variable_map[name] = [type_, default]
 
     def arraytype_transform(self, code: str) -> str:
         if code[-1] != "]":
