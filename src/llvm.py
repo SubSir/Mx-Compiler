@@ -1602,7 +1602,7 @@ class MyListener2(Mx_parserListener):
             self.variable_map = self.branch_map[label][0][1]
 
     def statement_decode2ir(self, code: Mx_parserParser.StatementContext, stream):
-        stream[0] += "\n; statement: " + code.getText() + "\n\n\t\t"
+        # stream[0] += "\n; statement: " + code.getText() + "\n\n\t\t"
         if isinstance(code, Mx_parserParser.EmptyStatementContext):
             return
         elif isinstance(code, Mx_parserParser.ExpressionStatementContext):
