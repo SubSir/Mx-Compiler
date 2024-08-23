@@ -1,4 +1,13 @@
+#!/usr/bin/python3
 import sys
+import copy
+from antlr4 import InputStream, CommonTokenStream
+from llvmparser.llvmListener import llvmListener
+from llvmparser.llvmLexer import llvmLexer
+from llvmparser.llvmParser import llvmParser
+from antlr4.tree.Tree import TerminalNodeImpl
+from antlr4.tree.Tree import ParseTreeWalker
+from antlr4.error.ErrorListener import ErrorListener
 
 
 def function_decode(code: str) -> str:

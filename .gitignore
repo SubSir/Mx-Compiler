@@ -8,3 +8,4 @@ test
 llvm.ll
 test.in
 output.ll
+.vscode/
