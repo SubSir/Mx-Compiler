@@ -82,6 +82,88 @@ class MyListener2(Mx_parserListener):
         string_ = string_.replace("\\n", "\\0A")
         return '"' + string_ + '\\00"', len_ + 1
 
+    def array_constantdecode(self, code: Mx_parserParser.Array_constantContext, stream):
+        result = "%var" + str(self.variable_cnt)
+        self.variable_cnt += 1
+        expressionlist = [
+            self.return_expression2ir(i, stream) for i in code.expression()
+        ]
+        dim = 0
+        for i in expressionlist:
+            if self.isPrivate(self.variable_map[i][0]):
+                dim = max(dim, int(self.variable_map[i][0]) + 1)
+                type_ = self.variable_map[i][0][6:-1]
+            else:
+                dim = max(dim, 1)
+                type_ = self.variable_map[i][0]
+        type_ = self.arraytype_transform(type_ + dim * "[]")
+        stream[0] += (
+            result
+            + " = call ptr @malloc(i32 "
+            + str(self.class_size_map[type_])
+            + ")\n\t\t"
+        )
+        stream[0] += (
+            "call void @"
+            + type_
+            + "init(ptr "
+            + result
+            + ", i32 "
+            + str(len(expressionlist))
+            + ")\n\t\t"
+        )
+        self.variable_map[code.getText()] = (type_, result)
+        self.write_map[code.getText()] = ""
+        tmp_ = result
+        if type_[-1] == "1":
+                _type = self.arraytype_reform(type_)[:-2]
+        else:
+            _type = type_[:-1] + str(int(type_[-1]) - 1)
+        for i in range(len(expressionlist)):
+            result = "%var" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream[0] += (
+                result
+                + " = getelementptr %"
+                + type_
+                + ", ptr "
+                + tmp_
+                + ", i32 0, i32 1\n\t\t"
+            )
+            _tmp = result
+            result = "%var" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream[0] += result + " = load ptr, ptr " + _tmp + "\n\t\t"
+            value = result
+            result = "%var" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            # if self.isPrivate(self.enter_class):
+            #     type_ = self.variable_map[t1][0][:-2]
+            # else:
+            stream[0] += (
+                result
+                + " = getelementptr "
+                + self.type2ir(_type)
+                + ", ptr "
+                + value
+                + ", i32 "
+                + str(i)
+                + "\n\t\t"
+            )
+            ptr = result
+            result = "%var" + str(self.variable_cnt)
+            self.variable_cnt += 1
+            stream[0] += (
+                "store "
+                + self.type2ir(_type)
+                + " "
+                + self.variable_map[expressionlist[i]][1]
+                + ", ptr "
+                + ptr
+                + "\n\t\t"
+            )
+        return code.getText()
+
     def return_expression2ir(
         self, code, stream
     ) -> str:  # stream[0] 为流, 返回variable_map的index
@@ -950,75 +1032,7 @@ class MyListener2(Mx_parserListener):
                     pass  # fstring 被转换了
             if constant.array_constant() != None:
                 array_ = constant.array_constant()
-                expressionlist = [
-                    self.return_expression2ir(i) for i in array_.expression()
-                ]
-                dim = 0
-                for i in expressionlist:
-                    if self.isPrivate(self.variable_map[i][0]):
-                        dim = max(dim, int(self.variable_map[i][0]) + 1)
-                        type_ = self.variable_map[i][1][6:-1]
-                    else:
-                        dim = max(dim, 1)
-                        type_ = self.variable_map[i][1]
-                type_ = self.arraytype_transform(type_ + dim * "[]")
-                stream[0] += (
-                    result
-                    + " = call ptr @malloc(i32 "
-                    + str(self.class_size_map[type_])
-                    + ")\n\t\t"
-                )
-                stream[0] += "call void @" + type_ + "init(ptr " + result + ")\n\t\t"
-                self.variable_map[code.getText()] = (type_, result)
-                self.write_map[code.getText()] = ""
-                for i in range(len(expressionlist)):
-                    tmp_ = result
-                    result = "%var" + str(self.variable_cnt)
-                    self.variable_cnt += 1
-                    stream[0] += (
-                        result
-                        + " = getelementptr %"
-                        + type_
-                        + ", ptr "
-                        + tmp_
-                        + ", i32 0, i32 1\n\t\t"
-                    )
-                    _tmp = result
-                    result = "%var" + str(self.variable_cnt)
-                    self.variable_cnt += 1
-                    stream[0] += result + " = load ptr, ptr " + _tmp + "\n\t\t"
-                    value = result
-                    result = "%var" + str(self.variable_cnt)
-                    self.variable_cnt += 1
-                    # if self.isPrivate(self.enter_class):
-                    #     type_ = self.variable_map[t1][0][:-2]
-                    # else:
-                    if type_[-1] == "1":
-                        type_ = self.arraytype_reform(type_)[:-2]
-                    else:
-                        type_ = type_[:-1] + str(int(type_[-1]) - 1)
-                    stream[0] += (
-                        result
-                        + " = getelementptr "
-                        + self.type2ir(type_)
-                        + ", ptr "
-                        + value
-                        + ", i32 "
-                        + str(i)
-                        + "\n\t\t"
-                    )
-                    ptr = result
-                    result = "%var" + str(self.variable_cnt)
-                    self.variable_cnt += 1
-                    stream[0] += (
-                        "store "
-                        + self.type2ir(type_)
-                        + self.variable_map[t2][1]
-                        + ", ptr "
-                        + ptr
-                        + "\n\t\t"
-                    )
-                return code.getText()
+                return self.array_constantdecode(array_, stream)
 
             if constant.getText() == "null":
                 self.variable_map["null"] = ("null", "null")
@@ -1079,8 +1093,8 @@ class MyListener2(Mx_parserListener):
                 )
                 self.write_map[code.getText()] = ""
                 return code.getText()
-            if code.expression() == None:
-                return self.return_expression2ir(code.array_constant(), stream)
+            if code.array_constant() != None:
+                return self.array_constantdecode(code.array_constant(), stream)
             expressionlist = code.expression()
             list = []
             type_ = "class_" + code.type_().getText() + str(cnt)
