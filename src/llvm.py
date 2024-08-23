@@ -116,7 +116,7 @@ class MyListener2(Mx_parserListener):
         self.write_map[code.getText()] = ""
         tmp_ = result
         if type_[-1] == "1":
-                _type = self.arraytype_reform(type_)[:-2]
+            _type = self.arraytype_reform(type_)[:-2]
         else:
             _type = type_[:-1] + str(int(type_[-1]) - 1)
         for i in range(len(expressionlist)):
@@ -1387,7 +1387,6 @@ class MyListener2(Mx_parserListener):
                 # function_definition_str += self.parameterList_decode2type(
                 #     child.parameterList()
                 # )
-                function_definition_str += "\n\t\t"
             elif isinstance(child, Mx_parserParser.VariableDeclarationContext):
                 if child.type_() != None:
                     type = self.type2ir(child.type_().getText())
@@ -1438,7 +1437,7 @@ class MyListener2(Mx_parserListener):
                                 self.return_expression2ir(i.expression(), stream)
                             ][1]
                             stream[0] += (
-                                "    store "
+                                "store "
                                 + type
                                 + " "
                                 + exp
@@ -1446,7 +1445,7 @@ class MyListener2(Mx_parserListener):
                                 + name
                                 + "\n\t\t"
                             )
-                            stream[0] += "    ret void\n\n}\n\n"
+                            stream[0] += "ret void\n\n}\n\n"
                             self.function_definition_list.append(stream[0])
                             self.init_cnt += 1
                     variable_definition_str += "\n"
