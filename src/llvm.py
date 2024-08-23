@@ -763,10 +763,10 @@ class MyListener2(Mx_parserListener):
                 expressionlist = self.expressionLists_decode(
                     code.expressionLists(), stream
                 )
-                if ptr ==1:
-                    expressionlist = '(ptr %this, ' + expressionlist[1:]
-            elif ptr ==1:
-                expressionlist = '(ptr %this)'
+                if ptr == 1:
+                    expressionlist = "(ptr %this, " + expressionlist[1:]
+            elif ptr == 1:
+                expressionlist = "(ptr %this)"
             if type != "void":
                 stream[0] += (
                     result
@@ -1389,7 +1389,7 @@ class MyListener2(Mx_parserListener):
                             init_func = (
                                 "define void @init"
                                 + str(self.init_cnt)
-                                + " (){\n\t\t  entry:\n\t\t"
+                                + " (){\nentry:\n\t\t"
                             )
                             self.label_str = "entry"
                             stream = [init_func]
@@ -1502,7 +1502,7 @@ class MyListener2(Mx_parserListener):
         parameterstr += ")"
         if self.enter_class == "" and parameterstr != "()":
             parameterstr = parameterstr[:1] + parameterstr[2:]
-        func_str += parameterstr + " {\n\t\tentry:\n\t\t"
+        func_str += parameterstr + " {\nentry:\n\t\t"
         self.label_str = "entry"
         if ctx.IDENTIFIER().getText() == "main":
             for i in range(self.init_cnt):
@@ -1557,7 +1557,7 @@ class MyListener2(Mx_parserListener):
                             + "]\n\t\t"
                         )
                         self.variable_map[j] = (self.variable_map[j][0], result)
-                        
+
         if label in self.branch_map and len(self.branch_map[label]) == 1:
             self.variable_map = self.branch_map[label][0][1]
 
@@ -1876,10 +1876,10 @@ class MyListener2(Mx_parserListener):
                 self.statement_decode2ir(code.statement(i), stream)
         elif isinstance(code, Mx_parserParser.BreakStatementContext):
             self.branch_map_record(self.loop_stack[-1] + 2)
-            stream[0] += "br label %.label" + str(self.loop_stack[-1] + 2) + "\n\t"
+            stream[0] += "br label %.label" + str(self.loop_stack[-1] + 2) + "\n\t\t"
         elif isinstance(code, Mx_parserParser.ContinueStatementContext):
             self.branch_map_record(self.loop_stack[-1])
-            stream[0] += "br label %.label" + str(self.loop_stack[-1]) + "\n\t"
+            stream[0] += "br label %.label" + str(self.loop_stack[-1]) + "\n\t\t"
         elif isinstance(code, Mx_parserParser.AssignmentStatementContext):
             code = code.assignment()
             self.assignment_decode2ir(code, stream)
@@ -1975,7 +1975,22 @@ def main(code):
     return_str += listener.global_str
     for i in listener.function_definition_list:
         return_str += i
-    return return_str
+
+    lines = return_str.splitlines()
+    stream_out = 1
+    return_ans = ""
+
+    for line in lines:
+        if line.startswith("\t\t"):
+            if stream_out == 1:
+                return_ans += line + "\n"
+            if "br" in line:
+                stream_out = 0
+        else:
+            if ".label" in line or "entry" in line:
+                stream_out = 1
+            return_ans += line + "\n"
+    return return_ans
 
 
 if __name__ == "__main__":
