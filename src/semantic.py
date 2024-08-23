@@ -108,7 +108,8 @@ class MyListener(Mx_parserListener):
 
         if token_type == 51:  # IDENTIFIER
             if (
-                text in self.variable_definition_map and text != "this"
+                text in self.variable_definition_map
+                and text != "this"
                 and (
                     self.enterclass == ""
                     or (text not in self.usertype_map[self.enterclass].class_member_map)
@@ -118,6 +119,15 @@ class MyListener(Mx_parserListener):
             ):
                 t = self.variable_definition_map[text][-1]
                 text += str(self.variable_cnt_map2[(t.name, t.priority)])
+        elif token_type == 55:  # FSTRING_PART1
+            text_ = text[2:-1]
+            text = '"' + text_ + '" + toString('
+        elif token_type == 60:  # FSTRING_MIDDLE_PART
+            text_ = text[1:-1]
+            text = ') + "' + text_ + '" + toString('
+        elif token_type == 57:
+            text_ = text[1:-1]
+            text = ') + "' + text_ + '"'
         # 输出节点的文本和类型
         self.ans += text + " "
         if text == ";":
@@ -463,13 +473,6 @@ class MyListener(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
             expression = code.expression()
-            if isinstance(
-                code.expression(0), Mx_parserParser.NewArrayExpressionContext
-            ) or isinstance(
-                code.expression(0), Mx_parserParser.NewVariableExpressionContext
-            ):
-                print("Invalid Identifier")
-                sys.exit(1)
             for i in range(1, len(expression)):
                 type_ = self.return_expressiontype(expression[i])
                 if type_ != "int[0]":
