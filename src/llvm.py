@@ -1014,7 +1014,7 @@ class MyListener2(Mx_parserListener):
                     string_ = constant.string_constant().getText()
                     _string, len_ = self.transform_string(string_)
                     self.global_str += (
-                        "@string."
+                        "@.string."
                         + str(self.string_cnt)
                         + " = global [ "
                         + str(len_)
@@ -1024,7 +1024,7 @@ class MyListener2(Mx_parserListener):
                     )
                     self.variable_map[code.getText()] = (
                         "string",
-                        "@string." + str(self.string_cnt),
+                        "@.string." + str(self.string_cnt),
                     )
                     self.string_cnt += 1
                     return code.getText()

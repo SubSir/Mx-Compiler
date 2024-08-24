@@ -216,6 +216,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value.Global_var() != None:
+            self.return_str += "\tla t1, " + value.Global_var().getText()[1:] + "\n"
         else:
             self.return_str += "\tli t1, " + value.getText() + "\n"
         var = ctx.var()
@@ -388,6 +390,14 @@ class Mylistener3(llvmListener):
         if val == "null":
             val = "0"
         self.data += "\t.word " + val + "\n"
+
+    def enterString_declare(self, ctx: llvmParser.String_declareContext):
+        self.data += ctx.Global_var().getText()[1:] + ":\n"
+        str = ctx.StringLiteral().getText()[1:-1]
+        str = str.replace("\\22", '\\"')
+        str = str.replace("\\0A", "\\n")
+        str = str.replace("\\00", "")
+        self.data += '\t.asciz "' + str + '"\n'
 
 
 def main(code: str) -> str:

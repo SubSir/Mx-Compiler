@@ -17,7 +17,7 @@ Identifier: [a-zA-Z_] [a-zA-Z0-9_]* ;
 
 Privatevariable: '%' Identifier ;
 
-Global_var: '@' (~[@ \r\n()])+;
+Global_var: '@' (~[@ \r\n(),])+;
 
 // 字符串字面量
 StringLiteral: '"' (~["])+ '"';
@@ -103,7 +103,7 @@ cond: 'eq' | 'ne' | 'slt' | 'sgt' | 'sle' | 'sge';
 phi: Privatevariable '=' 'phi' type '[' value ',' '%' Label ']' ',' '['value ',' '%' Label ']';
 
 // 值
-value:Privatevariable | constant ;
+value:Privatevariable | constant | Global_var;
 
 // 常量
 constant: INTEGER |'null';
