@@ -1292,9 +1292,9 @@ class MyListener2(Mx_parserListener):
         func_str = (
             "define void @"
             + ctx.IDENTIFIER().getText()
-            + "_new(ptr %this){\nentry:\n\t\t"
+            + "_new(ptr %this){\n.entry:\n\t\t"
         )
-        self.label_str = "entry"
+        self.label_str = ".entry"
         statement_list = ctx.functionBody().statement()
         stream = [func_str]
         for i in range(len(statement_list)):
@@ -1364,7 +1364,7 @@ class MyListener2(Mx_parserListener):
                     function_definition_str += (
                         "define void @"
                         + child.IDENTIFIER().getText()
-                        + "_new(ptr){\n\t\tret void \n}\n"
+                        + "_new(ptr %this){\n.entry:\n\t\tret void \n}\n"
                     )
                 self.class_size_map[child.IDENTIFIER().getText()] = cnt * 4
                 for i in range(len(var_list)):
@@ -1429,9 +1429,9 @@ class MyListener2(Mx_parserListener):
                             init_func = (
                                 "define void @init"
                                 + str(self.init_cnt)
-                                + " (){\nentry:\n\t\t"
+                                + " (){\n.entry:\n\t\t"
                             )
-                            self.label_str = "entry"
+                            self.label_str = ".entry"
                             stream = [init_func]
                             exp = self.variable_map[
                                 self.return_expression2ir(i.expression(), stream)
@@ -1542,8 +1542,8 @@ class MyListener2(Mx_parserListener):
         parameterstr += ")"
         if self.enter_class == "" and parameterstr != "()":
             parameterstr = parameterstr[:1] + parameterstr[2:]
-        func_str += parameterstr + " {\nentry:\n\t\t"
-        self.label_str = "entry"
+        func_str += parameterstr + " {\n.entry:\n\t\t"
+        self.label_str = ".entry"
         if ctx.IDENTIFIER().getText() == "main":
             for i in range(self.init_cnt):
                 func_str += "call void @init" + str(i) + "()\n\t\t"
@@ -2027,7 +2027,7 @@ def main(code):
             if "br" in line:
                 stream_out = 0
         else:
-            if ".label" in line or "entry" in line:
+            if ".label" in line or ".entry" in line:
                 stream_out = 1
             return_ans += line + "\n"
     return return_ans

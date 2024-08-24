@@ -9,3 +9,4 @@ llvm.ll
 test.in
 output.ll
 .vscode/
+asm.s

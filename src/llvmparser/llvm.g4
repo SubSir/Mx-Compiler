@@ -1,16 +1,36 @@
 grammar llvm;
 
 // 程序定义
-module: (function | function_declare |  globalvariable | string_declare)* ;
+module: (function | function_declare |  globalvariable | string_declare | typedelcare)* ;
 
 // 类型
 type: 'i32' | 'ptr' | 'void' | 'i1';
+
+// 整数
+INTEGER: [0-9]+ ;
+
+// 标签
+Label: '.'[a-zA-Z_] [a-zA-Z0-9_]*  ;
+
+// 标识符
+Identifier: [a-zA-Z_] [a-zA-Z0-9_]* ;
+
+Privatevariable: '%' Identifier ;
+
+Global_var: '@' (~[@ \r\n()])+;
+
+// 字符串字面量
+StringLiteral: '"' (~["])+ '"';
+
+// 空白符
+WS: [ \t\r\n]+ -> skip ;
+
 
 // 函数声明
 function_declare: 'declare' type Global_var '(' types? ')' ;
 
 // 函数定义
-function: 'define' type Global_var '(' params ')' '{' basic_block+ '}' ;
+function: 'define' type Global_var '(' params? ')' '{' basic_block+ '}' ;
 
 // 自定义类型
 typedelcare: Privatevariable '=' 'type' '{' types? '}' ;
@@ -22,12 +42,12 @@ globalvariable: Global_var '=' 'global'type constant ;
 string_declare: Global_var '=' 'global' '['INTEGER 'x' 'i8' ']' 'c' StringLiteral ;
 
 // 参数列表
-params: (parameter (',' parameter)*)? ;
+params: (parameter (',' parameter)*) ;
 
 types: (type (',' type)*);
 
 // 参数定义
-parameter: type Privatevariable | type Global_var;
+parameter: type Privatevariable | type Global_var | type constant;
 
 // 基本块
 basic_block: Label':' instruction+ ;
@@ -49,25 +69,30 @@ instruction
 ret: 'ret' type value? ;
 
 // 调用指令
-call: 'call' 'void' Global_var '(' params ')' | Privatevariable '=' 'call' type Global_var '(' params ')';
+call: 'call' 'void' Global_var '(' params? ')' | Privatevariable '=' 'call' type Global_var '(' params ?')';
 
 // 二元操作
 binary_op: Privatevariable'=' bin_op type value ','value ;
 
 // 操作符
-bin_op: 'add' | 'sub' | 'mul' | 'sdiv' | 'srem' | 'shl' | 'ashl' | 'and' | 'or' | 'xor';
+bin_op: 'add' | 'sub' | 'mul' | 'sdiv' | 'srem' | 'shl' | 'ashr' | 'and' | 'or' | 'xor';
 
 // 跳转指令
 branch: 'br' 'label' '%' Label | 'br' 'i1' value ',' 'label' '%' Label ',' 'label' '%' Label ;
 
 // 加载指令
-load: Privatevariable '='  'load' type  ',' 'ptr' (Privatevariable | Global_var) ; 
+load: Privatevariable '='  'load' type  ',' 'ptr' var ; 
+
+var: (Privatevariable | Global_var);
 
 // 存储指令
-store: 'store' type value ',' 'ptr' (Privatevariable | Global_var) ;
+store: 'store' type value ',' 'ptr' var ;
 
 // 取指针指令
-getelementptr: Privatevariable '=' 'getelementptr' (type| Privatevariable) ',' 'ptr'(Privatevariable | Global_var) ',' ('i32' value)+ ;
+getelementptr: Privatevariable '=' 'getelementptr' ptrtype ',' 'ptr' var ',' 'i32' value |
+ Privatevariable '=' 'getelementptr' ptrtype ',' 'ptr' var ',' 'i32' INTEGER ',' 'i32' value ;
+
+ptrtype:type | Privatevariable;
 
 // 比较指令
 compare: Privatevariable '=' 'icmp' cond type value ',' value  ;
@@ -83,22 +108,3 @@ value:Privatevariable | constant ;
 // 常量
 constant: INTEGER |'null';
 
-
-// 标签
-Label: '.'[a-zA-Z_] [a-zA-Z0-9_]* | 'entry' ;
-
-// 标识符
-Identifier: [a-zA-Z_] [a-zA-Z0-9_]* ;
-
-Privatevariable: '%' Identifier ;
-
-Global_var: '@' (~[@ \r\n()])+;
-
-// 字符串字面量
-StringLiteral: '"' (~["])+ '"';
-
-// 整数
-INTEGER: [0-9]+ ;
-
-// 空白符
-WS: [ \t\r\n]+ -> skip ;
