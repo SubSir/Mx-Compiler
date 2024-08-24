@@ -275,10 +275,10 @@ class Mylistener3(llvmListener):
             self.return_str += "\tslt t0, t2, t1\n"
         elif op == "sle":
             self.return_str += "\tslt t0, t2, t1\n"
-            self.return_str += "\txor t0, t0, 1\n"
+            self.return_str += "\txori t0, t0, 1\n"
         elif op == "sge":
             self.return_str += "\tslt t0, t1, t2\n"
-            self.return_str += "\txor t0, t0, 1\n"
+            self.return_str += "\txori t0, t0, 1\n"
         else:
             sys.exit(1)
         privatevariable = ctx.Privatevariable()
