@@ -71,6 +71,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value1.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value1.Global_var() != None:
+            self.return_str += "\tlw t1, " + var.Global_var().getText() + "\n"
         else:
             self.return_str += "\tli t1, " + value1.getText() + "\n"
         if value2.Privatevariable() != None:
@@ -79,6 +81,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value2.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value2.Global_var() != None:
+            self.return_str += "\tlw t2, " + var.Global_var().getText() + "\n"
         else:
             self.return_str += "\tli t2, " + value2.getText() + "\n"
         op = ctx.bin_op().getText()
@@ -243,6 +247,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value1.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value1.Global_var() != None:
+            self.return_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
         else:
             self.return_str += "\tli t1, " + value1.getText() + "\n"
         value2 = ctx.value(1)
@@ -252,6 +258,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value2.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value2.Global_var() != None:
+            self.return_str += "\tla t2, " + value2.Global_var().getText()[1:] + "\n"
         else:
             self.return_str += "\tli t2, " + value2.getText() + "\n"
         op = ctx.cond().getText()
@@ -299,6 +307,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value1.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value1.Global_var() != None:
+            value1_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
         else:
             value1_str += "\tli t1, " + value1.getText() + "\n"
         if value2.Privatevariable() != None:
@@ -307,6 +317,8 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[value2.Privatevariable().getText()])
                 + "(sp)\n"
             )
+        elif value2.Global_var() != None:
+            value2_str += "\tla t2, " + value2.Global_var().getText()[1:] + "\n"
         else:
             value2_str += "\tli t2, " + value2.getText() + "\n"
         if label1 not in self.label_map:
