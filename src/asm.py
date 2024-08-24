@@ -72,7 +72,7 @@ class Mylistener3(llvmListener):
                 + "(sp)\n"
             )
         elif value1.Global_var() != None:
-            self.return_str += "\tlw t1, " + var.Global_var().getText() + "\n"
+            self.return_str += "\tla t1, " + value1.Global_var().getText() + "\n"
         else:
             self.return_str += "\tli t1, " + value1.getText() + "\n"
         if value2.Privatevariable() != None:
@@ -82,7 +82,7 @@ class Mylistener3(llvmListener):
                 + "(sp)\n"
             )
         elif value2.Global_var() != None:
-            self.return_str += "\tlw t2, " + var.Global_var().getText() + "\n"
+            self.return_str += "\tla t2, " + value2.Global_var().getText() + "\n"
         else:
             self.return_str += "\tli t2, " + value2.getText() + "\n"
         op = ctx.bin_op().getText()
@@ -237,7 +237,7 @@ class Mylistener3(llvmListener):
             self.return_str += "\tsw t1, 0(t0)\n"
             return
         name = var.Global_var().getText()[1:]
-        self.return_str += "\tsw t1, " + name + "\n"
+        self.return_str += "\tsw t1, " + name + ", t2\n"
 
     def enterCompare(self, ctx: llvmParser.CompareContext):
         value1 = ctx.value(0)
