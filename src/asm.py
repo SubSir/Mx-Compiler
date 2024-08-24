@@ -12,7 +12,7 @@ from antlr4.error.ErrorListener import ErrorListener
 
 
 class Mylistener3(llvmListener):
-    return_str = ""
+    return_str = ".text\n"
     enter_label = ""
     enter_function = ""
     data = ".data\n"
@@ -343,8 +343,9 @@ class Mylistener3(llvmListener):
         self.variable_cnt += 16 - (self.variable_cnt % 16)
 
         # 生成相应的汇编代码
-        self.return_str = ""
-        self.return_str += ".globl " + self.enter_function + "\n"
+        self.return_str += (
+            ".globl " + self.enter_function + "\n" + self.enter_function + ":\n"
+        )
         self.return_str += "\taddi sp, sp, -" + str(self.variable_cnt) + "\n"
 
         if ctx.params() is not None:
