@@ -436,6 +436,16 @@ class MyListener(Mx_parserListener):
             return code.type_().getText() + "[0]"
         elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
             # newArrayExpression
+            str_ = code.getText()
+            flag = 1
+            for i in range(len(str_)):
+                if str_[i] == "[" and str_[i + 1] == "]":
+                    flag = 0
+                if str_[i] == "[" and str_[i + 1] != "]" and flag == 0:
+                    print(
+                        "The assignment of 2-D array should follow the order from the first dimension."
+                    )
+                    sys.exit(1)
             expression = code.expression()
             for i in range(len(expression)):
                 type_ = self.return_expressiontype(expression[i])
@@ -472,6 +482,10 @@ class MyListener(Mx_parserListener):
             return type
         elif isinstance(code, Mx_parserParser.ArrayExpressionContext):
             # arrayExpression
+            str_ = code.expression(0).getText()
+            if "new" in str_ and "(" not in str_:
+                print("Type Mismatch")
+                sys.exit(1)
             expression = code.expression()
             for i in range(1, len(expression)):
                 type_ = self.return_expressiontype(expression[i])
