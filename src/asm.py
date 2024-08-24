@@ -279,8 +279,16 @@ class Mylistener3(llvmListener):
         )
 
     def enterPhi(self, ctx: llvmParser.PhiContext):
-        label1 = self.enter_function + ctx.Label(0).getText() + self.enter_label
-        label2 = self.enter_function + ctx.Label(1).getText() + self.enter_label
+        label1 = (
+            self.enter_function
+            + ctx.Label(0).getText()
+            + self.enter_label[len(self.enter_function) :]
+        )
+        label2 = (
+            self.enter_function
+            + ctx.Label(1).getText()
+            + self.enter_label[len(self.enter_function) :]
+        )
         value1 = ctx.value(0)
         value2 = ctx.value(1)
         value1_str = ""
