@@ -165,7 +165,7 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[var.Privatevariable().getText()])
                 + "(sp)\n"
             )
-            self.return_str += "\tlw t0, t1\n"
+            self.return_str += "\tlw t0, 0(t1)\n"
             self.return_str += (
                 "\tsw t0,"
                 + str(self.variable_map[ctx.Privatevariable().getText()])
@@ -198,7 +198,7 @@ class Mylistener3(llvmListener):
                 + str(self.variable_map[var.Privatevariable().getText()])
                 + "(sp)\n"
             )
-            self.return_str += "\tlw t0, t1\n"
+            self.return_str += "\tlw t0, 0(t1)\n"
             self.return_str += "\tadd t0, t0, t2\n"
             self.return_str += (
                 "\tsw t0,"
