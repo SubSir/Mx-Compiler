@@ -27,6 +27,7 @@ class Mylistener3(llvmListener):
                 self.return_str += "\tlw a0, " + str(self.variable_map[name]) + "(sp)\n"
             else:
                 self.return_str += "\tli a0, " + name + "\n"
+        self.return_str += "\tlw ra, 0(sp)\n"
         self.return_str += "\taddi sp, sp, " + str(self.variable_cnt) + "\n"
         self.return_str += "\tret\n"
 
@@ -46,7 +47,9 @@ class Mylistener3(llvmListener):
                     "\tlw a" + str(i) + ", " + str(self.variable_map[name]) + "(sp)\n"
                 )
             else:
-                self.return_str += "\tli a" + str(i) + ", " + param.getText() + "\n"
+                self.return_str += (
+                    "\tli a" + str(i) + ", " + param.constant().getText() + "\n"
+                )
 
     def enterCall(self, ctx: llvmParser.CallContext):
         if ctx.params() != None:
@@ -88,7 +91,7 @@ class Mylistener3(llvmListener):
         elif op == "sdiv":
             self.return_str += "\tdiv t0, t1, t2\n"
         elif op == "srem":
-            self.return_str += "\tsrem t0, t1, t2\n"
+            self.return_str += "\trem t0, t1, t2\n"
         elif op == "shl":
             self.return_str += "\tsll t0, t1, t2\n"
         elif op == "ashr":
@@ -331,24 +334,23 @@ class Mylistener3(llvmListener):
 
     def enterBasic_block(self, ctx: llvmParser.Basic_blockContext):
         name = ctx.Label().getText()
-        self.return_str += name + ":\n"
         self.enter_label = self.enter_function + name
+        self.return_str += self.enter_label + ":\n"
 
     def enterFunction(self, ctx: llvmParser.FunctionContext):
-        # 获取函数名
+        self.variable_cnt = 4
+
         self.enter_function = ctx.Global_var().getText()[1:]
 
-        # 遍历所有的子节点
         self._traverse_nodes(ctx)
 
-        # 计算栈帧大小并对其做对齐处理
         self.variable_cnt += 16 - (self.variable_cnt % 16)
 
-        # 生成相应的汇编代码
         self.return_str += (
             ".globl " + self.enter_function + "\n" + self.enter_function + ":\n"
         )
         self.return_str += "\taddi sp, sp, -" + str(self.variable_cnt) + "\n"
+        self.return_str += "\tsw ra, 0(sp)\n"
 
         if ctx.params() is not None:
             params = ctx.params().parameter()
@@ -364,14 +366,12 @@ class Mylistener3(llvmListener):
                     )
 
     def _traverse_nodes(self, node):
-        # 如果当前节点是 PrivateVariable 类型，则计数器加一
         if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
             var_name = node.Privatevariable().getText()
             if var_name not in self.variable_map:
                 self.variable_map[var_name] = self.variable_cnt
                 self.variable_cnt += 4
         else:
-            # 递归遍历子节点
             for child in node.getChildren():
                 if isinstance(child, antlr4.ParserRuleContext):
                     self._traverse_nodes(child)

@@ -12,6 +12,6 @@ code3 = llvm.main(code2)
 with open("llvm.ll", "w") as f:
     f.write(code3)
 code4 = asm.main(code3)
-with open("asm.s", "w") as f:
+with open("test.s", "w") as f:
     f.write(code4)
 print(code4)

@@ -10,3 +10,7 @@ test.in
 output.ll
 .vscode/
 asm.s
+REIMU/
+test.s
+builtin.s
+test.out
