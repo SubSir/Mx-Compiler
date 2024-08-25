@@ -44,21 +44,17 @@ class Mylistener3(llvmListener):
 
     def loadword(self, index: int, name: str = "t0"):
         if index > 2047 or index < -2048:
-            self.return_str += "\tli t1, " + str(index) + "\n"
-            self.return_str += "\tadd t1, sp, t1\n"
-            self.return_str += "\tlw " + name + ", 0(t1)\n"
+            self.return_str += "\tli t3, " + str(index) + "\n"
+            self.return_str += "\tadd t3, sp, t3\n"
+            self.return_str += "\tlw " + name + ", 0(t3)\n"
             return
         self.return_str += "\tlw " + name + ", " + str(index) + "(sp)\n"
 
     def saveword(self, index: int, name: str = "t0"):
         if index > 2047 or index < -2048:
-            if name == "t1":
-                tmp = "t2"
-            else:
-                tmp = "t1"
-            self.return_str += "\tli " + tmp + ", " + str(index) + "\n"
-            self.return_str += "\tadd " + tmp + ", sp, " + tmp + "\n"
-            self.return_str += "\tsw " + name + ", 0(" + tmp + ")\n"
+            self.return_str += "\tli t3, " + str(index) + "\n"
+            self.return_str += "\tadd t3, sp, t3\n"
+            self.return_str += "\tsw " + name + ", 0(t3)\n"
             return
         self.return_str += "\tsw " + name + ", " + str(index) + "(sp)\n"
 
