@@ -29,6 +29,8 @@ class Mylistener3(llvmListener):
             elif value.Global_var() != None:
                 self.return_str += "\tla a0, " + name[1:] + "\n"
             else:
+                if name == "null":
+                    name = "0"
                 self.return_str += "\tli a0, " + name + "\n"
         self.return_str += "\tlw ra, 0(sp)\n"
         self.return_str += "\taddi sp, sp, " + str(self.variable_cnt) + "\n"
@@ -50,9 +52,10 @@ class Mylistener3(llvmListener):
                     "\tlw a" + str(i) + ", " + str(self.variable_map[name]) + "(sp)\n"
                 )
             else:
-                self.return_str += (
-                    "\tli a" + str(i) + ", " + param.constant().getText() + "\n"
-                )
+                name = param.constant().getText()
+                if name == "null":
+                    name = "0"
+                self.return_str += "\tli a" + str(i) + ", " + name + "\n"
         if len(params) > 8:
             self.return_str += "\taddi sp, sp, -" + str((len(params) - 8) * 4) + "\n"
             for i in range(len(params) - 8):
@@ -69,7 +72,10 @@ class Mylistener3(llvmListener):
                         "\tlw t0, " + str(self.variable_map[name]) + "(sp)\n"
                     )
                 else:
-                    self.return_str += "\tli t0, " + param.constant().getText() + "\n"
+                    name = param.constant().getText()
+                    if name == "null":
+                        name = "0"
+                    self.return_str += "\tli t0, " + name + "\n"
                 self.return_str += "\tsw t0, " + str(i * 4) + "(sp)\n"
 
     def enterCall(self, ctx: llvmParser.CallContext):
@@ -99,7 +105,10 @@ class Mylistener3(llvmListener):
         elif value1.Global_var() != None:
             self.return_str += "\tla t1, " + value1.Global_var().getText() + "\n"
         else:
-            self.return_str += "\tli t1, " + value1.getText() + "\n"
+            name = value1.getText()
+            if name == "null":
+                name = "0"
+            self.return_str += "\tli t1, " + name + "\n"
         if value2.Privatevariable() != None:
             self.return_str += (
                 "\tlw t2, "
@@ -109,7 +118,10 @@ class Mylistener3(llvmListener):
         elif value2.Global_var() != None:
             self.return_str += "\tla t2, " + value2.Global_var().getText() + "\n"
         else:
-            self.return_str += "\tli t2, " + value2.getText() + "\n"
+            name = value2.getText()
+            if name == "null":
+                name = "0"
+            self.return_str += "\tli t2, " + name + "\n"
         op = ctx.bin_op().getText()
         if op == "add":
             self.return_str += "\tadd t0, t1, t2\n"
@@ -149,7 +161,10 @@ class Mylistener3(llvmListener):
                     + "(sp)\n"
                 )
             else:
-                self.return_str += "\tli t0, " + value.getText() + "\n"
+                name = value.getText()
+                if name == "null":
+                    name = "0"
+                self.return_str += "\tli t0, " + name + "\n"
             label1 = self.enter_label + ctx.Label(0).getText()
             label2 = self.enter_label + ctx.Label(1).getText()
             self.return_str += "\tbnez t0, " + label1 + "\n"
@@ -214,7 +229,10 @@ class Mylistener3(llvmListener):
                 + "(sp)\n"
             )
         else:
-            self.return_str += "\tli t2, " + value.getText() + "\n"
+            name = value.getText()
+            if name == "null":
+                name = "0"
+            self.return_str += "\tli t2, " + name + "\n"
         self.return_str += "\tslli t2, t2, 2\n"
         var = ctx.var()
         if var.Privatevariable() != None:
@@ -250,7 +268,10 @@ class Mylistener3(llvmListener):
         elif value.Global_var() != None:
             self.return_str += "\tla t1, " + value.Global_var().getText()[1:] + "\n"
         else:
-            self.return_str += "\tli t1, " + value.getText() + "\n"
+            name = value.getText()
+            if name == "null":
+                name = "0"
+            self.return_str += "\tli t1, " + name + "\n"
         var = ctx.var()
         if var.Privatevariable() != None:
             self.return_str += (
@@ -274,7 +295,10 @@ class Mylistener3(llvmListener):
         elif value1.Global_var() != None:
             self.return_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
         else:
-            self.return_str += "\tli t1, " + value1.getText() + "\n"
+            name = value1.getText()
+            if name == "null":
+                name = "0"
+            self.return_str += "\tli t1, " + name + "\n"
         value2 = ctx.value(1)
         if value2.Privatevariable() != None:
             self.return_str += (
@@ -285,7 +309,10 @@ class Mylistener3(llvmListener):
         elif value2.Global_var() != None:
             self.return_str += "\tla t2, " + value2.Global_var().getText()[1:] + "\n"
         else:
-            self.return_str += "\tli t2, " + value2.getText() + "\n"
+            name = value2.getText()
+            if name == "null":
+                name = "0"
+            self.return_str += "\tli t2, " + name + "\n"
         op = ctx.cond().getText()
         if op == "eq":
             self.return_str += "\txor t1, t1, t2\n"
@@ -334,7 +361,10 @@ class Mylistener3(llvmListener):
         elif value1.Global_var() != None:
             value1_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
         else:
-            value1_str += "\tli t1, " + value1.getText() + "\n"
+            name = value1.getText()
+            if name == "null":
+                name = "0"
+            value1_str += "\tli t1, " + name + "\n"
         if value2.Privatevariable() != None:
             value2_str += (
                 "\tlw t2, "
@@ -344,7 +374,10 @@ class Mylistener3(llvmListener):
         elif value2.Global_var() != None:
             value2_str += "\tla t2, " + value2.Global_var().getText()[1:] + "\n"
         else:
-            value2_str += "\tli t2, " + value2.getText() + "\n"
+            name = value2.getText()
+            if name == "null":
+                name = "0"
+            value2_str += "\tli t2, " + name + "\n"
         if label1 not in self.label_map:
             self.label_map[label1] = (
                 value1_str
