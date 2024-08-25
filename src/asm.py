@@ -497,6 +497,7 @@ def main(code: str) -> str:
     walker = ParseTreeWalker()
     listener = Mylistener3()
     walker.walk(listener, tree)
+    listener.return_str = listener.return_str.replace("newBoolArray", "newIntArray")
     return listener.return_str + listener.data
 
 
