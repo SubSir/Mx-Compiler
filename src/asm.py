@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-#
 import sys
 import copy
 from antlr4 import InputStream, CommonTokenStream
@@ -34,7 +33,7 @@ class Mylistener3(llvmListener):
 
     def params_decode(self, code: llvmParser.ParamsContext):
         params = code.parameter()
-        for i in range(len(params)):
+        for i in range(min(len(params), 8)):
             param = params[i]
             if param.Global_var() != None:
                 name = param.Global_var().getText()[1:]
@@ -51,11 +50,33 @@ class Mylistener3(llvmListener):
                 self.return_str += (
                     "\tli a" + str(i) + ", " + param.constant().getText() + "\n"
                 )
+        if len(params) > 8:
+            self.return_str += "\taddi sp, sp, -" + str((len(params) - 8) * 4) + "\n"
+            for i in range(len(params) - 8):
+                param = params[i + 8]
+                if param.Global_var() != None:
+                    name = param.Global_var().getText()[1:]
+                    if name[0] == ".":
+                        self.return_str += "\tla t0, " + name + "\n"
+                    else:
+                        self.return_str += "\tlw t0, " + name + "\n"
+                elif param.Privatevariable() != None:
+                    name = param.Privatevariable().getText()
+                    self.return_str += (
+                        "\tlw t0, " + str(self.variable_map[name]) + "(sp)\n"
+                    )
+                else:
+                    self.return_str += "\tli t0, " + param.constant().getText() + "\n"
+                self.return_str += "\tsw t0, " + str(i * 4) + "(sp)\n"
 
     def enterCall(self, ctx: llvmParser.CallContext):
+        i = 0
         if ctx.params() != None:
             self.params_decode(ctx.params())
+            i = len(ctx.params().parameter())
         self.return_str += "\tcall " + ctx.Global_var().getText()[1:] + "\n"
+        if i > 8:
+            self.return_str += "\taddi sp, sp, " + str((i - 8) * 4) + "\n"
         if ctx.Privatevariable() != None:
             self.return_str += (
                 "\tsw a0, "
@@ -359,13 +380,19 @@ class Mylistener3(llvmListener):
 
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         self.variable_cnt = 4
-
         self.enter_function = ctx.Global_var().getText()[1:]
-
+        extra_param_list = []
+        if ctx.params() is not None:
+            if len(ctx.params().parameter()) > 8:
+                params = ctx.params().parameter()[8:]
+                for i in params:
+                    if i.Privatevariable() is not None:
+                        self.variable_map[i.Privatevariable().getText()] = -1
+                        extra_param_list.append(i.Privatevariable().getText())
         self._traverse_nodes(ctx)
-
         self.variable_cnt += 16 - (self.variable_cnt % 16)
-
+        for i in range(len(extra_param_list)):
+            self.variable_map[extra_param_list[i]] = self.variable_cnt + i * 4
         self.return_str += (
             ".globl " + self.enter_function + "\n" + self.enter_function + ":\n"
         )
@@ -374,7 +401,7 @@ class Mylistener3(llvmListener):
 
         if ctx.params() is not None:
             params = ctx.params().parameter()
-            for i in range(len(params)):
+            for i in range(min(8, len(params))):
                 if params[i].Privatevariable() is not None:
                     var_name = params[i].Privatevariable().getText()
                     self.return_str += (
