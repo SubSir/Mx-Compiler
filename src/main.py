@@ -15,7 +15,7 @@ try:
     code4 = asm.main(code3)
     with open("test.s", "w") as f:
         f.write(code4)
-    with open("builtin.s", "r") as f:
+    with open("src/builtin.s", "r") as f:
         print(f.read())
     print(code4)
 except:
