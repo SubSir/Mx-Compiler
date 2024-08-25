@@ -468,6 +468,7 @@ class Mylistener3(llvmListener):
         self.label_map = {}
 
     def enterGlobalvariable(self, ctx: llvmParser.GlobalvariableContext):
+        self.data += ".align 4\n"
         self.data += ctx.Global_var().getText()[1:] + ":\n"
         if ctx.string_constant() != None:
             val = ctx.string_constant().getText()[1:]

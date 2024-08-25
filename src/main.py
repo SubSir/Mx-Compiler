@@ -10,11 +10,11 @@ code2 = semantic.main(code)
 #     f.write(code2)
 try:
     code3 = llvm.main(code2)
-    # with open("llvm.ll", "w") as f:
-    #     f.write(code3)
+    with open("llvm.ll", "w") as f:
+        f.write(code3)
     code4 = asm.main(code3)
-    # with open("test.s", "w") as f:
-    #     f.write(code4)
+    with open("test.s", "w") as f:
+        f.write(code4)
     with open("builtin.s", "r") as f:
         print(f.read())
     print(code4)
