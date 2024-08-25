@@ -36,7 +36,7 @@ function: 'define' type Global_var '(' params? ')' '{' basic_block+ '}' ;
 typedelcare: Privatevariable '=' 'type' '{' types? '}' ;
 
 // 全局变量声明
-globalvariable: Global_var '=' 'global'type constant ;
+globalvariable: Global_var '=' 'global'type (constant|string_constant) ;
 
 // 字符串声明
 string_declare: Global_var '=' 'global' '['INTEGER 'x' 'i8' ']' 'c' StringLiteral ;
@@ -106,5 +106,6 @@ phi: Privatevariable '=' 'phi' type '[' value ',' '%' Label ']' ',' '['value ','
 value:Privatevariable | constant | Global_var;
 
 // 常量
-constant: INTEGER |'null' | Global_var;
+constant: INTEGER |'null';
 
+string_constant: Global_var;

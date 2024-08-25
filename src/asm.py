@@ -405,8 +405,8 @@ class Mylistener3(llvmListener):
 
     def enterGlobalvariable(self, ctx: llvmParser.GlobalvariableContext):
         self.data += ctx.Global_var().getText()[1:] + ":\n"
-        if ctx.constant().Global_var() != None:
-            val = ctx.constant().Global_var().getText()[1:]
+        if ctx.string_constant() != None:
+            val = ctx.string_constant().getText()[1:]
             self.data += "\t.word " + val + "\n"
             return
         val = ctx.constant().getText()

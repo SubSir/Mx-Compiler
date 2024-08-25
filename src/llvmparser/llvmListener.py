@@ -226,5 +226,13 @@ class llvmListener(ParseTreeListener):
     def exitConstant(self, ctx: llvmParser.ConstantContext):
         pass
 
+    # Enter a parse tree produced by llvmParser#string_constant.
+    def enterString_constant(self, ctx: llvmParser.String_constantContext):
+        pass
+
+    # Exit a parse tree produced by llvmParser#string_constant.
+    def exitString_constant(self, ctx: llvmParser.String_constantContext):
+        pass
+
 
 del llvmParser
