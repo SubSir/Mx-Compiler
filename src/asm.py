@@ -22,9 +22,12 @@ class Mylistener3(llvmListener):
 
     def enterRet(self, ctx: llvmParser.RetContext):
         if ctx.value() != None:
+            value = ctx.value()
             name = ctx.value().getText()
-            if name in self.variable_map:
+            if value.Privatevariable() != None:
                 self.return_str += "\tlw a0, " + str(self.variable_map[name]) + "(sp)\n"
+            elif value.Global_var() != None:
+                self.return_str += "\tla a0, " + name[1:] + "\n"
             else:
                 self.return_str += "\tli a0, " + name + "\n"
         self.return_str += "\tlw ra, 0(sp)\n"
