@@ -1,4 +1,4 @@
-# Generated from llvm.g4 by ANTLR 4.13.2
+# Generated from llvm.g4 by ANTLR 4.13.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -689,10 +689,12 @@ def serializedATN():
         0,
         40,
         45,
-        1,
+        2,
         0,
         47,
         48,
+        52,
+        52,
         304,
         0,
         61,
@@ -2776,7 +2778,7 @@ class llvmParser(Parser):
 
     def __init__(self, input: TokenStream, output: TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.13.2")
+        self.checkVersion("4.13.1")
         self._interp = ParserATNSimulator(
             self, self.atn, self.decisionsToDFA, self.sharedContextCache
         )
@@ -4488,24 +4490,24 @@ class llvmParser(Parser):
         try:
             self.state = 296
             self._errHandler.sync(self)
-            token = self._input.LA(1)
-            if token in [51]:
+            la_ = self._interp.adaptivePredict(self._input, 18, self._ctx)
+            if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
                 self.state = 293
                 self.match(llvmParser.Privatevariable)
                 pass
-            elif token in [47, 48]:
+
+            elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 294
                 self.constant()
                 pass
-            elif token in [52]:
+
+            elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 295
                 self.match(llvmParser.Global_var)
                 pass
-            else:
-                raise NoViableAltException(self)
 
         except RecognitionException as re:
             localctx.exception = re
@@ -4527,6 +4529,9 @@ class llvmParser(Parser):
         def INTEGER(self):
             return self.getToken(llvmParser.INTEGER, 0)
 
+        def Global_var(self):
+            return self.getToken(llvmParser.Global_var, 0)
+
         def getRuleIndex(self):
             return llvmParser.RULE_constant
 
@@ -4547,7 +4552,7 @@ class llvmParser(Parser):
             self.enterOuterAlt(localctx, 1)
             self.state = 298
             _la = self._input.LA(1)
-            if not (_la == 47 or _la == 48):
+            if not ((((_la) & ~0x3F) == 0 and ((1 << _la) & 4925812092436480) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)

@@ -106,5 +106,5 @@ phi: Privatevariable '=' 'phi' type '[' value ',' '%' Label ']' ',' '['value ','
 value:Privatevariable | constant | Global_var;
 
 // 常量
-constant: INTEGER |'null';
+constant: INTEGER |'null' | Global_var;
 
