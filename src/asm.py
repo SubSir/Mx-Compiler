@@ -19,8 +19,10 @@ class Mylistener3(llvmListener):
     variable_map = {}
     variable_cnt = 0
     label_map = {}
+    tmp_branch_cnt = 0
 
     def enterRet(self, ctx: llvmParser.RetContext):
+
         if ctx.value() != None:
             value = ctx.value()
             name = ctx.value().getText()
@@ -167,8 +169,12 @@ class Mylistener3(llvmListener):
                 self.return_str += "\tli t0, " + name + "\n"
             label1 = self.enter_label + ctx.Label(0).getText()
             label2 = self.enter_label + ctx.Label(1).getText()
-            self.return_str += "\tbnez t0, " + label1 + "\n"
+            tmp_br = "tmp_br" + str(self.tmp_branch_cnt)
+            self.return_str += "\tbnez t0, " + tmp_br + "\n"
             self.return_str += "\tj " + label2 + "\n"
+            self.return_str += "\t" + tmp_br + ":\n"
+            self.return_str += "\tj " + label1 + "\n"
+            self.tmp_branch_cnt += 1
             if label1 not in self.label_map:
                 self.label_map[label1] = (
                     "\tj " + self.enter_function + ctx.Label(0).getText() + "\n"
