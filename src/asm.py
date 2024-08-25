@@ -25,7 +25,7 @@ class Mylistener3(llvmListener):
             value = ctx.value()
             name = ctx.value().getText()
             if value.Privatevariable() != None:
-                self.return_str += "\tlw a0, " + str(self.variable_map[name]) + "(sp)\n"
+                self.loadword(self.variable_map[name], "a0")
             elif value.Global_var() != None:
                 self.return_str += "\tla a0, " + name[1:] + "\n"
             else:
@@ -33,8 +33,28 @@ class Mylistener3(llvmListener):
                     name = "0"
                 self.return_str += "\tli a0, " + name + "\n"
         self.return_str += "\tlw ra, 0(sp)\n"
-        self.return_str += "\taddi sp, sp, " + str(self.variable_cnt) + "\n"
+        if self.variable_cnt > 2047:
+            self.return_str += "\tli t0, " + str(self.variable_cnt) + "\n"
+            self.return_str += "\tadd sp, sp, t0\n"
+        else:
+            self.return_str += "\taddi sp, sp, " + str(self.variable_cnt) + "\n"
         self.return_str += "\tret\n"
+
+    def loadword(self, index: int, name: str = "t0"):
+        if index > 2047 or index < -2048:
+            self.return_str += "\tli t1, " + str(index) + "\n"
+            self.return_str += "\tadd t1, sp, t1\n"
+            self.return_str += "\tlw " + name + ", 0(t0)\n"
+            return
+        self.return_str += "\tlw " + name + ", " + str(index) + "(sp)\n"
+
+    def saveword(self, index: int, name: str = "t0"):
+        if index > 2047 or index < -2048:
+            self.return_str += "\tli t1, " + str(index) + "\n"
+            self.return_str += "\tadd t1, sp, t1\n"
+            self.return_str += "\tsw " + name + ", 0(t1)\n"
+            return
+        self.return_str += "\tsw " + name + ", " + str(index) + "(sp)\n"
 
     def params_decode(self, code: llvmParser.ParamsContext):
         params = code.parameter()
@@ -48,9 +68,7 @@ class Mylistener3(llvmListener):
                     self.return_str += "\tlw a" + str(i) + ", " + name + "\n"
             elif param.Privatevariable() != None:
                 name = param.Privatevariable().getText()
-                self.return_str += (
-                    "\tlw a" + str(i) + ", " + str(self.variable_map[name]) + "(sp)\n"
-                )
+                self.loadword(self.variable_map[name], "a" + str(i))
             else:
                 name = param.constant().getText()
                 if name == "null":
@@ -76,7 +94,7 @@ class Mylistener3(llvmListener):
                     if name == "null":
                         name = "0"
                     self.return_str += "\tli t0, " + name + "\n"
-                self.return_str += "\tsw t0, " + str(i * 4) + "(sp)\n"
+                self.saveword(i * 4)
 
     def enterCall(self, ctx: llvmParser.CallContext):
         i = 0
@@ -87,11 +105,7 @@ class Mylistener3(llvmListener):
         if i > 8:
             self.return_str += "\taddi sp, sp, " + str((i - 8) * 4) + "\n"
         if ctx.Privatevariable() != None:
-            self.return_str += (
-                "\tsw a0, "
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-            )
+            self.saveword(self.variable_map[ctx.Privatevariable().getText()], "a0")
 
     def enterBinary_op(self, ctx: llvmParser.Binary_opContext):
         value1 = ctx.value(0)
@@ -145,11 +159,7 @@ class Mylistener3(llvmListener):
             self.return_str += "\txor t0, t1, t2\n"
         else:
             sys.exit(1)
-        self.return_str += (
-            "\tsw t0, "
-            + str(self.variable_map[ctx.Privatevariable().getText()])
-            + "(sp)\n"
-        )
+        self.saveword(self.variable_map[ctx.Privatevariable().getText()])
 
     def enterBranch(self, ctx: llvmParser.BranchContext):
         if ctx.value() != None:
@@ -206,19 +216,11 @@ class Mylistener3(llvmListener):
                 + "(sp)\n"
             )
             self.return_str += "\tlw t0, 0(t1)\n"
-            self.return_str += (
-                "\tsw t0,"
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-            )
+            self.saveword(self.variable_map[ctx.Privatevariable().getText()])
             return
         name = var.Global_var().getText()[1:]
         self.return_str += "\tlw t0, " + name + "\n"
-        self.return_str += (
-            "\tsw t0,"
-            + str(self.variable_map[ctx.Privatevariable().getText()])
-            + "(sp)\n"
-        )
+        self.saveword(self.variable_map[ctx.Privatevariable().getText()])
 
     def enterGetelementptr(self, ctx: llvmParser.GetelementptrContext):
         value = ctx.value()
@@ -242,20 +244,12 @@ class Mylistener3(llvmListener):
                 + "(sp)\n"
             )
             self.return_str += "\tadd t0, t1, t2\n"
-            self.return_str += (
-                "\tsw t0,"
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-            )
+            self.saveword(self.variable_map[ctx.Privatevariable().getText()])
             return
         name = var.Global_var().getText()[1:]
         self.return_str += "\tlw t0, " + name + "\n"
         self.return_str += "\tadd t0, t0, t2\n"
-        self.return_str += (
-            "\tsw t0,"
-            + str(self.variable_map[ctx.Privatevariable().getText()])
-            + "(sp)\n"
-        )
+        self.saveword(self.variable_map[ctx.Privatevariable().getText()])
 
     def enterStore(self, ctx: llvmParser.StoreContext):
         value = ctx.value()
@@ -333,9 +327,7 @@ class Mylistener3(llvmListener):
         else:
             sys.exit(1)
         privatevariable = ctx.Privatevariable()
-        self.return_str += (
-            "\tsw t0, " + str(self.variable_map[privatevariable.getText()]) + "(sp)\n"
-        )
+        self.saveword(self.variable_map[privatevariable.getText()])
 
     def enterPhi(self, ctx: llvmParser.PhiContext):
         label1 = (
@@ -378,36 +370,27 @@ class Mylistener3(llvmListener):
             if name == "null":
                 name = "0"
             value2_str += "\tli t2, " + name + "\n"
+        index = self.variable_map[ctx.Privatevariable().getText()]
+        str1 = value1_str
+        str2 = value2_str
+        if index > 2047 or index < -2048:
+            str1 += "\tli t0, " + str(index) + "\n"
+            str1 += "\tadd t0, sp, t0\n"
+            str1 += "\tsw t1, 0(t0)\n"
+            str2 += "\tli t0, " + str(index) + "\n"
+            str2 += "\tadd t0, sp, t0\n"
+            str2 += "\tsw t2, 0(t0)\n"
+        else:
+            str1 += "\tsw t1, " + str(index) + "(sp)\n"
+            str2 += "\tsw t2, " + str(index) + "(sp)\n"
         if label1 not in self.label_map:
-            self.label_map[label1] = (
-                value1_str
-                + "\tsw t1, "
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-            )
+            self.label_map[label1] = str1
         else:
-            self.label_map[label1] = (
-                value1_str
-                + "\tsw t1, "
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-                + self.label_map[label1]
-            )
+            self.label_map[label1] = str1 + self.label_map[label1]
         if label2 not in self.label_map:
-            self.label_map[label2] = (
-                value2_str
-                + "\tsw t2, "
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-            )
+            self.label_map[label2] = str2
         else:
-            self.label_map[label2] = (
-                value2_str
-                + "\tsw t2, "
-                + str(self.variable_map[ctx.Privatevariable().getText()])
-                + "(sp)\n"
-                + self.label_map[label2]
-            )
+            self.label_map[label2] = str2 + self.label_map[label2]
 
     def enterBasic_block(self, ctx: llvmParser.Basic_blockContext):
         name = ctx.Label().getText()
@@ -432,7 +415,11 @@ class Mylistener3(llvmListener):
         self.return_str += (
             ".globl " + self.enter_function + "\n" + self.enter_function + ":\n"
         )
-        self.return_str += "\taddi sp, sp, -" + str(self.variable_cnt) + "\n"
+        if self.variable_cnt > 2047:
+            self.return_str += "\tli t0, -" + str(self.variable_cnt) + "\n"
+            self.return_str += "\tadd sp, sp, t0\n"
+        else:
+            self.return_str += "\taddi sp, sp, -" + str(self.variable_cnt) + "\n"
         self.return_str += "\tsw ra, 0(sp)\n"
 
         if ctx.params() is not None:
@@ -440,13 +427,7 @@ class Mylistener3(llvmListener):
             for i in range(min(8, len(params))):
                 if params[i].Privatevariable() is not None:
                     var_name = params[i].Privatevariable().getText()
-                    self.return_str += (
-                        "\tsw a"
-                        + str(i)
-                        + ", "
-                        + str(self.variable_map[var_name])
-                        + "(sp)\n"
-                    )
+                    self.saveword(self.variable_map[var_name], "a" + str(i))
 
     def _traverse_nodes(self, node):
         if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
