@@ -100,7 +100,7 @@ compare: Privatevariable '=' 'icmp' cond type value ',' value  ;
 cond: 'eq' | 'ne' | 'slt' | 'sgt' | 'sle' | 'sge';
 
 // phi
-phi: Privatevariable '=' 'phi' type '[' value ',' '%' Label ']' ',' '['value ',' '%' Label ']';
+phi: Privatevariable '=' 'phi' type '[' value ',' '%' Label ']'( ',' '['value ',' '%' Label ']')+;
 
 // 值
 value:Privatevariable | constant | Global_var;

@@ -15,7 +15,7 @@ def serializedATN():
         4,
         1,
         54,
-        307,
+        311,
         2,
         0,
         7,
@@ -633,6 +633,16 @@ def serializedATN():
         24,
         1,
         24,
+        4,
+        24,
+        298,
+        8,
+        24,
+        11,
+        24,
+        12,
+        24,
+        299,
         1,
         25,
         1,
@@ -641,7 +651,7 @@ def serializedATN():
         25,
         3,
         25,
-        301,
+        305,
         8,
         25,
         1,
@@ -707,7 +717,7 @@ def serializedATN():
         0,
         47,
         48,
-        310,
+        315,
         0,
         63,
         1,
@@ -859,19 +869,19 @@ def serializedATN():
         0,
         0,
         50,
-        300,
+        304,
         1,
         0,
         0,
         0,
         52,
-        302,
+        306,
         1,
         0,
         0,
         0,
         54,
-        304,
+        308,
         1,
         0,
         0,
@@ -2449,7 +2459,7 @@ def serializedATN():
         0,
         0,
         288,
-        289,
+        297,
         5,
         17,
         0,
@@ -2497,78 +2507,108 @@ def serializedATN():
         0,
         0,
         296,
+        298,
+        1,
+        0,
+        0,
+        0,
+        297,
+        289,
+        1,
+        0,
+        0,
+        0,
+        298,
+        299,
+        1,
+        0,
+        0,
+        0,
+        299,
+        297,
+        1,
+        0,
+        0,
+        0,
+        299,
+        300,
+        1,
+        0,
+        0,
+        0,
+        300,
         49,
         1,
         0,
         0,
         0,
-        297,
         301,
+        305,
         5,
         51,
         0,
         0,
-        298,
-        301,
+        302,
+        305,
         3,
         52,
         26,
         0,
-        299,
-        301,
+        303,
+        305,
         5,
         52,
         0,
         0,
-        300,
-        297,
-        1,
-        0,
-        0,
-        0,
-        300,
-        298,
-        1,
-        0,
-        0,
-        0,
-        300,
-        299,
-        1,
-        0,
-        0,
-        0,
+        304,
         301,
-        51,
-        1,
-        0,
-        0,
-        0,
-        302,
-        303,
-        7,
-        4,
-        0,
-        0,
-        303,
-        53,
         1,
         0,
         0,
         0,
         304,
+        302,
+        1,
+        0,
+        0,
+        0,
+        304,
+        303,
+        1,
+        0,
+        0,
+        0,
         305,
+        51,
+        1,
+        0,
+        0,
+        0,
+        306,
+        307,
+        7,
+        4,
+        0,
+        0,
+        307,
+        53,
+        1,
+        0,
+        0,
+        0,
+        308,
+        309,
         5,
         52,
         0,
         0,
-        305,
+        309,
         55,
         1,
         0,
         0,
         0,
-        20,
+        21,
         61,
         63,
         73,
@@ -2588,7 +2628,8 @@ def serializedATN():
         218,
         262,
         266,
-        300,
+        299,
+        304,
     ]
 
 
@@ -4476,6 +4517,7 @@ class llvmParser(Parser):
 
         localctx = llvmParser.PhiContext(self, self._ctx, self.state)
         self.enterRule(localctx, 48, self.RULE_phi)
+        self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 279
@@ -4498,20 +4540,30 @@ class llvmParser(Parser):
             self.match(llvmParser.Label)
             self.state = 288
             self.match(llvmParser.T__16)
-            self.state = 289
-            self.match(llvmParser.T__18)
-            self.state = 290
-            self.match(llvmParser.T__13)
-            self.state = 291
-            self.value()
-            self.state = 292
-            self.match(llvmParser.T__18)
-            self.state = 293
-            self.match(llvmParser.T__34)
-            self.state = 294
-            self.match(llvmParser.Label)
-            self.state = 295
-            self.match(llvmParser.T__16)
+            self.state = 297
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            while True:
+                self.state = 289
+                self.match(llvmParser.T__18)
+                self.state = 290
+                self.match(llvmParser.T__13)
+                self.state = 291
+                self.value()
+                self.state = 292
+                self.match(llvmParser.T__18)
+                self.state = 293
+                self.match(llvmParser.T__34)
+                self.state = 294
+                self.match(llvmParser.Label)
+                self.state = 295
+                self.match(llvmParser.T__16)
+                self.state = 299
+                self._errHandler.sync(self)
+                _la = self._input.LA(1)
+                if not (_la == 19):
+                    break
+
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -4554,22 +4606,22 @@ class llvmParser(Parser):
         localctx = llvmParser.ValueContext(self, self._ctx, self.state)
         self.enterRule(localctx, 50, self.RULE_value)
         try:
-            self.state = 300
+            self.state = 304
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [51]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 297
+                self.state = 301
                 self.match(llvmParser.Privatevariable)
                 pass
             elif token in [47, 48]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 298
+                self.state = 302
                 self.constant()
                 pass
             elif token in [52]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 299
+                self.state = 303
                 self.match(llvmParser.Global_var)
                 pass
             else:
@@ -4613,7 +4665,7 @@ class llvmParser(Parser):
         self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 302
+            self.state = 306
             _la = self._input.LA(1)
             if not (_la == 47 or _la == 48):
                 self._errHandler.recoverInline(self)
@@ -4657,7 +4709,7 @@ class llvmParser(Parser):
         self.enterRule(localctx, 54, self.RULE_string_constant)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 304
+            self.state = 308
             self.match(llvmParser.Global_var)
         except RecognitionException as re:
             localctx.exception = re

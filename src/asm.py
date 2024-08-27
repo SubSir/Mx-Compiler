@@ -294,71 +294,41 @@ class Mylistener3(llvmListener):
         self.saveword(self.variable_map[privatevariable.getText()])
 
     def enterPhi(self, ctx: llvmParser.PhiContext):
-        label1 = (
-            self.enter_function
-            + ctx.Label(0).getText()
-            + self.enter_label[len(self.enter_function) :]
-        )
-        label2 = (
-            self.enter_function
-            + ctx.Label(1).getText()
-            + self.enter_label[len(self.enter_function) :]
-        )
-        value1 = ctx.value(0)
-        value2 = ctx.value(1)
-        value1_str = ""
-        value2_str = ""
-        if value1.Privatevariable() != None:
-            index = self.variable_map[value1.Privatevariable().getText()]
-            if index > 2047 or index < -2048:
-                value1_str += "\tli t0, " + str(index) + "\n"
-                value1_str += "\tadd t0, sp, t0\n"
-                value1_str += "\tlw t1, 0(t0)\n"
+        for i in range(len(ctx.Label())):
+            label1 = (
+                self.enter_function
+                + ctx.Label(i).getText()
+                + self.enter_label[len(self.enter_function) :]
+            )
+            value1 = ctx.value(i)
+            value1_str = ""
+            if value1.Privatevariable() != None:
+                index = self.variable_map[value1.Privatevariable().getText()]
+                if index > 2047 or index < -2048:
+                    value1_str += "\tli t0, " + str(index) + "\n"
+                    value1_str += "\tadd t0, sp, t0\n"
+                    value1_str += "\tlw t1, 0(t0)\n"
+                else:
+                    value1_str += "\tlw t1, " + str(index) + "(sp)\n"
+            elif value1.Global_var() != None:
+                value1_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
             else:
-                value1_str += "\tlw t1, " + str(index) + "(sp)\n"
-        elif value1.Global_var() != None:
-            value1_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
-        else:
-            name = value1.getText()
-            if name == "null":
-                name = "0"
-            value1_str += "\tli t1, " + name + "\n"
-        if value2.Privatevariable() != None:
-            index = self.variable_map[value2.Privatevariable().getText()]
+                name = value1.getText()
+                if name == "null":
+                    name = "0"
+                value1_str += "\tli t1, " + name + "\n"
+            index = self.variable_map[ctx.Privatevariable().getText()]
+            str1 = value1_str
             if index > 2047 or index < -2048:
-                value2_str += "\tli t0, " + str(index) + "\n"
-                value2_str += "\tadd t0, sp, t0\n"
-                value2_str += "\tlw t2, 0(t0)\n"
+                str1 += "\tli t0, " + str(index) + "\n"
+                str1 += "\tadd t0, sp, t0\n"
+                str1 += "\tsw t1, 0(t0)\n"
             else:
-                value2_str += "\tlw t2, " + str(index) + "(sp)\n"
-        elif value2.Global_var() != None:
-            value2_str += "\tla t2, " + value2.Global_var().getText()[1:] + "\n"
-        else:
-            name = value2.getText()
-            if name == "null":
-                name = "0"
-            value2_str += "\tli t2, " + name + "\n"
-        index = self.variable_map[ctx.Privatevariable().getText()]
-        str1 = value1_str
-        str2 = value2_str
-        if index > 2047 or index < -2048:
-            str1 += "\tli t0, " + str(index) + "\n"
-            str1 += "\tadd t0, sp, t0\n"
-            str1 += "\tsw t1, 0(t0)\n"
-            str2 += "\tli t0, " + str(index) + "\n"
-            str2 += "\tadd t0, sp, t0\n"
-            str2 += "\tsw t2, 0(t0)\n"
-        else:
-            str1 += "\tsw t1, " + str(index) + "(sp)\n"
-            str2 += "\tsw t2, " + str(index) + "(sp)\n"
-        if label1 not in self.label_map:
-            self.label_map[label1] = str1
-        else:
-            self.label_map[label1] = str1 + self.label_map[label1]
-        if label2 not in self.label_map:
-            self.label_map[label2] = str2
-        else:
-            self.label_map[label2] = str2 + self.label_map[label2]
+                str1 += "\tsw t1, " + str(index) + "(sp)\n"
+            if label1 not in self.label_map:
+                self.label_map[label1] = str1
+            else:
+                self.label_map[label1] = str1 + self.label_map[label1]
 
     def enterBasic_block(self, ctx: llvmParser.Basic_blockContext):
         name = ctx.Label().getText()

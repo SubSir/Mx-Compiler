@@ -1579,29 +1579,57 @@ class MyListener2(Mx_parserListener):
     def branch_map_decode(self, label: int, stream):
         if label in self.branch_map and len(self.branch_map[label]) > 1:
             m = self.branch_map[label]
-            i0 = m[0]
-            for i in range(1, len(m)):
-                for j in i0[1]:
-                    if (j in self.write_map and self.write_map[j] == "") and i0[1][j][
-                        1
-                    ] != m[i][1][j][1]:
-                        result = "%var" + str(self.variable_cnt)
-                        self.variable_cnt += 1
-                        stream[0] += (
-                            result
-                            + " = phi "
-                            + self.type2ir(i0[1][j][0])
-                            + " ["
-                            + i0[1][j][1]
-                            + ", %"
-                            + i0[0]
-                            + "], ["
-                            + m[i][1][j][1]
-                            + ", %"
-                            + m[i][0]
-                            + "]\n\t\t"
-                        )
-                        self.variable_map[j] = (self.variable_map[j][0], result)
+            tmp_map = {}
+            for i in m:
+                for j in i[1]:
+                    if j in self.write_map and self.write_map[j] == "":
+                        if j not in tmp_map:
+                            tmp_map[j] = {}
+                        tmp_map[j][i[0]] = i[1][j]
+            for i in tmp_map:
+                diff = 0
+                base = ""
+                for j in tmp_map[i]:
+                    if base == "":
+                        base = tmp_map[i][j]
+                    else:
+                        if tmp_map[i][j][1] != base[1]:
+                            diff = 1
+                            break
+                if diff == 1:
+                    result = "%var" + str(self.variable_cnt)
+                    self.variable_cnt += 1
+                    stream[0] += result + " = phi " + self.type2ir(base[0])
+                    k = 0
+                    for j in tmp_map[i]:
+                        stream[0] += "[" + tmp_map[i][j][1] + ", %" + j + "]"
+                        if k < len(tmp_map[i])-1:
+                            stream[0] += ", "
+                        else:
+                            stream[0] += "\n\t\t"
+                        k += 1
+                    self.variable_map[i] = (base[0], result)
+                # for j in i0[1]:
+                #     if (j in self.write_map and self.write_map[j] == "") and i0[1][j][
+                #         1
+                #     ] != m[i][1][j][1]:
+                #         result = "%var" + str(self.variable_cnt)
+                #         self.variable_cnt += 1
+                #         stream[0] += (
+                #             result
+                #             + " = phi "
+                #             + self.type2ir(i0[1][j][0])
+                #             + " ["
+                #             + i0[1][j][1]
+                #             + ", %"
+                #             + i0[0]
+                #             + "], ["
+                #             + m[i][1][j][1]
+                #             + ", %"
+                #             + m[i][0]
+                #             + "]\n\t\t"
+                #         )
+                #         self.variable_map[j] = (self.variable_map[j][0], result)
 
         if label in self.branch_map and len(self.branch_map[label]) == 1:
             self.variable_map = self.branch_map[label][0][1]
