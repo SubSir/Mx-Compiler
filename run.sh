@@ -14,10 +14,10 @@ mx_file=$2
 # 根据参数执行相应的操作
 case $arg in
     1)
-        testcases/codegen/scripts/test_asm.bash src/main.py testcases/codegen/"$mx_file" builtin.s
+        testcases/codegen/scripts/test_asm.bash src/main.py testcases/optim/"$mx_file" builtin.s
         ;;
     2)
-        testcases/codegen/scripts/test_asm_all.bash src/main.py testcases/codegen/ builtin.s
+        testcases/codegen/scripts/test_asm_all.bash src/main.py testcases/optim/ builtin.s
         ;;
     *)
         echo "Invalid argument: $arg"

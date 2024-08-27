@@ -410,6 +410,14 @@ class Mx_parserListener(ParseTreeListener):
     def exitMemberFunctionCall(self, ctx: Mx_parserParser.MemberFunctionCallContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#functionCall.
+    def enterFunctionCall(self, ctx: Mx_parserParser.FunctionCallContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#functionCall.
+    def exitFunctionCall(self, ctx: Mx_parserParser.FunctionCallContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#bitwiseNotExpression.
     def enterBitwiseNotExpression(
         self, ctx: Mx_parserParser.BitwiseNotExpressionContext
@@ -420,14 +428,6 @@ class Mx_parserListener(ParseTreeListener):
     def exitBitwiseNotExpression(
         self, ctx: Mx_parserParser.BitwiseNotExpressionContext
     ):
-        pass
-
-    # Enter a parse tree produced by Mx_parserParser#functionCall.
-    def enterFunctionCall(self, ctx: Mx_parserParser.FunctionCallContext):
-        pass
-
-    # Exit a parse tree produced by Mx_parserParser#functionCall.
-    def exitFunctionCall(self, ctx: Mx_parserParser.FunctionCallContext):
         pass
 
     # Enter a parse tree produced by Mx_parserParser#andxororExpression.

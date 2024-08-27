@@ -7,7 +7,7 @@ module: (function | function_declare |  globalvariable | string_declare | typede
 type: 'i32' | 'ptr' | 'void' | 'i1';
 
 // 整数
-INTEGER: [0-9]+ ;
+INTEGER: '-'?[0-9]+ ;
 
 // 标签
 Label: '.'[a-zA-Z_] [a-zA-Z0-9_]*  ;

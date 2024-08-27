@@ -28,6 +28,7 @@ class MyListener2(Mx_parserListener):
     function_definition_map = {}  # name -> returnType
     loop_stack = []
     branch_map = {}
+    tmp_cnt = 0
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -691,8 +692,10 @@ class MyListener2(Mx_parserListener):
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
             stream[0] += result + " = add i32 " + variable_map_t + ", 0\n\t\t"
-            self.variable_map[t + "_tmp"] = ("int", result)
-            return t + "_tmp"
+            tmp_ = ".tmp" + str(self.tmp_cnt)
+            self.tmp_cnt += 1
+            self.variable_map[tmp_] = ("int", result)
+            return tmp_
         elif isinstance(code, Mx_parserParser.PrefixDecrementExpressionContext):
             # prefixDecrementExpression
             t = self.return_expression2ir(code.expression(), stream)
@@ -730,8 +733,10 @@ class MyListener2(Mx_parserListener):
             result = "%var" + str(self.variable_cnt)
             self.variable_cnt += 1
             stream[0] += result + " = add i32 " + variable_map_t + ", 0\n\t\t"
-            self.variable_map[t + "_tmp"] = ("int", result)
-            return t + "_tmp"
+            tmp_ = ".tmp" + str(self.tmp_cnt)
+            self.tmp_cnt += 1
+            self.variable_map[tmp_] = ("int", result)
+            return tmp_
         elif isinstance(code, Mx_parserParser.LogicalNotExpressionContext):
             # logicalNotExpression
             t = self.return_expression2ir(code.expression(), stream)
@@ -901,7 +906,7 @@ class MyListener2(Mx_parserListener):
                         + self.type2ir("string")
                         + " "
                         + self.variable_map[t][1]
-                        + ","
+                        + " ,"
                         + expressionlist[1:-1]
                         + ")\n\t\t"
                     )
@@ -932,7 +937,7 @@ class MyListener2(Mx_parserListener):
                         + self.type2ir("string")
                         + " "
                         + self.variable_map[t][1]
-                        + ","
+                        + " ,"
                         + expressionlist[1:-1]
                         + ")\n\t\t"
                     )

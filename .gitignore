@@ -16,3 +16,4 @@ builtin.s
 test.out
 .xmake/
 xmake.lua
+llvm_optim.ll

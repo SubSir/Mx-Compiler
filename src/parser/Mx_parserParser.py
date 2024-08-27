@@ -478,30 +478,30 @@ def serializedATN():
         15,
         1,
         15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
         3,
         15,
-        230,
+        220,
         8,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
         15,
         1,
         15,
@@ -673,18 +673,18 @@ def serializedATN():
         15,
         1,
         15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
-        1,
-        15,
         3,
         15,
-        317,
+        313,
         8,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
+        15,
+        1,
         15,
         1,
         15,
@@ -2262,43 +2262,49 @@ def serializedATN():
         216,
         217,
         5,
-        14,
+        51,
         0,
         0,
         217,
-        273,
-        3,
-        30,
-        15,
-        21,
-        218,
         219,
         5,
-        15,
+        49,
+        0,
+        0,
+        218,
+        220,
+        3,
+        36,
+        18,
+        0,
+        219,
+        218,
+        1,
+        0,
         0,
         0,
         219,
-        273,
-        3,
-        30,
-        15,
-        20,
+        220,
+        1,
+        0,
+        0,
+        0,
         220,
         221,
-        5,
-        16,
+        1,
+        0,
         0,
         0,
         221,
         273,
-        3,
-        30,
-        15,
-        19,
+        5,
+        50,
+        0,
+        0,
         222,
         223,
         5,
-        17,
+        15,
         0,
         0,
         223,
@@ -2310,7 +2316,7 @@ def serializedATN():
         224,
         225,
         5,
-        40,
+        16,
         0,
         0,
         225,
@@ -2322,45 +2328,39 @@ def serializedATN():
         226,
         227,
         5,
-        51,
+        17,
         0,
         0,
         227,
+        273,
+        3,
+        30,
+        15,
+        16,
+        228,
         229,
         5,
-        49,
-        0,
-        0,
-        228,
-        230,
-        3,
-        36,
         18,
         0,
-        229,
-        228,
-        1,
-        0,
-        0,
         0,
         229,
-        230,
-        1,
-        0,
-        0,
-        0,
+        273,
+        3,
+        30,
+        15,
+        15,
         230,
         231,
-        1,
-        0,
+        5,
+        40,
         0,
         0,
         231,
         273,
-        5,
-        50,
-        0,
-        0,
+        3,
+        30,
+        15,
+        14,
         232,
         273,
         3,
@@ -2638,18 +2638,6 @@ def serializedATN():
         0,
         0,
         272,
-        218,
-        1,
-        0,
-        0,
-        0,
-        272,
-        220,
-        1,
-        0,
-        0,
-        0,
-        272,
         222,
         1,
         0,
@@ -2663,6 +2651,18 @@ def serializedATN():
         0,
         272,
         226,
+        1,
+        0,
+        0,
+        0,
+        272,
+        228,
+        1,
+        0,
+        0,
+        0,
+        272,
+        230,
         1,
         0,
         0,
@@ -2904,97 +2904,97 @@ def serializedATN():
         307,
         308,
         10,
-        23,
+        22,
         0,
         0,
         308,
-        323,
+        309,
         5,
         14,
         0,
         0,
         309,
         310,
-        10,
-        22,
-        0,
-        0,
-        310,
-        323,
-        5,
-        15,
-        0,
-        0,
-        311,
-        312,
-        10,
-        15,
-        0,
-        0,
-        312,
-        313,
-        5,
-        18,
-        0,
-        0,
-        313,
-        314,
         5,
         51,
         0,
         0,
-        314,
-        316,
+        310,
+        312,
         5,
         49,
         0,
         0,
-        315,
-        317,
+        311,
+        313,
         3,
         36,
         18,
         0,
-        316,
-        315,
+        312,
+        311,
         1,
         0,
         0,
         0,
-        316,
-        317,
+        312,
+        313,
         1,
         0,
         0,
         0,
-        317,
-        318,
+        313,
+        314,
         1,
         0,
         0,
         0,
-        318,
+        314,
         323,
         5,
         50,
         0,
         0,
-        319,
-        320,
+        315,
+        316,
         10,
+        21,
+        0,
+        0,
+        316,
+        317,
+        5,
         14,
+        0,
+        0,
+        317,
+        323,
+        5,
+        51,
+        0,
+        0,
+        318,
+        319,
+        10,
+        20,
+        0,
+        0,
+        319,
+        323,
+        5,
+        15,
         0,
         0,
         320,
         321,
-        5,
-        18,
+        10,
+        19,
         0,
         0,
         321,
         323,
         5,
-        51,
+        16,
         0,
         0,
         322,
@@ -3058,19 +3058,19 @@ def serializedATN():
         0,
         0,
         322,
-        309,
+        315,
         1,
         0,
         0,
         0,
         322,
-        311,
+        318,
         1,
         0,
         0,
         0,
         322,
-        319,
+        320,
         1,
         0,
         0,
@@ -3731,14 +3731,14 @@ def serializedATN():
         202,
         207,
         213,
-        229,
+        219,
         237,
         247,
         255,
         259,
         265,
         272,
-        316,
+        312,
         322,
         324,
         336,
@@ -3779,11 +3779,11 @@ class Mx_parserParser(Parser):
         "'break'",
         "'continue'",
         "'else'",
+        "'.'",
         "'++'",
         "'--'",
         "'!'",
         "'~'",
-        "'.'",
         "'new'",
         "'&&'",
         "'||'",
@@ -4558,7 +4558,7 @@ class Mx_parserParser(Parser):
             self.state = 132
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406351064883082) != 0:
+            while ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406351065128842) != 0:
                 self.state = 129
                 self.statement()
                 self.state = 134
@@ -4910,7 +4910,7 @@ class Mx_parserParser(Parser):
                 self.state = 163
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000103944) != 0:
+                if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000349704) != 0:
                     self.state = 162
                     self.expression(0)
 
@@ -4946,7 +4946,7 @@ class Mx_parserParser(Parser):
                 self.state = 176
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                while ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406351064883082) != 0:
+                while ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406351065128842) != 0:
                     self.state = 173
                     self.statement()
                     self.state = 178
@@ -5109,7 +5109,7 @@ class Mx_parserParser(Parser):
             self.state = 194
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406351064875016) != 0:
+            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406351065120776) != 0:
                 self.state = 193
                 self.expression1()
 
@@ -5118,7 +5118,7 @@ class Mx_parserParser(Parser):
             self.state = 198
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000103944) != 0:
+            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000349704) != 0:
                 self.state = 197
                 self.expression2()
 
@@ -5127,7 +5127,7 @@ class Mx_parserParser(Parser):
             self.state = 202
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000103944) != 0:
+            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000349704) != 0:
                 self.state = 201
                 self.expression3()
 
@@ -5756,25 +5756,6 @@ class Mx_parserParser(Parser):
             if hasattr(listener, "exitMemberFunctionCall"):
                 listener.exitMemberFunctionCall(self)
 
-    class BitwiseNotExpressionContext(ExpressionContext):
-
-        def __init__(
-            self, parser, ctx: ParserRuleContext
-        ):  # actually a Mx_parserParser.ExpressionContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
-        def expression(self):
-            return self.getTypedRuleContext(Mx_parserParser.ExpressionContext, 0)
-
-        def enterRule(self, listener: ParseTreeListener):
-            if hasattr(listener, "enterBitwiseNotExpression"):
-                listener.enterBitwiseNotExpression(self)
-
-        def exitRule(self, listener: ParseTreeListener):
-            if hasattr(listener, "exitBitwiseNotExpression"):
-                listener.exitBitwiseNotExpression(self)
-
     class FunctionCallContext(ExpressionContext):
 
         def __init__(
@@ -5802,6 +5783,25 @@ class Mx_parserParser(Parser):
         def exitRule(self, listener: ParseTreeListener):
             if hasattr(listener, "exitFunctionCall"):
                 listener.exitFunctionCall(self)
+
+    class BitwiseNotExpressionContext(ExpressionContext):
+
+        def __init__(
+            self, parser, ctx: ParserRuleContext
+        ):  # actually a Mx_parserParser.ExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def expression(self):
+            return self.getTypedRuleContext(Mx_parserParser.ExpressionContext, 0)
+
+        def enterRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "enterBitwiseNotExpression"):
+                listener.enterBitwiseNotExpression(self)
+
+        def exitRule(self, listener: ParseTreeListener):
+            if hasattr(listener, "exitBitwiseNotExpression"):
+                listener.exitBitwiseNotExpression(self)
 
     class AndxororExpressionContext(ExpressionContext):
 
@@ -5918,77 +5918,77 @@ class Mx_parserParser(Parser):
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input, 25, self._ctx)
             if la_ == 1:
+                localctx = Mx_parserParser.FunctionCallContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
+
+                self.state = 216
+                self.match(Mx_parserParser.IDENTIFIER)
+                self.state = 217
+                self.match(Mx_parserParser.LPAREN)
+                self.state = 219
+                self._errHandler.sync(self)
+                _la = self._input.LA(1)
+                if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000349704) != 0:
+                    self.state = 218
+                    self.expressionLists()
+
+                self.state = 221
+                self.match(Mx_parserParser.RPAREN)
+                pass
+
+            elif la_ == 2:
                 localctx = Mx_parserParser.PrefixIncrementExpressionContext(
                     self, localctx
                 )
                 self._ctx = localctx
                 _prevctx = localctx
-
-                self.state = 216
-                self.match(Mx_parserParser.T__13)
-                self.state = 217
-                self.expression(21)
+                self.state = 222
+                self.match(Mx_parserParser.T__14)
+                self.state = 223
+                self.expression(18)
                 pass
 
-            elif la_ == 2:
+            elif la_ == 3:
                 localctx = Mx_parserParser.PrefixDecrementExpressionContext(
                     self, localctx
                 )
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 218
-                self.match(Mx_parserParser.T__14)
-                self.state = 219
-                self.expression(20)
-                pass
-
-            elif la_ == 3:
-                localctx = Mx_parserParser.LogicalNotExpressionContext(self, localctx)
-                self._ctx = localctx
-                _prevctx = localctx
-                self.state = 220
-                self.match(Mx_parserParser.T__15)
-                self.state = 221
-                self.expression(19)
-                pass
-
-            elif la_ == 4:
-                localctx = Mx_parserParser.BitwiseNotExpressionContext(self, localctx)
-                self._ctx = localctx
-                _prevctx = localctx
-                self.state = 222
-                self.match(Mx_parserParser.T__16)
-                self.state = 223
-                self.expression(18)
-                pass
-
-            elif la_ == 5:
-                localctx = Mx_parserParser.UnaryMinusExpressionContext(self, localctx)
-                self._ctx = localctx
-                _prevctx = localctx
                 self.state = 224
-                self.match(Mx_parserParser.MINUS)
+                self.match(Mx_parserParser.T__15)
                 self.state = 225
                 self.expression(17)
                 pass
 
-            elif la_ == 6:
-                localctx = Mx_parserParser.FunctionCallContext(self, localctx)
+            elif la_ == 4:
+                localctx = Mx_parserParser.LogicalNotExpressionContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
                 self.state = 226
-                self.match(Mx_parserParser.IDENTIFIER)
+                self.match(Mx_parserParser.T__16)
                 self.state = 227
-                self.match(Mx_parserParser.LPAREN)
-                self.state = 229
-                self._errHandler.sync(self)
-                _la = self._input.LA(1)
-                if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000103944) != 0:
-                    self.state = 228
-                    self.expressionLists()
+                self.expression(16)
+                pass
 
+            elif la_ == 5:
+                localctx = Mx_parserParser.BitwiseNotExpressionContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
+                self.state = 228
+                self.match(Mx_parserParser.T__17)
+                self.state = 229
+                self.expression(15)
+                pass
+
+            elif la_ == 6:
+                localctx = Mx_parserParser.UnaryMinusExpressionContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
+                self.state = 230
+                self.match(Mx_parserParser.MINUS)
                 self.state = 231
-                self.match(Mx_parserParser.RPAREN)
+                self.expression(14)
                 pass
 
             elif la_ == 7:
@@ -6013,7 +6013,7 @@ class Mx_parserParser(Parser):
                 self.state = 237
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000103944) != 0:
+                if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000349704) != 0:
                     self.state = 236
                     self.expression(0)
 
@@ -6352,48 +6352,6 @@ class Mx_parserParser(Parser):
                         pass
 
                     elif la_ == 10:
-                        localctx = Mx_parserParser.PostfixIncrementExpressionContext(
-                            self,
-                            Mx_parserParser.ExpressionContext(
-                                self, _parentctx, _parentState
-                            ),
-                        )
-                        self.pushNewRecursionContext(
-                            localctx, _startState, self.RULE_expression
-                        )
-                        self.state = 307
-                        if not self.precpred(self._ctx, 23):
-                            from antlr4.error.Errors import FailedPredicateException
-
-                            raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 23)"
-                            )
-                        self.state = 308
-                        self.match(Mx_parserParser.T__13)
-                        pass
-
-                    elif la_ == 11:
-                        localctx = Mx_parserParser.PostfixDecrementExpressionContext(
-                            self,
-                            Mx_parserParser.ExpressionContext(
-                                self, _parentctx, _parentState
-                            ),
-                        )
-                        self.pushNewRecursionContext(
-                            localctx, _startState, self.RULE_expression
-                        )
-                        self.state = 309
-                        if not self.precpred(self._ctx, 22):
-                            from antlr4.error.Errors import FailedPredicateException
-
-                            raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 22)"
-                            )
-                        self.state = 310
-                        self.match(Mx_parserParser.T__14)
-                        pass
-
-                    elif la_ == 12:
                         localctx = Mx_parserParser.MemberFunctionCallContext(
                             self,
                             Mx_parserParser.ExpressionContext(
@@ -6403,34 +6361,34 @@ class Mx_parserParser(Parser):
                         self.pushNewRecursionContext(
                             localctx, _startState, self.RULE_expression
                         )
-                        self.state = 311
-                        if not self.precpred(self._ctx, 15):
+                        self.state = 307
+                        if not self.precpred(self._ctx, 22):
                             from antlr4.error.Errors import FailedPredicateException
 
                             raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 15)"
+                                self, "self.precpred(self._ctx, 22)"
                             )
-                        self.state = 312
-                        self.match(Mx_parserParser.T__17)
-                        self.state = 313
+                        self.state = 308
+                        self.match(Mx_parserParser.T__13)
+                        self.state = 309
                         self.match(Mx_parserParser.IDENTIFIER)
 
-                        self.state = 314
+                        self.state = 310
                         self.match(Mx_parserParser.LPAREN)
-                        self.state = 316
+                        self.state = 312
                         self._errHandler.sync(self)
                         _la = self._input.LA(1)
                         if ((_la) & ~0x3F) == 0 and (
-                            (1 << _la) & 115406321000103944
+                            (1 << _la) & 115406321000349704
                         ) != 0:
-                            self.state = 315
+                            self.state = 311
                             self.expressionLists()
 
-                        self.state = 318
+                        self.state = 314
                         self.match(Mx_parserParser.RPAREN)
                         pass
 
-                    elif la_ == 13:
+                    elif la_ == 11:
                         localctx = Mx_parserParser.MemberMemberCallContext(
                             self,
                             Mx_parserParser.ExpressionContext(
@@ -6440,17 +6398,59 @@ class Mx_parserParser(Parser):
                         self.pushNewRecursionContext(
                             localctx, _startState, self.RULE_expression
                         )
-                        self.state = 319
-                        if not self.precpred(self._ctx, 14):
+                        self.state = 315
+                        if not self.precpred(self._ctx, 21):
                             from antlr4.error.Errors import FailedPredicateException
 
                             raise FailedPredicateException(
-                                self, "self.precpred(self._ctx, 14)"
+                                self, "self.precpred(self._ctx, 21)"
                             )
-                        self.state = 320
-                        self.match(Mx_parserParser.T__17)
-                        self.state = 321
+                        self.state = 316
+                        self.match(Mx_parserParser.T__13)
+                        self.state = 317
                         self.match(Mx_parserParser.IDENTIFIER)
+                        pass
+
+                    elif la_ == 12:
+                        localctx = Mx_parserParser.PostfixIncrementExpressionContext(
+                            self,
+                            Mx_parserParser.ExpressionContext(
+                                self, _parentctx, _parentState
+                            ),
+                        )
+                        self.pushNewRecursionContext(
+                            localctx, _startState, self.RULE_expression
+                        )
+                        self.state = 318
+                        if not self.precpred(self._ctx, 20):
+                            from antlr4.error.Errors import FailedPredicateException
+
+                            raise FailedPredicateException(
+                                self, "self.precpred(self._ctx, 20)"
+                            )
+                        self.state = 319
+                        self.match(Mx_parserParser.T__14)
+                        pass
+
+                    elif la_ == 13:
+                        localctx = Mx_parserParser.PostfixDecrementExpressionContext(
+                            self,
+                            Mx_parserParser.ExpressionContext(
+                                self, _parentctx, _parentState
+                            ),
+                        )
+                        self.pushNewRecursionContext(
+                            localctx, _startState, self.RULE_expression
+                        )
+                        self.state = 320
+                        if not self.precpred(self._ctx, 19):
+                            from antlr4.error.Errors import FailedPredicateException
+
+                            raise FailedPredicateException(
+                                self, "self.precpred(self._ctx, 19)"
+                            )
+                        self.state = 321
+                        self.match(Mx_parserParser.T__15)
                         pass
 
                 self.state = 326
@@ -7045,7 +7045,7 @@ class Mx_parserParser(Parser):
             self.state = 391
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000103944) != 0:
+            if ((_la) & ~0x3F) == 0 and ((1 << _la) & 115406321000349704) != 0:
                 self.state = 383
                 self.expression(0)
                 self.state = 388
@@ -7235,13 +7235,13 @@ class Mx_parserParser(Parser):
             return self.precpred(self._ctx, 24)
 
         if predIndex == 9:
-            return self.precpred(self._ctx, 23)
-
-        if predIndex == 10:
             return self.precpred(self._ctx, 22)
 
+        if predIndex == 10:
+            return self.precpred(self._ctx, 21)
+
         if predIndex == 11:
-            return self.precpred(self._ctx, 15)
+            return self.precpred(self._ctx, 20)
 
         if predIndex == 12:
-            return self.precpred(self._ctx, 14)
+            return self.precpred(self._ctx, 19)
