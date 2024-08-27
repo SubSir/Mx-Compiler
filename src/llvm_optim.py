@@ -49,7 +49,10 @@ def main(code: str) -> str:
         flag = 1
         for delete in del_list:
             if line.startswith(delete):
-                flag = 0
+                if "call" in line:
+                    line = "\t\t" + line.split("= ")[1]
+                else:
+                    flag = 0
                 break
         if flag == 1:
             return_ans += line + "\n"

@@ -69,7 +69,7 @@ instruction
 ret: 'ret' type value? ;
 
 // 调用指令
-call: 'call' 'void' Global_var '(' params? ')' | Privatevariable '=' 'call' type Global_var '(' params ?')';
+call: 'call' type Global_var '(' params? ')' | Privatevariable '=' 'call' type Global_var '(' params ?')';
 
 // 二元操作
 binary_op: Privatevariable'=' bin_op type value ','value ;

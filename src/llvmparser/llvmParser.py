@@ -15,7 +15,7 @@ def serializedATN():
         4,
         1,
         54,
-        311,
+        312,
         2,
         0,
         7,
@@ -406,9 +406,11 @@ def serializedATN():
         13,
         1,
         13,
+        1,
+        13,
         3,
         13,
-        187,
+        188,
         8,
         13,
         1,
@@ -417,7 +419,7 @@ def serializedATN():
         13,
         3,
         13,
-        191,
+        192,
         8,
         13,
         1,
@@ -474,7 +476,7 @@ def serializedATN():
         16,
         3,
         16,
-        219,
+        220,
         8,
         16,
         1,
@@ -563,7 +565,7 @@ def serializedATN():
         20,
         3,
         20,
-        263,
+        264,
         8,
         20,
         1,
@@ -572,7 +574,7 @@ def serializedATN():
         21,
         3,
         21,
-        267,
+        268,
         8,
         21,
         1,
@@ -635,14 +637,14 @@ def serializedATN():
         24,
         4,
         24,
-        298,
+        299,
         8,
         24,
         11,
         24,
         12,
         24,
-        299,
+        300,
         1,
         25,
         1,
@@ -651,7 +653,7 @@ def serializedATN():
         25,
         3,
         25,
-        305,
+        306,
         8,
         25,
         1,
@@ -717,7 +719,7 @@ def serializedATN():
         0,
         47,
         48,
-        315,
+        316,
         0,
         63,
         1,
@@ -797,91 +799,91 @@ def serializedATN():
         0,
         0,
         26,
-        190,
+        191,
         1,
         0,
         0,
         0,
         28,
-        192,
+        193,
         1,
         0,
         0,
         0,
         30,
-        200,
+        201,
         1,
         0,
         0,
         0,
         32,
-        218,
+        219,
         1,
         0,
         0,
         0,
         34,
-        220,
+        221,
         1,
         0,
         0,
         0,
         36,
-        228,
+        229,
         1,
         0,
         0,
         0,
         38,
-        230,
+        231,
         1,
         0,
         0,
         0,
         40,
-        262,
+        263,
         1,
         0,
         0,
         0,
         42,
-        266,
+        267,
         1,
         0,
         0,
         0,
         44,
-        268,
+        269,
         1,
         0,
         0,
         0,
         46,
-        277,
+        278,
         1,
         0,
         0,
         0,
         48,
-        279,
+        280,
         1,
         0,
         0,
         0,
         50,
-        304,
+        305,
         1,
         0,
         0,
         0,
         52,
-        306,
+        307,
         1,
         0,
         0,
         0,
         54,
-        308,
+        309,
         1,
         0,
         0,
@@ -1728,9 +1730,9 @@ def serializedATN():
         0,
         172,
         173,
-        5,
         3,
-        0,
+        2,
+        1,
         0,
         173,
         174,
@@ -1769,61 +1771,61 @@ def serializedATN():
         0,
         0,
         178,
-        191,
+        179,
         5,
         7,
         0,
         0,
         179,
+        192,
+        1,
+        0,
+        0,
+        0,
         180,
+        181,
         5,
         51,
         0,
         0,
-        180,
         181,
+        182,
         5,
         11,
         0,
         0,
-        181,
         182,
+        183,
         5,
         22,
         0,
         0,
-        182,
         183,
+        184,
         3,
         2,
         1,
         0,
-        183,
         184,
+        185,
         5,
         52,
         0,
         0,
-        184,
-        186,
+        185,
+        187,
         5,
         6,
         0,
         0,
-        185,
-        187,
+        186,
+        188,
         3,
         14,
         7,
         0,
-        186,
-        185,
-        1,
-        0,
-        0,
-        0,
-        186,
         187,
+        186,
         1,
         0,
         0,
@@ -1836,696 +1838,690 @@ def serializedATN():
         0,
         188,
         189,
+        1,
+        0,
+        0,
+        0,
+        189,
+        190,
         5,
         7,
         0,
         0,
-        189,
-        191,
+        190,
+        192,
         1,
         0,
         0,
         0,
-        190,
+        191,
         171,
         1,
         0,
         0,
         0,
-        190,
-        179,
-        1,
-        0,
-        0,
-        0,
         191,
-        27,
+        180,
         1,
         0,
         0,
         0,
         192,
+        27,
+        1,
+        0,
+        0,
+        0,
         193,
+        194,
         5,
         51,
         0,
         0,
-        193,
         194,
+        195,
         5,
         11,
         0,
         0,
-        194,
         195,
+        196,
         3,
         30,
         15,
         0,
-        195,
         196,
+        197,
         3,
         2,
         1,
         0,
-        196,
         197,
+        198,
         3,
         50,
         25,
         0,
-        197,
         198,
+        199,
         5,
         19,
         0,
         0,
-        198,
         199,
+        200,
         3,
         50,
         25,
         0,
-        199,
+        200,
         29,
         1,
         0,
         0,
         0,
-        200,
         201,
+        202,
         7,
         1,
         0,
         0,
-        201,
+        202,
         31,
         1,
         0,
         0,
         0,
-        202,
         203,
+        204,
         5,
         33,
         0,
         0,
-        203,
         204,
+        205,
         5,
         34,
         0,
         0,
-        204,
         205,
+        206,
         5,
         35,
         0,
         0,
-        205,
-        219,
+        206,
+        220,
         5,
         49,
         0,
         0,
-        206,
         207,
+        208,
         5,
         33,
         0,
         0,
-        207,
         208,
+        209,
         5,
         4,
         0,
         0,
-        208,
         209,
+        210,
         3,
         50,
         25,
         0,
-        209,
-        210,
-        5,
-        19,
-        0,
-        0,
         210,
         211,
         5,
-        34,
+        19,
         0,
         0,
         211,
         212,
         5,
-        35,
+        34,
         0,
         0,
         212,
         213,
         5,
-        49,
+        35,
         0,
         0,
         213,
         214,
         5,
-        19,
+        49,
         0,
         0,
         214,
         215,
         5,
-        34,
+        19,
         0,
         0,
         215,
         216,
         5,
-        35,
+        34,
         0,
         0,
         216,
         217,
         5,
-        49,
+        35,
         0,
         0,
         217,
-        219,
-        1,
-        0,
+        218,
+        5,
+        49,
         0,
         0,
         218,
-        202,
-        1,
-        0,
-        0,
-        0,
-        218,
-        206,
+        220,
         1,
         0,
         0,
         0,
         219,
-        33,
+        203,
+        1,
+        0,
+        0,
+        0,
+        219,
+        207,
         1,
         0,
         0,
         0,
         220,
+        33,
+        1,
+        0,
+        0,
+        0,
         221,
+        222,
         5,
         51,
         0,
         0,
-        221,
         222,
+        223,
         5,
         11,
         0,
         0,
-        222,
         223,
+        224,
         5,
         36,
         0,
         0,
-        223,
         224,
+        225,
         3,
         2,
         1,
         0,
-        224,
         225,
+        226,
         5,
         19,
         0,
         0,
-        225,
         226,
+        227,
         5,
         2,
         0,
         0,
-        226,
         227,
+        228,
         3,
         36,
         18,
         0,
-        227,
+        228,
         35,
         1,
         0,
         0,
         0,
-        228,
         229,
+        230,
         7,
         2,
         0,
         0,
-        229,
+        230,
         37,
         1,
         0,
         0,
         0,
-        230,
         231,
+        232,
         5,
         37,
         0,
         0,
-        231,
         232,
+        233,
         3,
         2,
         1,
         0,
-        232,
         233,
+        234,
         3,
         50,
         25,
         0,
-        233,
         234,
+        235,
         5,
         19,
         0,
         0,
-        234,
         235,
+        236,
         5,
         2,
         0,
         0,
-        235,
         236,
+        237,
         3,
         36,
         18,
         0,
-        236,
+        237,
         39,
         1,
         0,
         0,
         0,
-        237,
         238,
+        239,
         5,
         51,
         0,
         0,
-        238,
         239,
+        240,
         5,
         11,
         0,
         0,
-        239,
         240,
+        241,
         5,
         38,
         0,
         0,
-        240,
         241,
+        242,
         3,
         42,
         21,
         0,
-        241,
         242,
+        243,
         5,
         19,
         0,
         0,
-        242,
         243,
+        244,
         5,
         2,
         0,
         0,
-        243,
         244,
+        245,
         3,
         36,
         18,
         0,
-        244,
         245,
+        246,
         5,
         19,
         0,
         0,
-        245,
         246,
+        247,
         5,
         1,
         0,
         0,
-        246,
         247,
+        248,
         3,
         50,
         25,
         0,
-        247,
-        263,
+        248,
+        264,
         1,
         0,
         0,
         0,
-        248,
         249,
+        250,
         5,
         51,
         0,
         0,
-        249,
         250,
+        251,
         5,
         11,
         0,
         0,
-        250,
         251,
+        252,
         5,
         38,
         0,
         0,
-        251,
         252,
+        253,
         3,
         42,
         21,
         0,
-        252,
         253,
+        254,
         5,
         19,
         0,
         0,
-        253,
         254,
+        255,
         5,
         2,
         0,
         0,
-        254,
         255,
+        256,
         3,
         36,
         18,
         0,
-        255,
         256,
+        257,
         5,
         19,
         0,
         0,
-        256,
         257,
+        258,
         5,
         1,
         0,
         0,
-        257,
         258,
+        259,
         5,
         48,
         0,
         0,
-        258,
         259,
+        260,
         5,
         19,
         0,
         0,
-        259,
         260,
+        261,
         5,
         1,
         0,
         0,
-        260,
         261,
+        262,
         3,
         50,
         25,
         0,
-        261,
-        263,
-        1,
-        0,
-        0,
-        0,
         262,
-        237,
-        1,
-        0,
-        0,
-        0,
-        262,
-        248,
+        264,
         1,
         0,
         0,
         0,
         263,
+        238,
+        1,
+        0,
+        0,
+        0,
+        263,
+        249,
+        1,
+        0,
+        0,
+        0,
+        264,
         41,
         1,
         0,
         0,
         0,
-        264,
-        267,
+        265,
+        268,
         3,
         2,
         1,
         0,
-        265,
-        267,
+        266,
+        268,
         5,
         51,
         0,
         0,
-        266,
-        264,
-        1,
-        0,
-        0,
-        0,
-        266,
+        267,
         265,
         1,
         0,
         0,
         0,
         267,
-        43,
+        266,
         1,
         0,
         0,
         0,
         268,
+        43,
+        1,
+        0,
+        0,
+        0,
         269,
+        270,
         5,
         51,
         0,
         0,
-        269,
         270,
+        271,
         5,
         11,
         0,
         0,
-        270,
         271,
+        272,
         5,
         39,
         0,
         0,
-        271,
         272,
+        273,
         3,
         46,
         23,
         0,
-        272,
         273,
+        274,
         3,
         2,
         1,
         0,
-        273,
         274,
+        275,
         3,
         50,
         25,
         0,
-        274,
         275,
+        276,
         5,
         19,
         0,
         0,
-        275,
         276,
+        277,
         3,
         50,
         25,
         0,
-        276,
+        277,
         45,
         1,
         0,
         0,
         0,
-        277,
         278,
+        279,
         7,
         3,
         0,
         0,
-        278,
+        279,
         47,
         1,
         0,
         0,
         0,
-        279,
         280,
+        281,
         5,
         51,
         0,
         0,
-        280,
         281,
+        282,
         5,
         11,
         0,
         0,
-        281,
         282,
+        283,
         5,
         46,
         0,
         0,
-        282,
         283,
+        284,
         3,
         2,
         1,
         0,
-        283,
         284,
+        285,
         5,
         14,
         0,
         0,
-        284,
         285,
+        286,
         3,
         50,
         25,
         0,
-        285,
-        286,
-        5,
-        19,
-        0,
-        0,
         286,
         287,
         5,
-        35,
+        19,
         0,
         0,
         287,
         288,
         5,
-        49,
+        35,
         0,
         0,
         288,
-        297,
+        289,
+        5,
+        49,
+        0,
+        0,
+        289,
+        298,
         5,
         17,
         0,
         0,
-        289,
         290,
+        291,
         5,
         19,
         0,
         0,
-        290,
         291,
+        292,
         5,
         14,
         0,
         0,
-        291,
         292,
+        293,
         3,
         50,
         25,
         0,
-        292,
         293,
+        294,
         5,
         19,
         0,
         0,
-        293,
         294,
+        295,
         5,
         35,
         0,
         0,
-        294,
         295,
+        296,
         5,
         49,
         0,
         0,
-        295,
         296,
+        297,
         5,
         17,
         0,
         0,
-        296,
-        298,
-        1,
-        0,
-        0,
-        0,
         297,
-        289,
-        1,
-        0,
-        0,
-        0,
-        298,
         299,
         1,
         0,
         0,
         0,
-        299,
-        297,
+        298,
+        290,
         1,
         0,
         0,
@@ -2537,72 +2533,84 @@ def serializedATN():
         0,
         0,
         300,
-        49,
+        298,
+        1,
+        0,
+        0,
+        0,
+        300,
+        301,
         1,
         0,
         0,
         0,
         301,
-        305,
+        49,
+        1,
+        0,
+        0,
+        0,
+        302,
+        306,
         5,
         51,
         0,
         0,
-        302,
-        305,
+        303,
+        306,
         3,
         52,
         26,
         0,
-        303,
-        305,
+        304,
+        306,
         5,
         52,
         0,
         0,
-        304,
-        301,
-        1,
-        0,
-        0,
-        0,
-        304,
+        305,
         302,
         1,
         0,
         0,
         0,
-        304,
+        305,
         303,
         1,
         0,
         0,
         0,
         305,
-        51,
+        304,
         1,
         0,
         0,
         0,
         306,
+        51,
+        1,
+        0,
+        0,
+        0,
         307,
+        308,
         7,
         4,
         0,
         0,
-        307,
+        308,
         53,
         1,
         0,
         0,
         0,
-        308,
         309,
+        310,
         5,
         52,
         0,
         0,
-        309,
+        310,
         55,
         1,
         0,
@@ -2623,13 +2631,13 @@ def serializedATN():
         164,
         169,
         176,
-        186,
-        190,
-        218,
-        262,
-        266,
-        299,
-        304,
+        187,
+        191,
+        219,
+        263,
+        267,
+        300,
+        305,
     ]
 
 
@@ -3773,6 +3781,9 @@ class llvmParser(Parser):
             super().__init__(parent, invokingState)
             self.parser = parser
 
+        def type_(self):
+            return self.getTypedRuleContext(llvmParser.TypeContext, 0)
+
         def Global_var(self):
             return self.getToken(llvmParser.Global_var, 0)
 
@@ -3781,9 +3792,6 @@ class llvmParser(Parser):
 
         def Privatevariable(self):
             return self.getToken(llvmParser.Privatevariable, 0)
-
-        def type_(self):
-            return self.getTypedRuleContext(llvmParser.TypeContext, 0)
 
         def getRuleIndex(self):
             return llvmParser.RULE_call
@@ -3802,7 +3810,7 @@ class llvmParser(Parser):
         self.enterRule(localctx, 26, self.RULE_call)
         self._la = 0  # Token type
         try:
-            self.state = 190
+            self.state = 191
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [22]:
@@ -3810,7 +3818,7 @@ class llvmParser(Parser):
                 self.state = 171
                 self.match(llvmParser.T__21)
                 self.state = 172
-                self.match(llvmParser.T__2)
+                self.type_()
                 self.state = 173
                 self.match(llvmParser.Global_var)
                 self.state = 174
@@ -3827,26 +3835,26 @@ class llvmParser(Parser):
                 pass
             elif token in [51]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 179
-                self.match(llvmParser.Privatevariable)
                 self.state = 180
-                self.match(llvmParser.T__10)
+                self.match(llvmParser.Privatevariable)
                 self.state = 181
-                self.match(llvmParser.T__21)
+                self.match(llvmParser.T__10)
                 self.state = 182
-                self.type_()
+                self.match(llvmParser.T__21)
                 self.state = 183
-                self.match(llvmParser.Global_var)
+                self.type_()
                 self.state = 184
+                self.match(llvmParser.Global_var)
+                self.state = 185
                 self.match(llvmParser.T__5)
-                self.state = 186
+                self.state = 187
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if ((_la) & ~0x3F) == 0 and ((1 << _la) & 30) != 0:
-                    self.state = 185
+                    self.state = 186
                     self.params()
 
-                self.state = 188
+                self.state = 189
                 self.match(llvmParser.T__6)
                 pass
             else:
@@ -3901,19 +3909,19 @@ class llvmParser(Parser):
         self.enterRule(localctx, 28, self.RULE_binary_op)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 192
-            self.match(llvmParser.Privatevariable)
             self.state = 193
-            self.match(llvmParser.T__10)
+            self.match(llvmParser.Privatevariable)
             self.state = 194
-            self.bin_op()
+            self.match(llvmParser.T__10)
             self.state = 195
-            self.type_()
+            self.bin_op()
             self.state = 196
-            self.value()
+            self.type_()
             self.state = 197
-            self.match(llvmParser.T__18)
+            self.value()
             self.state = 198
+            self.match(llvmParser.T__18)
+            self.state = 199
             self.value()
         except RecognitionException as re:
             localctx.exception = re
@@ -3950,7 +3958,7 @@ class llvmParser(Parser):
         self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 200
+            self.state = 201
             _la = self._input.LA(1)
             if not ((((_la) & ~0x3F) == 0 and ((1 << _la) & 8581545984) != 0)):
                 self._errHandler.recoverInline(self)
@@ -3999,44 +4007,44 @@ class llvmParser(Parser):
         localctx = llvmParser.BranchContext(self, self._ctx, self.state)
         self.enterRule(localctx, 32, self.RULE_branch)
         try:
-            self.state = 218
+            self.state = 219
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input, 16, self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 202
-                self.match(llvmParser.T__32)
                 self.state = 203
-                self.match(llvmParser.T__33)
+                self.match(llvmParser.T__32)
                 self.state = 204
-                self.match(llvmParser.T__34)
+                self.match(llvmParser.T__33)
                 self.state = 205
+                self.match(llvmParser.T__34)
+                self.state = 206
                 self.match(llvmParser.Label)
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 206
-                self.match(llvmParser.T__32)
                 self.state = 207
-                self.match(llvmParser.T__3)
+                self.match(llvmParser.T__32)
                 self.state = 208
-                self.value()
+                self.match(llvmParser.T__3)
                 self.state = 209
-                self.match(llvmParser.T__18)
+                self.value()
                 self.state = 210
-                self.match(llvmParser.T__33)
-                self.state = 211
-                self.match(llvmParser.T__34)
-                self.state = 212
-                self.match(llvmParser.Label)
-                self.state = 213
                 self.match(llvmParser.T__18)
-                self.state = 214
+                self.state = 211
                 self.match(llvmParser.T__33)
-                self.state = 215
+                self.state = 212
                 self.match(llvmParser.T__34)
+                self.state = 213
+                self.match(llvmParser.Label)
+                self.state = 214
+                self.match(llvmParser.T__18)
+                self.state = 215
+                self.match(llvmParser.T__33)
                 self.state = 216
+                self.match(llvmParser.T__34)
+                self.state = 217
                 self.match(llvmParser.Label)
                 pass
 
@@ -4083,19 +4091,19 @@ class llvmParser(Parser):
         self.enterRule(localctx, 34, self.RULE_load)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 220
-            self.match(llvmParser.Privatevariable)
             self.state = 221
-            self.match(llvmParser.T__10)
+            self.match(llvmParser.Privatevariable)
             self.state = 222
-            self.match(llvmParser.T__35)
+            self.match(llvmParser.T__10)
             self.state = 223
-            self.type_()
+            self.match(llvmParser.T__35)
             self.state = 224
-            self.match(llvmParser.T__18)
+            self.type_()
             self.state = 225
-            self.match(llvmParser.T__1)
+            self.match(llvmParser.T__18)
             self.state = 226
+            self.match(llvmParser.T__1)
+            self.state = 227
             self.var()
         except RecognitionException as re:
             localctx.exception = re
@@ -4138,7 +4146,7 @@ class llvmParser(Parser):
         self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 228
+            self.state = 229
             _la = self._input.LA(1)
             if not (_la == 51 or _la == 52):
                 self._errHandler.recoverInline(self)
@@ -4188,17 +4196,17 @@ class llvmParser(Parser):
         self.enterRule(localctx, 38, self.RULE_store)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 230
-            self.match(llvmParser.T__36)
             self.state = 231
-            self.type_()
+            self.match(llvmParser.T__36)
             self.state = 232
-            self.value()
+            self.type_()
             self.state = 233
-            self.match(llvmParser.T__18)
+            self.value()
             self.state = 234
-            self.match(llvmParser.T__1)
+            self.match(llvmParser.T__18)
             self.state = 235
+            self.match(llvmParser.T__1)
+            self.state = 236
             self.var()
         except RecognitionException as re:
             localctx.exception = re
@@ -4248,60 +4256,60 @@ class llvmParser(Parser):
         localctx = llvmParser.GetelementptrContext(self, self._ctx, self.state)
         self.enterRule(localctx, 40, self.RULE_getelementptr)
         try:
-            self.state = 262
+            self.state = 263
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input, 17, self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 237
-                self.match(llvmParser.Privatevariable)
                 self.state = 238
-                self.match(llvmParser.T__10)
+                self.match(llvmParser.Privatevariable)
                 self.state = 239
-                self.match(llvmParser.T__37)
+                self.match(llvmParser.T__10)
                 self.state = 240
-                self.ptrtype()
+                self.match(llvmParser.T__37)
                 self.state = 241
-                self.match(llvmParser.T__18)
+                self.ptrtype()
                 self.state = 242
-                self.match(llvmParser.T__1)
-                self.state = 243
-                self.var()
-                self.state = 244
                 self.match(llvmParser.T__18)
+                self.state = 243
+                self.match(llvmParser.T__1)
+                self.state = 244
+                self.var()
                 self.state = 245
-                self.match(llvmParser.T__0)
+                self.match(llvmParser.T__18)
                 self.state = 246
+                self.match(llvmParser.T__0)
+                self.state = 247
                 self.value()
                 pass
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 248
-                self.match(llvmParser.Privatevariable)
                 self.state = 249
-                self.match(llvmParser.T__10)
+                self.match(llvmParser.Privatevariable)
                 self.state = 250
-                self.match(llvmParser.T__37)
+                self.match(llvmParser.T__10)
                 self.state = 251
-                self.ptrtype()
+                self.match(llvmParser.T__37)
                 self.state = 252
-                self.match(llvmParser.T__18)
+                self.ptrtype()
                 self.state = 253
-                self.match(llvmParser.T__1)
+                self.match(llvmParser.T__18)
                 self.state = 254
-                self.var()
+                self.match(llvmParser.T__1)
                 self.state = 255
-                self.match(llvmParser.T__18)
+                self.var()
                 self.state = 256
-                self.match(llvmParser.T__0)
-                self.state = 257
-                self.match(llvmParser.INTEGER)
-                self.state = 258
                 self.match(llvmParser.T__18)
-                self.state = 259
+                self.state = 257
                 self.match(llvmParser.T__0)
+                self.state = 258
+                self.match(llvmParser.INTEGER)
+                self.state = 259
+                self.match(llvmParser.T__18)
                 self.state = 260
+                self.match(llvmParser.T__0)
+                self.state = 261
                 self.value()
                 pass
 
@@ -4344,17 +4352,17 @@ class llvmParser(Parser):
         localctx = llvmParser.PtrtypeContext(self, self._ctx, self.state)
         self.enterRule(localctx, 42, self.RULE_ptrtype)
         try:
-            self.state = 266
+            self.state = 267
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [1, 2, 3, 4]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 264
+                self.state = 265
                 self.type_()
                 pass
             elif token in [51]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 265
+                self.state = 266
                 self.match(llvmParser.Privatevariable)
                 pass
             else:
@@ -4409,21 +4417,21 @@ class llvmParser(Parser):
         self.enterRule(localctx, 44, self.RULE_compare)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 268
-            self.match(llvmParser.Privatevariable)
             self.state = 269
-            self.match(llvmParser.T__10)
+            self.match(llvmParser.Privatevariable)
             self.state = 270
-            self.match(llvmParser.T__38)
+            self.match(llvmParser.T__10)
             self.state = 271
-            self.cond()
+            self.match(llvmParser.T__38)
             self.state = 272
-            self.type_()
+            self.cond()
             self.state = 273
-            self.value()
+            self.type_()
             self.state = 274
-            self.match(llvmParser.T__18)
+            self.value()
             self.state = 275
+            self.match(llvmParser.T__18)
+            self.state = 276
             self.value()
         except RecognitionException as re:
             localctx.exception = re
@@ -4460,7 +4468,7 @@ class llvmParser(Parser):
         self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 277
+            self.state = 278
             _la = self._input.LA(1)
             if not ((((_la) & ~0x3F) == 0 and ((1 << _la) & 69269232549888) != 0)):
                 self._errHandler.recoverInline(self)
@@ -4520,45 +4528,45 @@ class llvmParser(Parser):
         self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 279
-            self.match(llvmParser.Privatevariable)
             self.state = 280
-            self.match(llvmParser.T__10)
+            self.match(llvmParser.Privatevariable)
             self.state = 281
-            self.match(llvmParser.T__45)
+            self.match(llvmParser.T__10)
             self.state = 282
-            self.type_()
+            self.match(llvmParser.T__45)
             self.state = 283
-            self.match(llvmParser.T__13)
+            self.type_()
             self.state = 284
-            self.value()
+            self.match(llvmParser.T__13)
             self.state = 285
-            self.match(llvmParser.T__18)
+            self.value()
             self.state = 286
-            self.match(llvmParser.T__34)
+            self.match(llvmParser.T__18)
             self.state = 287
-            self.match(llvmParser.Label)
+            self.match(llvmParser.T__34)
             self.state = 288
+            self.match(llvmParser.Label)
+            self.state = 289
             self.match(llvmParser.T__16)
-            self.state = 297
+            self.state = 298
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 289
-                self.match(llvmParser.T__18)
                 self.state = 290
-                self.match(llvmParser.T__13)
-                self.state = 291
-                self.value()
-                self.state = 292
                 self.match(llvmParser.T__18)
+                self.state = 291
+                self.match(llvmParser.T__13)
+                self.state = 292
+                self.value()
                 self.state = 293
-                self.match(llvmParser.T__34)
+                self.match(llvmParser.T__18)
                 self.state = 294
-                self.match(llvmParser.Label)
+                self.match(llvmParser.T__34)
                 self.state = 295
+                self.match(llvmParser.Label)
+                self.state = 296
                 self.match(llvmParser.T__16)
-                self.state = 299
+                self.state = 300
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la == 19):
@@ -4606,22 +4614,22 @@ class llvmParser(Parser):
         localctx = llvmParser.ValueContext(self, self._ctx, self.state)
         self.enterRule(localctx, 50, self.RULE_value)
         try:
-            self.state = 304
+            self.state = 305
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [51]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 301
+                self.state = 302
                 self.match(llvmParser.Privatevariable)
                 pass
             elif token in [47, 48]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 302
+                self.state = 303
                 self.constant()
                 pass
             elif token in [52]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 303
+                self.state = 304
                 self.match(llvmParser.Global_var)
                 pass
             else:
@@ -4665,7 +4673,7 @@ class llvmParser(Parser):
         self._la = 0  # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 306
+            self.state = 307
             _la = self._input.LA(1)
             if not (_la == 47 or _la == 48):
                 self._errHandler.recoverInline(self)
@@ -4709,7 +4717,7 @@ class llvmParser(Parser):
         self.enterRule(localctx, 54, self.RULE_string_constant)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 308
+            self.state = 309
             self.match(llvmParser.Global_var)
         except RecognitionException as re:
             localctx.exception = re
