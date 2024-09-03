@@ -1066,10 +1066,7 @@ class MyListener2(Mx_parserListener):
             return code.getText()
         elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
             # newArrayExpression
-            cnt = 0
-            for i in code.getText():
-                if i == "[":
-                    cnt += 1
+            cnt = len(code.newpart())
             if (
                 cnt == 1
                 and code.type_().getText() == "int"
@@ -1083,7 +1080,7 @@ class MyListener2(Mx_parserListener):
                 _type = "Ptr"
             _type = _type[0].upper() + _type[1:]
             if self.isPrivate(self.enter_class):
-                t = self.return_expression2ir(code.expression(0), stream)
+                t = self.return_expression2ir(code.newpart(0).expression(), stream)
                 stream[0] += (
                     result
                     + " = call ptr@__new"
@@ -1100,7 +1097,10 @@ class MyListener2(Mx_parserListener):
                 return code.getText()
             if code.array_constant() != None:
                 return self.array_constantdecode(code.array_constant(), stream)
-            expressionlist = code.expression()
+            expressionlist = []
+            for i in code.newpart():
+                if i.expression() != None:
+                    expressionlist.append(i.expression())
             list = []
             type_ = "class_" + code.type_().getText() + str(cnt)
             stream[0] += (
@@ -1603,7 +1603,7 @@ class MyListener2(Mx_parserListener):
                     k = 0
                     for j in tmp_map[i]:
                         stream[0] += "[" + tmp_map[i][j][1] + ", %" + j + "]"
-                        if k < len(tmp_map[i])-1:
+                        if k < len(tmp_map[i]) - 1:
                             stream[0] += ", "
                         else:
                             stream[0] += "\n\t\t"

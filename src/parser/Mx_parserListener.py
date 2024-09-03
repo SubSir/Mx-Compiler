@@ -478,6 +478,14 @@ class Mx_parserListener(ParseTreeListener):
     def exitExpressionLists(self, ctx: Mx_parserParser.ExpressionListsContext):
         pass
 
+    # Enter a parse tree produced by Mx_parserParser#newpart.
+    def enterNewpart(self, ctx: Mx_parserParser.NewpartContext):
+        pass
+
+    # Exit a parse tree produced by Mx_parserParser#newpart.
+    def exitNewpart(self, ctx: Mx_parserParser.NewpartContext):
+        pass
+
     # Enter a parse tree produced by Mx_parserParser#relationalOperator.
     def enterRelationalOperator(self, ctx: Mx_parserParser.RelationalOperatorContext):
         pass

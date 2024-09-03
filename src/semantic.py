@@ -436,24 +436,22 @@ class MyListener(Mx_parserListener):
             return code.type_().getText() + "[0]"
         elif isinstance(code, Mx_parserParser.NewArrayExpressionContext):
             # newArrayExpression
-            str_ = code.getText()
             flag = 1
-            for i in range(len(str_)):
-                if str_[i] == "[" and str_[i + 1] == "]":
+            for i in code.newpart():
+                if i.expression() == None:
                     flag = 0
-                if str_[i] == "[" and str_[i + 1] != "]" and flag == 0:
+                    continue
+                elif i.expression() != None and flag == 0:
                     print(
                         "The assignment of 2-D array should follow the order from the first dimension."
                     )
                     sys.exit(1)
-            expression = code.expression()
-            for i in range(len(expression)):
-                type_ = self.return_expressiontype(expression[i])
+                type_ = self.return_expressiontype(i.expression())
                 if type_ != "int[0]":
                     print("Type Mismatch")
                     sys.exit(1)
 
-            dimansion = len(code.square_brackets1())
+            dimansion = len(code.newpart())
             type = arrayclass(code.type_().getText(), dimansion).to_string()
             if code.array_constant() != None:
                 expressionlist = code.array_constant().expression()
@@ -755,7 +753,7 @@ class MyListener(Mx_parserListener):
         self.array_init(returntype[:-2])
 
     def enterNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
-        dimansion = len(ctx.square_brackets1())
+        dimansion = len(ctx.newpart())
         returntype = ctx.type_().getText() + "[]" * dimansion
         self.array_init(returntype)
 

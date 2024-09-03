@@ -72,9 +72,7 @@ expression:
 	| '~' expression											# bitwiseNotExpression
 	| '-' expression											# unaryMinusExpression
 	| constant													# constantExpression
-	| 'new' type (square_brackets1 expression? square_brackets2)(square_brackets1 expression square_brackets2)* (
-		square_brackets1 square_brackets2
-	)* (array_constant)?										# newArrayExpression
+	| 'new' type newpart+ (array_constant)?										# newArrayExpression
 	| 'new' type ('(' ')')?										# newVariableExpression
 	| IDENTIFIER												# variableExpression
 	| expression (MUL | DIV | MOD) expression					# muldivmodExpression
@@ -90,6 +88,7 @@ expression:
 square_brackets1: '[';
 square_brackets2: ']';
 expressionLists: expression (',' expression)*;
+newpart: '[' expression? ']';
 
 // 运算符
 PLUS: '+';
