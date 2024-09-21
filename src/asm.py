@@ -42,7 +42,11 @@ class Mylistener3(llvmListener):
             self.return_str += "\taddi sp, sp, " + str(self.variable_cnt) + "\n"
         self.return_str += "\tret\n"
 
-    def loadword(self, index: int, name: str = "t0"):
+    def loadword(self, index, name: str = "t0"):
+        if isinstance(index, str):
+            if name != index:
+                self.return_str += "\tmv " + name + ", " + index + "\n"
+            return
         if index > 2047 or index < -2048:
             self.return_str += "\tli t3, " + str(index) + "\n"
             self.return_str += "\tadd t3, sp, t3\n"
@@ -61,6 +65,7 @@ class Mylistener3(llvmListener):
     def params_decode(self, code: llvmParser.ParamsContext):
         params = code.parameter()
         for i in range(min(len(params), 8)):
+            # self.return_str += "\tmv s" + str(i) + ", a" + str(i) + "\n"
             param = params[i]
             if param.Global_var() != None:
                 name = param.Global_var().getText()[1:]
@@ -106,6 +111,10 @@ class Mylistener3(llvmListener):
             self.return_str += "\taddi sp, sp, " + str((i - 8) * 4) + "\n"
         if ctx.Privatevariable() != None:
             self.saveword(self.variable_map[ctx.Privatevariable().getText()], "a0")
+        # if ctx.params() != None:
+        #     len_ = min(len(ctx.params().parameter()), 8)
+        #     for i in range(len_):
+        #         self.return_str += "\tmv a" + str(i) + ", s" + str(i) + "\n"
 
     def enterBinary_op(self, ctx: llvmParser.Binary_opContext):
         value1 = ctx.value(0)
@@ -335,7 +344,62 @@ class Mylistener3(llvmListener):
         self.enter_label = self.enter_function + name
         self.return_str += self.enter_label + ":\n"
 
+    def conflict_graph(
+        self, ctx: llvmParser.Basic_blockContext, list: list, define_map: dict
+    ):
+        self._conflict_node(ctx, list)
+        for i in ctx.instruction():
+            if i.call() != None:
+                if i.call().Privatevariable() is not None:
+                    var_name = i.call().Privatevariable().getText()
+                    define_map[var_name] = list.index(var_name)
+                    list[list.index(var_name)] = ""
+            elif i.binary_op() != None:
+                var_name = i.binary_op().Privatevariable().getText()
+                define_map[var_name] = list.index(var_name)
+                list[list.index(var_name)] = ""
+            elif i.load() != None:
+                var_name = i.load().Privatevariable().getText()
+                define_map[var_name] = list.index(var_name)
+                list[list.index(var_name)] = ""
+            elif i.getelementptr() != None:
+                var_name = i.getelementptr().Privatevariable().getText()
+                define_map[var_name] = list.index(var_name)
+                list[list.index(var_name)] = ""
+            elif i.compare() != None:
+                var_name = i.compare().Privatevariable().getText()
+                define_map[var_name] = list.index(var_name)
+                list[list.index(var_name)] = ""
+            elif i.phi() != None:
+                var_name = i.phi().Privatevariable().getText()
+                define_map[var_name] = list.index(var_name)
+                list[list.index(var_name)] = ""
+
+    def _traverse_blocks(self, bm: dict, queue: list, from_: str, visited: list):
+        visited.append(from_)
+        for j in bm[from_][1]:
+            if j not in visited:
+                self._traverse_blocks(bm, queue, j, visited)
+        queue.append(from_)
+
     def enterFunction(self, ctx: llvmParser.FunctionContext):
+        list = []
+        visited = []
+        define_map = {}
+        block_map = {}
+
+        for i in ctx.basic_block():
+            to_list = []
+            for j in i.instruction():
+                if j.branch() != None:
+                    for k in j.branch().Label():
+                        to_list.append(k.getText())
+            block_map[i.Label().getText()] = [i, to_list]
+        queue = []
+        self._traverse_blocks(block_map, queue, ".entry", visited)
+        queue = queue[::-1]
+        for i in queue:
+            self.conflict_graph(block_map[i][0], list, define_map)
         self.variable_cnt = 4
         self.enter_function = ctx.Global_var().getText()[1:]
         extra_param_list = []
@@ -366,6 +430,16 @@ class Mylistener3(llvmListener):
                 if params[i].Privatevariable() is not None:
                     var_name = params[i].Privatevariable().getText()
                     self.saveword(self.variable_map[var_name], "a" + str(i))
+                    # self.variable_map[var_name] = "a" + str(i)
+
+    def _conflict_node(self, node, list):
+        if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
+            var_name = node.Privatevariable().getText()
+            list.append(var_name)
+        else:
+            for child in node.getChildren():
+                if isinstance(child, antlr4.ParserRuleContext):
+                    self._conflict_node(child, list)
 
     def _traverse_nodes(self, node):
         if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
