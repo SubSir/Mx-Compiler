@@ -363,12 +363,15 @@ class Mylistener3(llvmListener):
                 value1_str += "\tli t1, " + name + "\n"
             index = self.variable_map[ctx.Privatevariable().getText()]
             str1 = value1_str
-            if index > 2047 or index < -2048:
-                str1 += "\tli t0, " + str(index) + "\n"
-                str1 += "\tadd t0, sp, t0\n"
-                str1 += "\tsw t1, 0(t0)\n"
+            if isinstance(index, str):
+                str1 += "\tmv " + index + ", t1\n"
             else:
-                str1 += "\tsw t1, " + str(index) + "(sp)\n"
+                if index > 2047 or index < -2048:
+                    str1 += "\tli t0, " + str(index) + "\n"
+                    str1 += "\tadd t0, sp, t0\n"
+                    str1 += "\tsw t1, 0(t0)\n"
+                else:
+                    str1 += "\tsw t1, " + str(index) + "(sp)\n"
             if label1 not in self.label_map:
                 self.label_map[label1] = str1
             else:
@@ -390,7 +393,9 @@ class Mylistener3(llvmListener):
                     list.append("")
                     define_map[call.Privatevariable().getText()] = len(list) - 1
                 if call.params() != None:
-                    list += [j.getText() for j in call.params().parameter()]
+                    for j in call.params().parameter():
+                        if j.Privatevariable() != None:
+                            list.append(j.Privatevariable().getText())
             elif i.ret() != None:
                 ret = i.ret()
                 if ret.value() != None:
@@ -477,7 +482,8 @@ class Mylistener3(llvmListener):
             self.conflict_graph(block_map[i][0], list, define_map)
         if ctx.params() != None:
             for i in ctx.params().parameter():
-                define_map[i.getText()] = -1
+                if i.Privatevariable() != None:
+                    define_map[i.Privatevariable().getText()] = -1
         reguselist = []
         for i in define_map:
             reguselist.append(RegUse(name=i, beg=define_map[i], end=define_map[i]))
