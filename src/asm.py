@@ -383,19 +383,24 @@ class Mylistener3(llvmListener):
         self.return_str += self.enter_label + ":\n"
 
     def conflict_graph(
-        self, ctx: llvmParser.Basic_blockContext, list: list, define_map: dict
+        self,
+        ctx: llvmParser.Basic_blockContext,
+        list: list,
+        define_map: dict,
+        block_index: dict,
     ):
+        block_index.append((ctx.Label().getText(), len(list)))
         list.append(-1)
         for i in ctx.instruction():
             if i.call() != None:
                 call = i.call()
-                if call.Privatevariable() != None:
-                    list.append("")
-                    define_map[call.Privatevariable().getText()] = len(list) - 1
                 if call.params() != None:
                     for j in call.params().parameter():
                         if j.Privatevariable() != None:
                             list.append(j.Privatevariable().getText())
+                if call.Privatevariable() != None:
+                    list.append("")
+                    define_map[call.Privatevariable().getText()] = len(list) - 1
             elif i.ret() != None:
                 ret = i.ret()
                 if ret.value() != None:
@@ -404,11 +409,11 @@ class Mylistener3(llvmListener):
                         list.append(value.Privatevariable().getText())
             elif i.binary_op() != None:
                 binary_op = i.binary_op()
-                list.append("")
-                define_map[binary_op.Privatevariable().getText()] = len(list) - 1
                 for j in binary_op.value():
                     if j.Privatevariable() != None:
                         list.append(j.Privatevariable().getText())
+                list.append("")
+                define_map[binary_op.Privatevariable().getText()] = len(list) - 1
             elif i.branch() != None:
                 branch = i.branch()
                 if branch.value() != None:
@@ -417,11 +422,11 @@ class Mylistener3(llvmListener):
                         list.append(value.Privatevariable().getText())
             elif i.load() != None:
                 load = i.load()
-                list.append("")
-                define_map[load.Privatevariable().getText()] = len(list) - 1
                 var = load.var()
                 if var.Privatevariable() != None:
                     list.append(var.Privatevariable().getText())
+                list.append("")
+                define_map[load.Privatevariable().getText()] = len(list) - 1
             elif i.store() != None:
                 value = i.store().value()
                 var = i.store().var()
@@ -430,30 +435,30 @@ class Mylistener3(llvmListener):
                 if value.Privatevariable() != None:
                     list.append(value.Privatevariable().getText())
             elif i.getelementptr() != None:
-                list.append("")
-                define_map[i.getelementptr().Privatevariable().getText()] = (
-                    len(list) - 1
-                )
                 value = i.getelementptr().value()
                 var = i.getelementptr().var()
                 if value.Privatevariable() != None:
                     list.append(value.Privatevariable().getText())
                 if var.Privatevariable() != None:
                     list.append(var.Privatevariable().getText())
+                list.append("")
+                define_map[i.getelementptr().Privatevariable().getText()] = (
+                    len(list) - 1
+                )
             elif i.compare() != None:
                 compare = i.compare()
-                list.append("")
-                define_map[compare.Privatevariable().getText()] = len(list) - 1
                 for j in compare.value():
                     if j.Privatevariable() != None:
                         list.append(j.Privatevariable().getText())
+                list.append("")
+                define_map[compare.Privatevariable().getText()] = len(list) - 1
             elif i.phi() != None:
                 phi = i.phi()
-                list.append("")
-                define_map[phi.Privatevariable().getText()] = len(list) - 1
                 for j in phi.value():
                     if j.Privatevariable() != None:
                         list.append(j.Privatevariable().getText())
+                list.append("")
+                define_map[phi.Privatevariable().getText()] = len(list) - 1
 
     def _traverse_blocks(self, bm: dict, queue: list, from_: str, visited: list):
         visited.append(from_)
@@ -490,6 +495,32 @@ class Mylistener3(llvmListener):
 
         return False
 
+    def search_circle(self, bm: dict, from_: str):
+        visited = set()
+        rec_stack = set()
+
+        def dfs(node, current_path):
+            visited.add(node)
+            rec_stack.add(node)
+
+            current_path.append(node)
+
+            for neighbor in bm[node][1]:
+                if neighbor not in visited:
+                    if dfs(neighbor, current_path):
+                        return current_path
+                elif neighbor in rec_stack and neighbor == from_:
+                    return current_path
+
+            rec_stack.remove(node)
+            current_path.pop()
+
+            return None
+
+        result_path = dfs(from_, [])
+
+        return result_path
+
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         list = []
         visited = []
@@ -506,41 +537,106 @@ class Mylistener3(llvmListener):
         queue = []
         self._traverse_blocks(block_map, queue, ".entry", visited)
         queue = queue[::-1]
+        circle = []
+        for i in block_map:
+            c = self.search_circle(block_map, i)
+            if c != None:
+                circle.append(c)
+        block_index = []
         for i in queue:
-            self.conflict_graph(block_map[i][0], list, define_map)
+            self.conflict_graph(block_map[i][0], list, define_map, block_index)
         if ctx.params() != None:
             for i in ctx.params().parameter():
                 if i.Privatevariable() != None:
                     define_map[i.Privatevariable().getText()] = -1
         reguselist = []
-        for i in define_map:
-            reguselist.append(RegUse(name=i, beg=define_map[i], end=define_map[i]))
         for i in range(len(list)):
             name = list[i]
             if name != "" and name != -1:
                 define = define_map[name]
+                define_block = ""
+                for k in range(len(block_index)):
+                    if block_index[k][1] < define and (
+                        k == len(block_index) - 1 or block_index[k + 1][1] > define
+                    ):
+                        define_block = block_index[k][0]
+                        break
+                use_block = ""
+                for k in range(len(block_index)):
+                    if block_index[k][1] < i and (
+                        k == len(block_index) - 1 or block_index[k + 1][1] > i
+                    ):
+                        use_block = block_index[k][0]
+                        break
                 if define < i:
-                    for j in reguselist:
-                        if j.name == name and j.beg == define:
-                            j.end = max(i, j.end)
-                            break
+                    reguselist.append(RegUse(name=name, beg=define, end=i))
+                    if define_block != use_block:
+                        for k in circle:
+                            if k[0] == define_block:
+                                flag = False
+                                for t in range(1, len(k)):
+                                    if k[t] == use_block:
+                                        flag = True
+                                        break
+                                if flag == False:
+                                    for t in range(len(k)):
+                                        beg = -1
+                                        end = -1
+                                        for p in range(len(block_index)):
+                                            if block_index[p][0] == k[t]:
+                                                beg = block_index[p][1]
+                                                if p == len(block_index) - 1:
+                                                    end = len(list)
+                                                else:
+                                                    end = block_index[p + 1][1]
+                                        reguselist.append(
+                                            RegUse(name=name, beg=beg, end=end)
+                                        )
+                            if k[0] == use_block:
+                                flag = False
+                                for t in range(1, len(k)):
+                                    if k[t] == define_block:
+                                        flag = True
+                                        break
+                                if flag == False:
+                                    for t in range(len(k)):
+                                        beg = -1
+                                        end = -1
+                                        for p in range(len(block_index)):
+                                            if block_index[p][0] == k[t]:
+                                                beg = block_index[p][1]
+                                                if p == len(block_index) - 1:
+                                                    end = len(list)
+                                                else:
+                                                    end = block_index[p + 1][1]
+                                        reguselist.append(
+                                            RegUse(name=name, beg=beg, end=end)
+                                        )
+
                 else:
+                    for k in circle:
+                        if k[0] == define_block:
+                            for t in range(1, len(k)):
+                                if k[t] == use_block:
+                                    break
+                                beg = -1
+                                end = -1
+                                for p in range(len(block_index)):
+                                    if block_index[p][0] == k[t]:
+                                        beg = block_index[p][1]
+                                        if p == len(block_index) - 1:
+                                            end = len(list)
+                                        else:
+                                            end = block_index[p + 1][1]
+                                reguselist.append(RegUse(name=name, beg=beg, end=end))
                     for k in range(define, len(list)):
                         if list[k] == -1:
-                            for j in reguselist:
-                                if j.name == name and j.beg == define:
-                                    j.end = max(k, j.end)
-                                    break
+                            reguselist.append(RegUse(name=name, beg=define, end=k))
+                            break
                     for k in range(i, -1, -1):
                         if list[k] == -1:
-                            flag = True
-                            for j in reguselist:
-                                if j.name == name and j.beg == k:
-                                    j.end = max(i, j.end)
-                                    flag = False
-                                    break
-                            if flag:
-                                reguselist.append(RegUse(name=name, beg=k, end=i))
+                            reguselist.append(RegUse(name=name, beg=k, end=i))
+                            break
         reguselist.sort()
         reg_map = copy.deepcopy(self.reg_map)
         for i in reguselist:
