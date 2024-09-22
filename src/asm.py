@@ -38,18 +38,18 @@ class Mylistener3(llvmListener):
     tmp_branch_cnt = 0
     tmp_store = {}
     reg_map = {
-        "s0": -2,
-        "s1": -2,
-        "s2": -2,
-        "s3": -2,
-        "s4": -2,
-        "s5": -2,
-        "s6": -2,
-        "s7": -2,
-        "s8": -2,
-        "s9": -2,
-        "s10": -2,
-        "s11": -2,
+        "s0": [],
+        "s1": [],
+        "s2": [],
+        "s3": [],
+        "s4": [],
+        "s5": [],
+        "s6": [],
+        "s7": [],
+        "s8": [],
+        "s9": [],
+        "s10": [],
+        "s11": [],
     }
 
     def enterRet(self, ctx: llvmParser.RetContext):
@@ -462,6 +462,34 @@ class Mylistener3(llvmListener):
                 self._traverse_blocks(bm, queue, j, visited)
         queue.append(from_)
 
+    def merge_intervals(self, intervals):
+        intervals.sort(key=lambda x: x.beg)
+
+        merged = []
+        for interval in intervals:
+            if not merged or merged[-1].end < interval.beg:
+                merged.append(interval)
+            else:
+                merged[-1].end = max(merged[-1].end, interval.end)
+
+        return merged
+
+    def has_intersection(self, list1, list2):
+        list1.sort(key=lambda x: x.beg)
+        list2.sort(key=lambda x: x.beg)
+
+        i, j = 0, 0
+        while i < len(list1) and j < len(list2):
+            a, b = list1[i], list2[j]
+            if a.end >= b.beg and a.beg <= b.end:
+                return True
+            if a.end < b.end:
+                i += 1
+            else:
+                j += 1
+
+        return False
+
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         list = []
         visited = []
@@ -514,22 +542,26 @@ class Mylistener3(llvmListener):
                             if flag:
                                 reguselist.append(RegUse(name=name, beg=k, end=i))
         reguselist.sort()
-        reg_map = copy.copy(self.reg_map)
+        reg_map = copy.deepcopy(self.reg_map)
         for i in reguselist:
             if i.reg == "":
+                list1 = []
+                for j in reguselist:
+                    if j.name == i.name:
+                        list1.append(j)
                 for j in reg_map:
-                    if reg_map[j] < i.beg:
-                        i.reg = j
-                        reg_map[j] = i.end
+                    list2 = reg_map[j]
+                    if self.has_intersection(list1, list2) == False:
+                        reg_map[j] += list1
+                        for k in list1:
+                            k.reg = j
                         self.variable_map[i.name] = j
-                        for k in reguselist:
-                            if k.name == i.name:
-                                k.reg = i.reg
                         break
+
         self.variable_cnt = 4
         tmp_store = {}
         for i in reg_map:
-            if reg_map[i] != -2:
+            if len(reg_map[i]) != 0:
                 tmp_store[i] = self.variable_cnt
                 self.variable_cnt += 4
         self.tmp_store = tmp_store
