@@ -11,6 +11,22 @@ from antlr4.tree.Tree import ParseTreeWalker
 from antlr4.error.ErrorListener import ErrorListener
 
 
+class RegUse:
+    name = ""
+    beg = -1
+    end = -1
+    reg = ""
+
+    def __init__(self, name="", beg=-1, end=-1, reg=""):
+        self.name = name
+        self.beg = beg
+        self.end = end
+        self.reg = reg
+
+    def __lt__(self, other):
+        return self.beg < other.beg
+
+
 class Mylistener3(llvmListener):
     return_str = ".text\n"
     enter_label = ""
@@ -20,26 +36,23 @@ class Mylistener3(llvmListener):
     variable_cnt = 0
     label_map = {}
     tmp_branch_cnt = 0
+    tmp_store = {}
     reg_map = {
-        "s0": False,
-        "s1": False,
-        "s2": False,
-        "s3": False,
-        "s4": False,
-        "s5": False,
-        "s6": False,
-        "s7": False,
-        "s8": False,
-        "s9": False,
-        "s10": False,
-        "s11": False,
-        "t4": False,
-        "t5": False,
-        "t6": False,
+        "s0": -2,
+        "s1": -2,
+        "s2": -2,
+        "s3": -2,
+        "s4": -2,
+        "s5": -2,
+        "s6": -2,
+        "s7": -2,
+        "s8": -2,
+        "s9": -2,
+        "s10": -2,
+        "s11": -2,
     }
 
     def enterRet(self, ctx: llvmParser.RetContext):
-
         if ctx.value() != None:
             value = ctx.value()
             name = ctx.value().getText()
@@ -52,6 +65,8 @@ class Mylistener3(llvmListener):
                     name = "0"
                 self.return_str += "\tli a0, " + name + "\n"
         self.return_str += "\tlw ra, 0(sp)\n"
+        for i in self.tmp_store:
+            self.loadword(self.tmp_store[i], i)
         if self.variable_cnt > 2047:
             self.return_str += "\tli t0, " + str(self.variable_cnt) + "\n"
             self.return_str += "\tadd sp, sp, t0\n"
@@ -72,6 +87,10 @@ class Mylistener3(llvmListener):
         self.return_str += "\tlw " + name + ", " + str(index) + "(sp)\n"
 
     def saveword(self, index: int, name: str = "t0"):
+        if isinstance(index, str):
+            if name != index:
+                self.return_str += "\tmv " + index + ", " + name + "\n"
+            return
         if index > 2047 or index < -2048:
             self.return_str += "\tli t3, " + str(index) + "\n"
             self.return_str += "\tadd t3, sp, t3\n"
@@ -363,33 +382,73 @@ class Mylistener3(llvmListener):
     def conflict_graph(
         self, ctx: llvmParser.Basic_blockContext, list: list, define_map: dict
     ):
-        self._conflict_node(ctx, list)
+        list.append(-1)
         for i in ctx.instruction():
             if i.call() != None:
-                if i.call().Privatevariable() is not None:
-                    var_name = i.call().Privatevariable().getText()
-                    define_map[var_name] = list.index(var_name)
-                    list[list.index(var_name)] = ""
+                call = i.call()
+                if call.Privatevariable() != None:
+                    list.append("")
+                    define_map[call.Privatevariable().getText()] = len(list) - 1
+                if call.params() != None:
+                    list += [j.getText() for j in call.params().parameter()]
+            elif i.ret() != None:
+                ret = i.ret()
+                if ret.value() != None:
+                    value = ret.value()
+                    if value.Privatevariable() != None:
+                        list.append(value.Privatevariable().getText())
             elif i.binary_op() != None:
-                var_name = i.binary_op().Privatevariable().getText()
-                define_map[var_name] = list.index(var_name)
-                list[list.index(var_name)] = ""
+                binary_op = i.binary_op()
+                list.append("")
+                define_map[binary_op.Privatevariable().getText()] = len(list) - 1
+                for j in binary_op.value():
+                    if j.Privatevariable() != None:
+                        list.append(j.Privatevariable().getText())
+            elif i.branch() != None:
+                branch = i.branch()
+                if branch.value() != None:
+                    value = branch.value()
+                    if value.Privatevariable() != None:
+                        list.append(value.Privatevariable().getText())
             elif i.load() != None:
-                var_name = i.load().Privatevariable().getText()
-                define_map[var_name] = list.index(var_name)
-                list[list.index(var_name)] = ""
+                load = i.load()
+                list.append("")
+                define_map[load.Privatevariable().getText()] = len(list) - 1
+                var = load.var()
+                if var.Privatevariable() != None:
+                    list.append(var.Privatevariable().getText())
+            elif i.store() != None:
+                value = i.store().value()
+                var = i.store().var()
+                if var.Privatevariable() != None:
+                    list.append(var.Privatevariable().getText())
+                if value.Privatevariable() != None:
+                    list.append(value.Privatevariable().getText())
             elif i.getelementptr() != None:
-                var_name = i.getelementptr().Privatevariable().getText()
-                define_map[var_name] = list.index(var_name)
-                list[list.index(var_name)] = ""
+                list.append("")
+                define_map[i.getelementptr().Privatevariable().getText()] = (
+                    len(list) - 1
+                )
+                value = i.getelementptr().value()
+                var = i.getelementptr().var()
+                if value.Privatevariable() != None:
+                    list.append(value.Privatevariable().getText())
+                if var.Privatevariable() != None:
+                    list.append(var.Privatevariable().getText())
             elif i.compare() != None:
-                var_name = i.compare().Privatevariable().getText()
-                define_map[var_name] = list.index(var_name)
-                list[list.index(var_name)] = ""
+                compare = i.compare()
+                list.append("")
+                define_map[compare.Privatevariable().getText()] = len(list) - 1
+                for j in compare.value():
+                    if j.Privatevariable() != None:
+                        list.append(j.Privatevariable().getText())
             elif i.phi() != None:
-                var_name = i.phi().Privatevariable().getText()
-                define_map[var_name] = list.index(var_name)
-                list[list.index(var_name)] = ""
+                phi = i.phi()
+                list.append("")
+                define_map[phi.Privatevariable().getText()] = len(list) - 1
+                for j in phi.value():
+                    if j.Privatevariable() != None:
+                        list.append(j.Privatevariable().getText())
 
     def _traverse_blocks(self, bm: dict, queue: list, from_: str, visited: list):
         visited.append(from_)
@@ -416,7 +475,58 @@ class Mylistener3(llvmListener):
         queue = queue[::-1]
         for i in queue:
             self.conflict_graph(block_map[i][0], list, define_map)
+        if ctx.params() != None:
+            for i in ctx.params().parameter():
+                define_map[i.getText()] = -1
+        reguselist = []
+        for i in define_map:
+            reguselist.append(RegUse(name=i, beg=define_map[i], end=define_map[i]))
+        for i in range(len(list)):
+            name = list[i]
+            if name != "" and name != -1:
+                define = define_map[name]
+                if define < i:
+                    for j in reguselist:
+                        if j.name == name and j.beg == define:
+                            j.end = max(i, j.end)
+                            break
+                else:
+                    for k in range(define, len(list)):
+                        if list[k] == -1:
+                            for j in reguselist:
+                                if j.name == name and j.beg == define:
+                                    j.end = max(k, j.end)
+                                    break
+                    for k in range(i, -1, -1):
+                        if list[k] == -1:
+                            flag = True
+                            for j in reguselist:
+                                if j.name == name and j.beg == k:
+                                    j.end = max(i, j.end)
+                                    flag = False
+                                    break
+                            if flag:
+                                reguselist.append(RegUse(name=name, beg=k, end=i))
+        reguselist.sort()
+        reg_map = copy.copy(self.reg_map)
+        for i in reguselist:
+            if i.reg == "":
+                for j in reg_map:
+                    if reg_map[j] < i.beg:
+                        i.reg = j
+                        reg_map[j] = i.end
+                        self.variable_map[i.name] = j
+                        for k in reguselist:
+                            if k.name == i.name:
+                                k.reg = i.reg
+                        break
         self.variable_cnt = 4
+        tmp_store = {}
+        for i in reg_map:
+            if reg_map[i] != -2:
+                tmp_store[i] = self.variable_cnt
+                self.variable_cnt += 4
+        self.tmp_store = tmp_store
         self.enter_function = ctx.Global_var().getText()[1:]
         extra_param_list = []
         if ctx.params() is not None:
@@ -439,7 +549,8 @@ class Mylistener3(llvmListener):
         else:
             self.return_str += "\taddi sp, sp, -" + str(self.variable_cnt) + "\n"
         self.return_str += "\tsw ra, 0(sp)\n"
-
+        for i in tmp_store:
+            self.saveword(tmp_store[i], i)
         if ctx.params() is not None:
             params = ctx.params().parameter()
             for i in range(min(8, len(params))):
@@ -447,15 +558,6 @@ class Mylistener3(llvmListener):
                     var_name = params[i].Privatevariable().getText()
                     self.saveword(self.variable_map[var_name], "a" + str(i))
                     # self.variable_map[var_name] = "a" + str(i)
-
-    def _conflict_node(self, node, list):
-        if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
-            var_name = node.Privatevariable().getText()
-            list.append(var_name)
-        else:
-            for child in node.getChildren():
-                if isinstance(child, antlr4.ParserRuleContext):
-                    self._conflict_node(child, list)
 
     def _traverse_nodes(self, node):
         if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
