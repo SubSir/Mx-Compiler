@@ -521,6 +521,37 @@ class Mylistener3(llvmListener):
 
         return result_path
 
+    def block_register(
+        self,
+        name: str,
+        block_name: str,
+        block_index: list,
+        circle: list,
+        reguselist: list,
+        be=-1,
+        en=-1,
+    ):
+        list = [block_name]
+        for i in circle:
+            if i[0] == block_name:
+                list += i[1:]
+        for t in range(len(list)):
+            beg = -1
+            end = -1
+            for p in range(len(block_index)):
+                if block_index[p][0] == list[t]:
+                    beg = block_index[p][1]
+                    if p == len(block_index) - 1:
+                        end = len(list)
+                    else:
+                        end = block_index[p + 1][1]
+            if len(list) == 1:
+                if be != -1:
+                    beg = be
+                if en != -1:
+                    end = en
+            reguselist.append(RegUse(name=name, beg=beg, end=end))
+
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         list = []
         visited = []
@@ -571,64 +602,44 @@ class Mylistener3(llvmListener):
                 if define < i:
                     reguselist.append(RegUse(name=name, beg=define, end=i))
                     if define_block != use_block:
-                        for k in circle:
-                            if k[0] == define_block:
-                                flag = False
-                                for t in range(1, len(k)):
-                                    if k[t] == use_block:
-                                        flag = True
+                        self.block_register(
+                            name,
+                            define_block,
+                            block_index,
+                            circle,
+                            reguselist,
+                            define,
+                        )
+                        self.block_register(
+                            name,
+                            use_block,
+                            block_index,
+                            circle,
+                            reguselist,
+                            -1,
+                            i,
+                        )
+                        for k in range(len(block_index)):
+                            if block_index[k][0] == define_block:
+                                for t in range(k + 1, len(block_index)):
+                                    if block_index[t][0] == use_block:
                                         break
-                                if flag == False:
-                                    for t in range(len(k)):
-                                        beg = -1
-                                        end = -1
-                                        for p in range(len(block_index)):
-                                            if block_index[p][0] == k[t]:
-                                                beg = block_index[p][1]
-                                                if p == len(block_index) - 1:
-                                                    end = len(list)
-                                                else:
-                                                    end = block_index[p + 1][1]
-                                        reguselist.append(
-                                            RegUse(name=name, beg=beg, end=end)
-                                        )
-                            if k[0] == use_block:
-                                flag = False
-                                for t in range(1, len(k)):
-                                    if k[t] == define_block:
-                                        flag = True
-                                        break
-                                if flag == False:
-                                    for t in range(len(k)):
-                                        beg = -1
-                                        end = -1
-                                        for p in range(len(block_index)):
-                                            if block_index[p][0] == k[t]:
-                                                beg = block_index[p][1]
-                                                if p == len(block_index) - 1:
-                                                    end = len(list)
-                                                else:
-                                                    end = block_index[p + 1][1]
-                                        reguselist.append(
-                                            RegUse(name=name, beg=beg, end=end)
-                                        )
-
+                                    self.block_register(
+                                        name,
+                                        block_index[t][0],
+                                        block_index,
+                                        circle,
+                                        reguselist,
+                                    )
                 else:
                     for k in circle:
                         if k[0] == define_block:
                             for t in range(1, len(k)):
                                 if k[t] == use_block:
                                     break
-                                beg = -1
-                                end = -1
-                                for p in range(len(block_index)):
-                                    if block_index[p][0] == k[t]:
-                                        beg = block_index[p][1]
-                                        if p == len(block_index) - 1:
-                                            end = len(list)
-                                        else:
-                                            end = block_index[p + 1][1]
-                                reguselist.append(RegUse(name=name, beg=beg, end=end))
+                                self.block_register(
+                                    name, k[t], block_index, circle, reguselist
+                                )
                     for k in range(define, len(list)):
                         if list[k] == -1:
                             reguselist.append(RegUse(name=name, beg=define, end=k))
