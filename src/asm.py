@@ -498,6 +498,7 @@ class Mylistener3(llvmListener):
     def search_circle(self, bm: dict, from_: str):
         visited = set()
         rec_stack = set()
+        circles = []
 
         def dfs(node, current_path):
             visited.add(node)
@@ -507,19 +508,18 @@ class Mylistener3(llvmListener):
 
             for neighbor in bm[node][1]:
                 if neighbor not in visited:
-                    if dfs(neighbor, current_path):
-                        return current_path
+                    dfs(neighbor, current_path)
                 elif neighbor in rec_stack and neighbor == from_:
-                    return current_path
+                    circles.append(copy.deepcopy(current_path))
 
             rec_stack.remove(node)
             current_path.pop()
 
             return None
 
-        result_path = dfs(from_, [])
+        dfs(from_, [])
 
-        return result_path
+        return circles
 
     def block_register(
         self,
@@ -528,6 +528,7 @@ class Mylistener3(llvmListener):
         block_index: list,
         circle: list,
         reguselist: list,
+        block_index_map: dict,
         be=-1,
         en=-1,
     ):
@@ -538,13 +539,12 @@ class Mylistener3(llvmListener):
         for t in range(len(list)):
             beg = -1
             end = -1
-            for p in range(len(block_index)):
-                if block_index[p][0] == list[t]:
-                    beg = block_index[p][1]
-                    if p == len(block_index) - 1:
-                        end = len(list)
-                    else:
-                        end = block_index[p + 1][1]
+            p = block_index_map[list[t]]
+            beg = block_index[p][1]
+            if p == len(block_index) - 1:
+                end = len(list)
+            else:
+                end = block_index[p + 1][1]
             if len(list) == 1:
                 if be != -1:
                     beg = be
@@ -571,8 +571,8 @@ class Mylistener3(llvmListener):
         circle = []
         for i in block_map:
             c = self.search_circle(block_map, i)
-            if c != None:
-                circle.append(c)
+            if c != []:
+                circle += c
         block_index = []
         for i in queue:
             self.conflict_graph(block_map[i][0], list, define_map, block_index)
@@ -580,12 +580,15 @@ class Mylistener3(llvmListener):
             for i in ctx.params().parameter():
                 if i.Privatevariable() != None:
                     define_map[i.Privatevariable().getText()] = -1
+        block_index_map = {}
+        for i in range(len(block_index)):
+            block_index_map[block_index[i][0]] = i
         reguselist = []
         for i in range(len(list)):
             name = list[i]
             if name != "" and name != -1:
                 define = define_map[name]
-                define_block = ""
+                define_block = ".entry"
                 for k in range(len(block_index)):
                     if block_index[k][1] < define and (
                         k == len(block_index) - 1 or block_index[k + 1][1] > define
@@ -608,6 +611,7 @@ class Mylistener3(llvmListener):
                             block_index,
                             circle,
                             reguselist,
+                            block_index_map,
                             define,
                         )
                         self.block_register(
@@ -616,6 +620,7 @@ class Mylistener3(llvmListener):
                             block_index,
                             circle,
                             reguselist,
+                            block_index_map,
                             -1,
                             i,
                         )
@@ -630,7 +635,9 @@ class Mylistener3(llvmListener):
                                         block_index,
                                         circle,
                                         reguselist,
+                                        block_index_map,
                                     )
+                                break
                 else:
                     for k in circle:
                         if k[0] == define_block:
@@ -638,7 +645,12 @@ class Mylistener3(llvmListener):
                                 if k[t] == use_block:
                                     break
                                 self.block_register(
-                                    name, k[t], block_index, circle, reguselist
+                                    name,
+                                    k[t],
+                                    block_index,
+                                    circle,
+                                    reguselist,
+                                    block_index_map,
                                 )
                     for k in range(define, len(list)):
                         if list[k] == -1:
