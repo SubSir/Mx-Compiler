@@ -671,28 +671,15 @@ class Mylistener3(llvmListener):
                                     )
                                 break
                 else:
-                    for k in circle:
-                        if k[0] == define_block:
-                            for t in range(1, len(k)):
-                                if k[t] == use_block:
-                                    break
-                                self.block_register(
-                                    name,
-                                    k[t],
-                                    block_index,
-                                    circle,
-                                    reguselist,
-                                    block_index_map,
-                                    final_end,
-                                )
-                    for k in range(define, len(list)):
-                        if list[k] == -1:
-                            reguselist.append(RegUse(name=name, beg=define, end=k))
-                            break
-                    for k in range(i, -1, -1):
-                        if list[k] == -1:
-                            reguselist.append(RegUse(name=name, beg=k, end=i))
-                            break
+                    self.block_register(
+                        name,
+                        define_block,
+                        block_index,
+                        circle,
+                        reguselist,
+                        block_index_map,
+                        final_end,
+                    )
         reguselist.sort()
         reg_map = copy.deepcopy(self.reg_map)
         for i in reguselist:
