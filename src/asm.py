@@ -495,31 +495,41 @@ class Mylistener3(llvmListener):
 
         return False
 
-    def search_circle(self, bm: dict, from_: str):
-        visited = set()
-        rec_stack = set()
-        circles = []
+    def reverse_graph(self, bm: dict):
+        reversed_bm = {}
+        for node, (_, out_neighbors) in bm.items():
+            if node not in reversed_bm:
+                reversed_bm[node] = ([], [])
+            for neighbor in out_neighbors:
+                if neighbor not in reversed_bm:
+                    reversed_bm[neighbor] = ([], [])
+                reversed_bm[neighbor][1].append(node)
+        return reversed_bm
 
-        def dfs(node, current_path):
-            visited.add(node)
-            rec_stack.add(node)
+    def dfs(self, node: str, graph: dict, visited: set):
+        visited.add(node)
 
-            current_path.append(node)
+        for neighbor in graph[node][1]:
+            if neighbor not in visited:
+                self.dfs(neighbor, graph, visited)
 
-            for neighbor in bm[node][1]:
-                if neighbor not in visited:
-                    dfs(neighbor, current_path)
-                elif neighbor in rec_stack and neighbor == from_:
-                    circles.append(copy.deepcopy(current_path))
+    def search_circle(self, bm: dict, reversed_bm: dict, from_: str):
 
-            rec_stack.remove(node)
-            current_path.pop()
+        visited_original = set()
+        self.dfs(from_, bm, visited_original)
 
-            return None
+        visited_reversed = set()
+        self.dfs(from_, reversed_bm, visited_reversed)
 
-        dfs(from_, [])
+        common_nodes = visited_original.intersection(visited_reversed)
 
-        return circles
+        if len(common_nodes) == 1:
+            return []
+        final_circles = list(common_nodes)
+        final_circles.remove(from_)
+        final_circles = [from_] + final_circles
+
+        return final_circles
 
     def block_register(
         self,
@@ -529,28 +539,44 @@ class Mylistener3(llvmListener):
         circle: list,
         reguselist: list,
         block_index_map: dict,
+        final_end: int,
         be=-1,
         en=-1,
     ):
-        list = [block_name]
+        list2 = []
         for i in circle:
             if i[0] == block_name:
-                list += i[1:]
-        for t in range(len(list)):
+                list2 = i[1:]
+                break
+        beg = -1
+        end = -1
+        p = block_index_map[block_name]
+        beg = block_index[p][1]
+        if p == len(block_index) - 1:
+            end = len(list2)
+        else:
+            end = block_index[p + 1][1]
+        if len(list2) == 0:
+            if be != -1:
+                beg = be
+            if en != -1:
+                end = en
+        reguse = RegUse(name=name, beg=beg, end=end)
+        if reguse in reguselist:
+            return
+        reguselist.append(reguse)
+        for t in range(len(list2)):
             beg = -1
             end = -1
-            p = block_index_map[list[t]]
+            p = block_index_map[list2[t]]
             beg = block_index[p][1]
             if p == len(block_index) - 1:
-                end = len(list)
+                end = final_end
             else:
                 end = block_index[p + 1][1]
-            if len(list) == 1:
-                if be != -1:
-                    beg = be
-                if en != -1:
-                    end = en
-            reguselist.append(RegUse(name=name, beg=beg, end=end))
+            reguse = RegUse(name=name, beg=beg, end=end)
+            if reguse not in reguselist:
+                reguselist.append(reguse)
 
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         list = []
@@ -569,10 +595,11 @@ class Mylistener3(llvmListener):
         self._traverse_blocks(block_map, queue, ".entry", visited)
         queue = queue[::-1]
         circle = []
+        rbm = self.reverse_graph(block_map)
         for i in block_map:
-            c = self.search_circle(block_map, i)
+            c = self.search_circle(block_map, rbm, i)
             if c != []:
-                circle += c
+                circle.append(c)
         block_index = []
         for i in queue:
             self.conflict_graph(block_map[i][0], list, define_map, block_index)
@@ -586,6 +613,8 @@ class Mylistener3(llvmListener):
         reguselist = []
         for i in range(len(list)):
             name = list[i]
+            if name == "%var33" or name == "%var54":
+                d = 2
             if name != "" and name != -1:
                 define = define_map[name]
                 define_block = ".entry"
@@ -602,6 +631,7 @@ class Mylistener3(llvmListener):
                     ):
                         use_block = block_index[k][0]
                         break
+                final_end = len(list)
                 if define < i:
                     reguselist.append(RegUse(name=name, beg=define, end=i))
                     if define_block != use_block:
@@ -613,6 +643,7 @@ class Mylistener3(llvmListener):
                             reguselist,
                             block_index_map,
                             define,
+                            final_end,
                         )
                         self.block_register(
                             name,
@@ -621,7 +652,7 @@ class Mylistener3(llvmListener):
                             circle,
                             reguselist,
                             block_index_map,
-                            -1,
+                            final_end - 1,
                             i,
                         )
                         for k in range(len(block_index)):
@@ -636,6 +667,7 @@ class Mylistener3(llvmListener):
                                         circle,
                                         reguselist,
                                         block_index_map,
+                                        final_end,
                                     )
                                 break
                 else:
@@ -651,6 +683,7 @@ class Mylistener3(llvmListener):
                                     circle,
                                     reguselist,
                                     block_index_map,
+                                    final_end,
                                 )
                     for k in range(define, len(list)):
                         if list[k] == -1:
