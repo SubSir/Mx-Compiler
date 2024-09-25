@@ -17,3 +17,4 @@ test.out
 .xmake/
 xmake.lua
 llvm_optim.ll
+asm_optim.s

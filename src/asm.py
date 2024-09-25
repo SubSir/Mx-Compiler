@@ -217,7 +217,7 @@ class Mylistener3(llvmListener):
             tmp_br = "tmp_br" + str(self.tmp_branch_cnt)
             self.return_str += "\tbnez t0, " + tmp_br + "\n"
             self.return_str += "\tj " + label2 + "\n"
-            self.return_str += "\t" + tmp_br + ":\n"
+            self.return_str += tmp_br + ":\n"
             self.return_str += "\tj " + label1 + "\n"
             self.tmp_branch_cnt += 1
             if label1 not in self.label_map:
@@ -788,12 +788,41 @@ def main(code: str) -> str:
     listener = Mylistener3()
     walker.walk(listener, tree)
     listener.return_str = listener.return_str.replace("newBoolArray", "newIntArray")
-    return listener.return_str + listener.data
+    with open("asm.s", "w") as f:
+        f.write(listener.return_str + listener.data)
+    return_str = ""
+    lines = listener.return_str.splitlines()
+    i = 0
+    replace_map = {}
+    while i < len(lines):
+        if (
+            not lines[i].startswith("\t")
+            and not lines[i].startswith("tmp")
+            and not lines[i].endswith("entry:")
+        ):
+            if lines[i + 1].startswith("\tj"):
+                label1 = lines[i][:-1]
+                label2 = lines[i + 1][3:]
+                replace_map[label1] = label2
+                i += 2
+                continue
+        return_str += lines[i] + "\n"
+        i += 1
+    _return_str = ""
+    while _return_str != return_str:
+        _return_str = return_str
+        for i in replace_map:
+            return_str = return_str.replace(
+                "j " + i + "\n", "j " + replace_map[i] + "\n"
+            )
+    with open("asm_optim.s", "w") as f:
+        f.write(return_str + listener.data)
+    return return_str + listener.data
 
 
 if __name__ == "__main__":
     code = sys.stdin.read()
     code2 = main(code)
-    with open("asm.s", "w") as f:
+    with open("asm_optim.s", "w") as f:
         f.write(code2)
     print(code2)
