@@ -11,6 +11,15 @@ from antlr4.tree.Tree import ParseTreeWalker
 from antlr4.error.ErrorListener import ErrorListener
 
 
+class Interval:
+    beg = -1
+    end = -1
+
+    def __init__(self, beg=-1, end=-1) -> None:
+        self.beg = beg
+        self.end = end
+
+
 class RegUse:
     name = ""
     beg = -1
@@ -523,13 +532,7 @@ class Mylistener3(llvmListener):
 
         common_nodes = visited_original.intersection(visited_reversed)
 
-        if len(common_nodes) == 1:
-            return []
-        final_circles = list(common_nodes)
-        final_circles.remove(from_)
-        final_circles = [from_] + final_circles
-
-        return final_circles
+        return common_nodes
 
     def block_register(
         self,
@@ -545,8 +548,8 @@ class Mylistener3(llvmListener):
     ):
         list2 = []
         for i in circle:
-            if i[0] == block_name:
-                list2 = i[1:]
+            if block_name in i:
+                list2 = circle[i]
                 break
         beg = -1
         end = -1
@@ -565,15 +568,9 @@ class Mylistener3(llvmListener):
         if reguse in reguselist:
             return
         reguselist.append(reguse)
-        for t in range(len(list2)):
-            beg = -1
-            end = -1
-            p = block_index_map[list2[t]]
-            beg = block_index[p][1]
-            if p == len(block_index) - 1:
-                end = final_end
-            else:
-                end = block_index[p + 1][1]
+        for t in list2:
+            beg = t.beg
+            end = t.end
             reguse = RegUse(name=name, beg=beg, end=end)
             if reguse not in reguselist:
                 reguselist.append(reguse)
@@ -594,27 +591,44 @@ class Mylistener3(llvmListener):
         queue = []
         self._traverse_blocks(block_map, queue, ".entry", visited)
         queue = queue[::-1]
-        circle = []
+        circle = {}
         rbm = self.reverse_graph(block_map)
-        for i in block_map:
-            c = self.search_circle(block_map, rbm, i)
-            if c != []:
-                circle.append(c)
         block_index = []
         for i in queue:
             self.conflict_graph(block_map[i][0], list, define_map, block_index)
+        block_index_map = {}
+        for i in range(len(block_index)):
+            block_index_map[block_index[i][0]] = i
+        for i in block_map:
+            flag = False
+            for cir in circle:
+                if i in cir:
+                    flag = True
+                    break
+            if flag:
+                continue
+            cir = self.search_circle(block_map, rbm, i)
+            if frozenset(cir) not in circle:
+                relist = []
+                for t in cir:
+                    p = block_index_map[t]
+                    beg = block_index[p][1]
+                    if p == len(block_index) - 1:
+                        end = len(list)
+                    else:
+                        end = block_index[p + 1][1]
+                    reguse = Interval(beg=beg, end=end)
+                    relist.append(reguse)
+                self.merge_intervals(relist)
+                circle[frozenset(cir)] = relist
+
         if ctx.params() != None:
             for i in ctx.params().parameter():
                 if i.Privatevariable() != None:
                     define_map[i.Privatevariable().getText()] = -1
-        block_index_map = {}
-        for i in range(len(block_index)):
-            block_index_map[block_index[i][0]] = i
         reguselist = []
         for i in range(len(list)):
             name = list[i]
-            if name == "%var33" or name == "%var54":
-                d = 2
             if name != "" and name != -1:
                 define = define_map[name]
                 define_block = ".entry"
