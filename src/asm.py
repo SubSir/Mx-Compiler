@@ -649,41 +649,14 @@ class Mylistener3(llvmListener):
                 if define < i:
                     reguselist.append(RegUse(name=name, beg=define, end=i))
                     if define_block != use_block:
-                        self.block_register(
-                            name,
-                            define_block,
-                            block_index,
-                            circle,
-                            reguselist,
-                            block_index_map,
-                            define,
-                            final_end,
-                        )
-                        self.block_register(
-                            name,
-                            use_block,
-                            block_index,
-                            circle,
-                            reguselist,
-                            block_index_map,
-                            final_end - 1,
-                            i,
-                        )
-                        for k in range(len(block_index)):
-                            if block_index[k][0] == define_block:
-                                for t in range(k + 1, len(block_index)):
-                                    if block_index[t][0] == use_block:
-                                        break
-                                    self.block_register(
-                                        name,
-                                        block_index[t][0],
-                                        block_index,
-                                        circle,
-                                        reguselist,
-                                        block_index_map,
-                                        final_end,
+                        interval = [Interval(beg=define, end=i)]
+                        for k in circle:
+                            m = circle[k]
+                            if self.has_intersection(interval, m):
+                                for t in m:
+                                    reguselist.append(
+                                        RegUse(name=name, beg=t.beg, end=t.end)
                                     )
-                                break
                 else:
                     self.block_register(
                         name,
