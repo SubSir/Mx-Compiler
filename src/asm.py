@@ -540,7 +540,7 @@ class Mylistener3(llvmListener):
         block_name: str,
         block_index: list,
         circle: list,
-        reguselist: list,
+        regusemap: dict,
         block_index_map: dict,
         final_end: int,
         be=-1,
@@ -556,7 +556,7 @@ class Mylistener3(llvmListener):
         p = block_index_map[block_name]
         beg = block_index[p][1]
         if p == len(block_index) - 1:
-            end = len(list2)
+            end = final_end
         else:
             end = block_index[p + 1][1]
         if len(list2) == 0:
@@ -564,16 +564,18 @@ class Mylistener3(llvmListener):
                 beg = be
             if en != -1:
                 end = en
-        reguse = RegUse(name=name, beg=beg, end=end)
-        if reguse in reguselist:
+        reguse = Interval(beg=beg, end=end)
+        if name not in regusemap:
+            regusemap[name] = []
+        if reguse in regusemap[name]:
             return
-        reguselist.append(reguse)
+        regusemap[name].append(reguse)
         for t in list2:
             beg = t.beg
             end = t.end
-            reguse = RegUse(name=name, beg=beg, end=end)
-            if reguse not in reguselist:
-                reguselist.append(reguse)
+            reguse = Interval(beg=beg, end=end)
+            if reguse not in regusemap[name]:
+                regusemap[name].append(reguse)
 
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         list = []
@@ -611,6 +613,8 @@ class Mylistener3(llvmListener):
             if frozenset(cir) not in circle:
                 relist = []
                 for t in cir:
+                    if t not in block_index_map:
+                        continue
                     p = block_index_map[t]
                     beg = block_index[p][1]
                     if p == len(block_index) - 1:
@@ -627,6 +631,7 @@ class Mylistener3(llvmListener):
                 if i.Privatevariable() != None:
                     define_map[i.Privatevariable().getText()] = -1
         reguselist = []
+        regusemap = {}
         for i in range(len(list)):
             name = list[i]
             if name != "" and name != -1:
@@ -647,15 +652,21 @@ class Mylistener3(llvmListener):
                         break
                 final_end = len(list)
                 if define < i:
-                    reguselist.append(RegUse(name=name, beg=define, end=i))
+                    # reguselist.append(RegUse(name=name, beg=define, end=i))
+                    if name not in regusemap:
+                        regusemap[name] = []
+                    regusemap[name].append(Interval(beg=define, end=i))
                     if define_block != use_block:
                         interval = [Interval(beg=define, end=i)]
                         for k in circle:
                             m = circle[k]
                             if self.has_intersection(interval, m):
                                 for t in m:
-                                    reguselist.append(
-                                        RegUse(name=name, beg=t.beg, end=t.end)
+                                    # reguselist.append(
+                                    #     RegUse(name=name, beg=t.beg, end=t.end)
+                                    # )
+                                    regusemap[name].append(
+                                        Interval(beg=t.beg, end=t.end)
                                     )
                 else:
                     self.block_register(
@@ -663,10 +674,14 @@ class Mylistener3(llvmListener):
                         define_block,
                         block_index,
                         circle,
-                        reguselist,
+                        regusemap,
                         block_index_map,
                         final_end,
                     )
+        for i in regusemap:
+            use = self.merge_intervals(regusemap[i])
+            for j in use:
+                reguselist.append(RegUse(i, j.beg, j.end))
         reguselist.sort()
         reg_map = copy.deepcopy(self.reg_map)
         for i in reguselist:
