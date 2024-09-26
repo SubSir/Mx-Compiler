@@ -700,13 +700,14 @@ class Mylistener3(llvmListener):
                         break
 
         self.variable_cnt = 4
-        tmp_store = {}
-        for i in reg_map:
-            if len(reg_map[i]) != 0:
-                tmp_store[i] = self.variable_cnt
-                self.variable_cnt += 4
-        self.tmp_store = tmp_store
         self.enter_function = ctx.Global_var().getText()[1:]
+        tmp_store = {}
+        if self.enter_function != "main":
+            for i in reg_map:
+                if len(reg_map[i]) != 0:
+                    tmp_store[i] = self.variable_cnt
+                    self.variable_cnt += 4
+        self.tmp_store = tmp_store
         extra_param_list = []
         if ctx.params() is not None:
             if len(ctx.params().parameter()) > 8:

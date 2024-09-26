@@ -1879,6 +1879,8 @@ class MyListener2(Mx_parserListener):
                 ] != self.variable_map[i][1]:
                     result = "%var" + str(self.variable_cnt)
                     self.variable_cnt += 1
+                    if result == self.variable_map[i][1]:
+                        continue
                     topo_list.append(
                         (
                             self.variable_map[i][1],
