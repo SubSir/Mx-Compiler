@@ -809,13 +809,17 @@ def main(code: str) -> str:
                 continue
         return_str += lines[i] + "\n"
         i += 1
-    _return_str = ""
-    while _return_str != return_str:
-        _return_str = return_str
-        for i in replace_map:
-            return_str = return_str.replace(
-                "j " + i + "\n", "j " + replace_map[i] + "\n"
-            )
+        
+    def recursive_replace(replace_map, key):
+        # 检查是否需要进一步替换
+        if key in replace_map:
+            return recursive_replace(replace_map, replace_map[key])
+        else:
+            return key
+
+    new_replace_map = {k: recursive_replace(replace_map, v) for k, v in replace_map.items()}
+    for i in new_replace_map:
+        return_str = return_str.replace("j " + i + "\n", "j " + new_replace_map[i] + "\n")
     with open("asm_optim.s", "w") as f:
         f.write(return_str + listener.data)
     return return_str + listener.data
