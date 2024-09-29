@@ -1295,8 +1295,7 @@ class MyErrorListener(ErrorListener):
         sys.exit(1)
 
 
-def main(code) -> str:
-
+def main(code: str) -> str:
     # 创建输入流和语法分析器
     input_stream = InputStream(code)
     lexer = Mx_parserLexer(input_stream)
