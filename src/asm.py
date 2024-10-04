@@ -160,87 +160,88 @@ class Mylistener3(llvmListener):
         value1 = ctx.value(0)
         value2 = ctx.value(1)
         if value1.Privatevariable() != None:
-            self.loadword(self.variable_map[value1.Privatevariable().getText()], "t1")
+            name2 = self.variable_map[value1.Privatevariable().getText()]
+            if not isinstance(name2, str):
+                self.loadword(name2, "t1")
+                t1 = "t1"
+            else:
+                t1 = name2
         elif value1.Global_var() != None:
             self.return_str += "\tla t1, " + value1.Global_var().getText() + "\n"
+            t1 = "t1"
         else:
             name = value1.getText()
             if name == "null":
                 name = "0"
             self.return_str += "\tli t1, " + name + "\n"
+            t1 = "t1"
         if value2.Privatevariable() != None:
-            self.loadword(self.variable_map[value2.Privatevariable().getText()], "t2")
+            name2 = self.variable_map[value2.Privatevariable().getText()]
+            if not isinstance(name2, str):
+                self.loadword(name2, "t2")
+                t2 = "t2"
+            else:
+                t2 = name2
         elif value2.Global_var() != None:
             self.return_str += "\tla t2, " + value2.Global_var().getText() + "\n"
+            t2 = "t2"
         else:
             name = value2.getText()
             if name == "null":
                 name = "0"
             self.return_str += "\tli t2, " + name + "\n"
+            t2 = "t2"
         op = ctx.bin_op().getText()
         name2 = self.variable_map[ctx.Privatevariable().getText()]
         if not isinstance(name2, str):
-            if op == "add":
-                self.return_str += "\tadd t0, t1, t2\n"
-            elif op == "sub":
-                self.return_str += "\tsub t0, t1, t2\n"
-            elif op == "mul":
-                self.return_str += "\tmul t0, t1, t2\n"
-            elif op == "sdiv":
-                self.return_str += "\tdiv t0, t1, t2\n"
-            elif op == "srem":
-                self.return_str += "\trem t0, t1, t2\n"
-            elif op == "shl":
-                self.return_str += "\tsll t0, t1, t2\n"
-            elif op == "ashr":
-                self.return_str += "\tsra t0, t1, t2\n"
-            elif op == "and":
-                self.return_str += "\tand t0, t1, t2\n"
-            elif op == "or":
-                self.return_str += "\tor t0, t1, t2\n"
-            elif op == "xor":
-                self.return_str += "\txor t0, t1, t2\n"
-            else:
-                sys.exit(1)
-            self.saveword(name2)
+            t0 = "t0"
         else:
-            if op == "add":
-                self.return_str += "\tadd " + name2 + ", t1, t2\n"
-            elif op == "sub":
-                self.return_str += "\tsub " + name2 + ", t1, t2\n"
-            elif op == "mul":
-                self.return_str += "\tmul " + name2 + ", t1, t2\n"
-            elif op == "sdiv":
-                self.return_str += "\tdiv " + name2 + ", t1, t2\n"
-            elif op == "srem":
-                self.return_str += "\trem " + name2 + ", t1, t2\n"
-            elif op == "shl":
-                self.return_str += "\tsll " + name2 + ", t1, t2\n"
-            elif op == "ashr":
-                self.return_str += "\tsra " + name2 + ", t1, t2\n"
-            elif op == "and":
-                self.return_str += "\tand " + name2 + ", t1, t2\n"
-            elif op == "or":
-                self.return_str += "\tor " + name2 + ", t1, t2\n"
-            elif op == "xor":
-                self.return_str += "\txor " + name2 + ", t1, t2\n"
-            else:
-                sys.exit(1)
+            t0 = name2
+        if op == "add":
+            self.return_str += "\tadd " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "sub":
+            self.return_str += "\tsub " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "mul":
+            self.return_str += "\tmul " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "sdiv":
+            self.return_str += "\tdiv " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "srem":
+            self.return_str += "\trem " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "shl":
+            self.return_str += "\tsll " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "ashr":
+            self.return_str += "\tsra " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "and":
+            self.return_str += "\tand " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "or":
+            self.return_str += "\tor " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "xor":
+            self.return_str += "\txor " + t0 + ", " + t1 + ", " + t2 + "\n"
+        else:
+            sys.exit(1)
+        if t0 == "t0":
+            self.saveword(name2)
 
     def enterBranch(self, ctx: llvmParser.BranchContext):
         if ctx.value() != None:
             value = ctx.value()
             if value.Privatevariable() != None:
-                self.loadword(self.variable_map[value.Privatevariable().getText()])
+                name2 = self.variable_map[value.Privatevariable().getText()]
+                if not isinstance(name2, str):
+                    self.loadword(name2)
+                    t0 = "t0"
+                else:
+                    t0 = name2
             else:
                 name = value.getText()
                 if name == "null":
                     name = "0"
                 self.return_str += "\tli t0, " + name + "\n"
+                t0 = "t0"
             label1 = self.enter_label + ctx.Label(0).getText()
             label2 = self.enter_label + ctx.Label(1).getText()
             tmp_br = "tmp_br" + str(self.tmp_branch_cnt)
-            self.return_str += "\tbnez t0, " + tmp_br + "\n"
+            self.return_str += "\tbnez " + t0 + ", " + tmp_br + "\n"
             self.return_str += "\tj " + label2 + "\n"
             self.return_str += tmp_br + ":\n"
             self.return_str += "\tj " + label1 + "\n"
@@ -276,12 +277,17 @@ class Mylistener3(llvmListener):
     def enterLoad(self, ctx: llvmParser.LoadContext):
         var = ctx.var()
         if var.Privatevariable() != None:
-            self.loadword(self.variable_map[var.Privatevariable().getText()], "t1")
+            name2 = self.variable_map[var.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t1 = name2
+            else:
+                self.loadword(self.variable_map[var.Privatevariable().getText()], "t1")
+                t1 = "t1"
             name2 = self.variable_map[ctx.Privatevariable().getText()]
             if isinstance(name2, str):
-                self.return_str += "\tlw " + name2 + ", 0(t1)\n"
+                self.return_str += "\tlw " + name2 + ", 0(" + t1 + ")\n"
             else:
-                self.return_str += "\tlw t0, 0(t1)\n"
+                self.return_str += "\tlw t0, 0(" + t1 + ")\n"
                 self.saveword(name2)
             return
         name = var.Global_var().getText()[1:]
@@ -295,21 +301,32 @@ class Mylistener3(llvmListener):
     def enterGetelementptr(self, ctx: llvmParser.GetelementptrContext):
         value = ctx.value()
         if value.Privatevariable() != None:
-            self.loadword(self.variable_map[value.Privatevariable().getText()], "t2")
+            name2 = self.variable_map[value.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t2 = name2
+            else:
+                t2 = "t2"
+                self.loadword(name2, "t2")
         else:
             name = value.getText()
             if name == "null":
                 name = "0"
             self.return_str += "\tli t2, " + name + "\n"
-        self.return_str += "\tslli t2, t2, 2\n"
+            t2 = "t2"
+        self.return_str += "\tslli t2, " + t2 + ", 2\n"
         var = ctx.var()
         if var.Privatevariable() != None:
-            self.loadword(self.variable_map[var.Privatevariable().getText()], "t1")
+            name2 = self.variable_map[var.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t1 = name2
+            else:
+                t1 = "t1"
+                self.loadword(name2, "t1")
             name2 = self.variable_map[ctx.Privatevariable().getText()]
             if isinstance(name2, str):
-                self.return_str += "\tadd " + name2 + ", t1, t2\n"
+                self.return_str += "\tadd " + name2 + ", " + t1 + ", t2\n"
             else:
-                self.return_str += "\tadd t0, t1, t2\n"
+                self.return_str += "\tadd t0, " + t1 + ", t2\n"
                 self.saveword(name2)
             return
         name = var.Global_var().getText()[1:]
@@ -324,86 +341,97 @@ class Mylistener3(llvmListener):
     def enterStore(self, ctx: llvmParser.StoreContext):
         value = ctx.value()
         if value.Privatevariable() != None:
-            self.loadword(self.variable_map[value.Privatevariable().getText()], "t1")
+            name2 = self.variable_map[value.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t1 = name2
+            else:
+                t1 = "t1"
+                self.loadword(name2, "t1")
         elif value.Global_var() != None:
             self.return_str += "\tla t1, " + value.Global_var().getText()[1:] + "\n"
+            t1 = "t1"
         else:
             name = value.getText()
             if name == "null":
                 name = "0"
             self.return_str += "\tli t1, " + name + "\n"
+            t1 = "t1"
         var = ctx.var()
         if var.Privatevariable() != None:
-            self.loadword(self.variable_map[var.Privatevariable().getText()])
-            self.return_str += "\tsw t1, 0(t0)\n"
+            name2 = self.variable_map[var.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t0 = name2
+            else:
+                t0 = "t0"
+                self.loadword(name2)
+            self.return_str += "\tsw " + t1 + ", 0(" + t0 + ")\n"
             return
         name = var.Global_var().getText()[1:]
         self.return_str += "\tlui t0, %hi(" + name + ")\n"
-        self.return_str += "\tsw t1, %lo(" + name + ")(t0)\n"
+        self.return_str += "\tsw " + t1 + ", %lo(" + name + ")(t0)\n"
 
     def enterCompare(self, ctx: llvmParser.CompareContext):
         value1 = ctx.value(0)
         if value1.Privatevariable() != None:
-            self.loadword(self.variable_map[value1.Privatevariable().getText()], "t1")
+            name2 = self.variable_map[value1.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t1 = name2
+            else:
+                t1 = "t1"
+                self.loadword(name2, "t1")
         elif value1.Global_var() != None:
             self.return_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
+            t1 = "t1"
         else:
             name = value1.getText()
             if name == "null":
                 name = "0"
             self.return_str += "\tli t1, " + name + "\n"
+            t1 = "t1"
         value2 = ctx.value(1)
         if value2.Privatevariable() != None:
-            self.loadword(self.variable_map[value2.Privatevariable().getText()], "t2")
+            name2 = self.variable_map[value2.Privatevariable().getText()]
+            if isinstance(name2, str):
+                t2 = name2
+            else:
+                t2 = "t2"
+                self.loadword(name2, "t2")
         elif value2.Global_var() != None:
             self.return_str += "\tla t2, " + value2.Global_var().getText()[1:] + "\n"
+            t2 = "t2"
         else:
             name = value2.getText()
             if name == "null":
                 name = "0"
             self.return_str += "\tli t2, " + name + "\n"
+            t2 = "t2"
         op = ctx.cond().getText()
         privatevariable = ctx.Privatevariable()
         name = self.variable_map[privatevariable.getText()]
         if not isinstance(name, str):
-            if op == "eq":
-                self.return_str += "\txor t1, t1, t2\n"
-                self.return_str += "\tseqz t0, t1\n"
-            elif op == "ne":
-                self.return_str += "\txor t1, t1, t2\n"
-                self.return_str += "\tsnez t0, t1\n"
-            elif op == "slt":
-                self.return_str += "\tslt t0, t1, t2\n"
-            elif op == "sgt":
-                self.return_str += "\tslt t0, t2, t1\n"
-            elif op == "sle":
-                self.return_str += "\tslt t0, t2, t1\n"
-                self.return_str += "\txori t0, t0, 1\n"
-            elif op == "sge":
-                self.return_str += "\tslt t0, t1, t2\n"
-                self.return_str += "\txori t0, t0, 1\n"
-            else:
-                sys.exit(1)
-            self.saveword(name)
+            t0 = "t0"
         else:
-            if op == "eq":
-                self.return_str += "\txor t1, t1, t2\n"
-                self.return_str += "\tseqz " + name + ", t1\n"
-            elif op == "ne":
-                self.return_str += "\txor t1, t1, t2\n"
-                self.return_str += "\tsnez " + name + ", t1\n"
-            elif op == "slt":
-                self.return_str += "\tslt " + name + ", t1, t2\n"
-            elif op == "sgt":
-                self.return_str += "\tslt " + name + ", t2, t1\n"
-            elif op == "sle":
-                self.return_str += "\tslt t0, t2, t1\n"
-                self.return_str += "\txori " + name + ", t0, 1\n"
-            elif op == "sge":
-                self.return_str += "\tslt t0, t1, t2\n"
-                self.return_str += "\txori " + name + ", t0, 1\n"
-            else:
-                sys.exit(1)
+            t0 = name
+        if op == "eq":
+            self.return_str += "\txor t1, " + t1 + ", " + t2 + "\n"
+            self.return_str += "\tseqz " + t0 + ", t1\n"
+        elif op == "ne":
+            self.return_str += "\txor t1, " + t1 + ", " + t2 + "\n"
+            self.return_str += "\tsnez " + t0 + ", t1\n"
+        elif op == "slt":
+            self.return_str += "\tslt " + t0 + ", " + t1 + ", " + t2 + "\n"
+        elif op == "sgt":
+            self.return_str += "\tslt " + t0 + ", " + t2 + ", " + t1 + "\n"
+        elif op == "sle":
+            self.return_str += "\tslt t0, " + t2 + ", " + t1 + "\n"
+            self.return_str += "\txori " + t0 + ", t0, 1\n"
+        elif op == "sge":
+            self.return_str += "\tslt t0, " + t1 + ", " + t2 + "\n"
+            self.return_str += "\txori " + t0 + ", t0, 1\n"
+        else:
+            sys.exit(1)
+        if t0 == "t0":
+            self.saveword(name)
 
     def enterPhi(self, ctx: llvmParser.PhiContext):
         for i in range(len(ctx.Label())):
