@@ -20,20 +20,16 @@ class Interval:
         self.end = end
 
 
-class RegUse:
+class RegUseList:
     name = ""
-    beg = -1
-    end = -1
-    reg = ""
+    reg_list = []
 
-    def __init__(self, name="", beg=-1, end=-1, reg=""):
+    def __init__(self, name="", reg_list=[]):
         self.name = name
-        self.beg = beg
-        self.end = end
-        self.reg = reg
+        self.reg_list = reg_list
 
     def __lt__(self, other):
-        return self.beg < other.beg
+        return len(self.reg_list) < len(other.reg_list)
 
 
 class Mylistener3(llvmListener):
@@ -445,7 +441,7 @@ class Mylistener3(llvmListener):
             if value1.Privatevariable() != None:
                 index = self.variable_map[value1.Privatevariable().getText()]
                 if isinstance(index, str):
-                    value1_str += "\tmv t1, " + index + "\n"
+                    t1 = index
                 else:
                     if index > 2047 or index < -2048:
                         value1_str += "\tli t0, " + str(index) + "\n"
@@ -453,24 +449,27 @@ class Mylistener3(llvmListener):
                         value1_str += "\tlw t1, 0(t0)\n"
                     else:
                         value1_str += "\tlw t1, " + str(index) + "(sp)\n"
+                    t1 = "t1"
             elif value1.Global_var() != None:
                 value1_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
+                t1 = "t1"
             else:
                 name = value1.getText()
                 if name == "null":
                     name = "0"
                 value1_str += "\tli t1, " + name + "\n"
+                t1 = "t1"
             index = self.variable_map[ctx.Privatevariable().getText()]
             str1 = value1_str
             if isinstance(index, str):
-                str1 += "\tmv " + index + ", t1\n"
+                str1 += "\tmv " + index + ", " + t1 + "\n"
             else:
                 if index > 2047 or index < -2048:
                     str1 += "\tli t0, " + str(index) + "\n"
                     str1 += "\tadd t0, sp, t0\n"
-                    str1 += "\tsw t1, 0(t0)\n"
+                    str1 += "\tsw " + t1 + ", 0(t0)\n"
                 else:
-                    str1 += "\tsw t1, " + str(index) + "(sp)\n"
+                    str1 += "\tsw " + t1 + ", " + str(index) + "(sp)\n"
             if label1 not in self.label_map:
                 self.label_map[label1] = str1
             else:
@@ -770,24 +769,17 @@ class Mylistener3(llvmListener):
                     )
         for i in regusemap:
             use = self.merge_intervals(regusemap[i])
-            for j in use:
-                reguselist.append(RegUse(i, j.beg, j.end))
+            reguselist.append(RegUseList(i, use))
         reguselist.sort()
         reg_map = copy.deepcopy(self.reg_map)
         for i in reguselist:
-            if i.reg == "":
-                list1 = []
-                for j in reguselist:
-                    if j.name == i.name:
-                        list1.append(j)
-                for j in reg_map:
-                    list2 = reg_map[j]
-                    if self.has_intersection(list1, list2) == False:
-                        reg_map[j] += list1
-                        for k in list1:
-                            k.reg = j
-                        self.variable_map[i.name] = j
-                        break
+            list1 = i.reg_list
+            for j in reg_map:
+                list2 = reg_map[j]
+                if self.has_intersection(list1, list2) == False:
+                    reg_map[j] += list1
+                    self.variable_map[i.name] = j
+                    break
 
         self.variable_cnt = 4
         self.enter_function = ctx.Global_var().getText()[1:]
