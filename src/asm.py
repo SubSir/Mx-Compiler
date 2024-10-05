@@ -58,7 +58,34 @@ class Mylistener3(llvmListener):
         "s9": [],
         "s10": [],
         "s11": [],
+        "a0": [],
+        "a1": [],
+        "a2": [],
+        "a3": [],
+        "a4": [],
+        "a5": [],
+        "a6": [],
+        "a7": [],
+        "t3": [],
+        "t4": [],
+        "t5": [],
+        "t6": [],
     }
+
+    danger_reg = [
+        "a0",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "t3",
+        "t4",
+        "t5",
+        "t6",
+    ]
 
     def enterRet(self, ctx: llvmParser.RetContext):
         if ctx.value() != None:
@@ -88,9 +115,9 @@ class Mylistener3(llvmListener):
                 self.return_str += "\tmv " + name + ", " + index + "\n"
             return
         if index > 2047 or index < -2048:
-            self.return_str += "\tli t3, " + str(index) + "\n"
-            self.return_str += "\tadd t3, sp, t3\n"
-            self.return_str += "\tlw " + name + ", 0(t3)\n"
+            self.return_str += "\tli ra, " + str(index) + "\n"
+            self.return_str += "\tadd ra, sp, ra\n"
+            self.return_str += "\tlw " + name + ", 0(ra)\n"
             return
         self.return_str += "\tlw " + name + ", " + str(index) + "(sp)\n"
 
@@ -100,9 +127,9 @@ class Mylistener3(llvmListener):
                 self.return_str += "\tmv " + index + ", " + name + "\n"
             return
         if index > 2047 or index < -2048:
-            self.return_str += "\tli t3, " + str(index) + "\n"
-            self.return_str += "\tadd t3, sp, t3\n"
-            self.return_str += "\tsw " + name + ", 0(t3)\n"
+            self.return_str += "\tli ra, " + str(index) + "\n"
+            self.return_str += "\tadd ra, sp, ra\n"
+            self.return_str += "\tsw " + name + ", 0(ra)\n"
             return
         self.return_str += "\tsw " + name + ", " + str(index) + "(sp)\n"
 
@@ -306,13 +333,13 @@ class Mylistener3(llvmListener):
             else:
                 t2 = "t2"
                 self.loadword(name2, "t2")
+            self.return_str += "\tslli t2, " + t2 + ", 2\n"
         else:
             name = value.getText()
             if name == "null":
                 name = "0"
+            name = str(int(name) * 4)
             self.return_str += "\tli t2, " + name + "\n"
-            t2 = "t2"
-        self.return_str += "\tslli t2, " + t2 + ", 2\n"
         var = ctx.var()
         if var.Privatevariable() != None:
             name2 = self.variable_map[var.Privatevariable().getText()]
@@ -376,17 +403,17 @@ class Mylistener3(llvmListener):
             if isinstance(name2, str):
                 t1 = name2
             else:
-                t1 = "t1"
-                self.loadword(name2, "t1")
+                t1 = "t0"
+                self.loadword(name2, "t0")
         elif value1.Global_var() != None:
-            self.return_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
-            t1 = "t1"
+            self.return_str += "\tla t0, " + value1.Global_var().getText()[1:] + "\n"
+            t1 = "t0"
         else:
             name = value1.getText()
             if name == "null":
                 name = "0"
-            self.return_str += "\tli t1, " + name + "\n"
-            t1 = "t1"
+            self.return_str += "\tli t0, " + name + "\n"
+            t1 = "t0"
         value2 = ctx.value(1)
         if value2.Privatevariable() != None:
             name2 = self.variable_map[value2.Privatevariable().getText()]
@@ -412,11 +439,11 @@ class Mylistener3(llvmListener):
         else:
             t0 = name
         if op == "eq":
-            self.return_str += "\txor t1, " + t1 + ", " + t2 + "\n"
-            self.return_str += "\tseqz " + t0 + ", t1\n"
+            self.return_str += "\txor t0, " + t1 + ", " + t2 + "\n"
+            self.return_str += "\tseqz " + t0 + ", t0\n"
         elif op == "ne":
-            self.return_str += "\txor t1, " + t1 + ", " + t2 + "\n"
-            self.return_str += "\tsnez " + t0 + ", t1\n"
+            self.return_str += "\txor t0, " + t1 + ", " + t2 + "\n"
+            self.return_str += "\tsnez " + t0 + ", t0\n"
         elif op == "slt":
             self.return_str += "\tslt " + t0 + ", " + t1 + ", " + t2 + "\n"
         elif op == "sgt":
@@ -444,35 +471,35 @@ class Mylistener3(llvmListener):
             if value1.Privatevariable() != None:
                 index = self.variable_map[value1.Privatevariable().getText()]
                 if isinstance(index, str):
-                    t1 = index
+                    t0 = index
                 else:
                     if index > 2047 or index < -2048:
                         value1_str += "\tli t0, " + str(index) + "\n"
                         value1_str += "\tadd t0, sp, t0\n"
-                        value1_str += "\tlw t1, 0(t0)\n"
+                        value1_str += "\tlw t0, 0(t0)\n"
                     else:
-                        value1_str += "\tlw t1, " + str(index) + "(sp)\n"
-                    t1 = "t1"
+                        value1_str += "\tlw t0, " + str(index) + "(sp)\n"
+                    t0 = "t0"
             elif value1.Global_var() != None:
-                value1_str += "\tla t1, " + value1.Global_var().getText()[1:] + "\n"
-                t1 = "t1"
+                value1_str += "\tla t0, " + value1.Global_var().getText()[1:] + "\n"
+                t0 = "t0"
             else:
                 name = value1.getText()
                 if name == "null":
                     name = "0"
-                value1_str += "\tli t1, " + name + "\n"
-                t1 = "t1"
+                value1_str += "\tli t0, " + name + "\n"
+                t0 = "t0"
             index = self.variable_map[ctx.Privatevariable().getText()]
             str1 = value1_str
             if isinstance(index, str):
-                str1 += "\tmv " + index + ", " + t1 + "\n"
+                str1 += "\tmv " + index + ", " + t0 + "\n"
             else:
                 if index > 2047 or index < -2048:
                     str1 += "\tli t0, " + str(index) + "\n"
                     str1 += "\tadd t0, sp, t0\n"
-                    str1 += "\tsw " + t1 + ", 0(t0)\n"
+                    str1 += "\tsw " + t0 + ", 0(t0)\n"
                 else:
-                    str1 += "\tsw " + t1 + ", " + str(index) + "(sp)\n"
+                    str1 += "\tsw " + t0 + ", " + str(index) + "(sp)\n"
             if label1 not in self.label_map:
                 self.label_map[label1] = str1
             else:
@@ -489,6 +516,7 @@ class Mylistener3(llvmListener):
         list: list,
         define_map: dict,
         block_index: dict,
+        danger_zone: list,
     ):
         block_index.append((ctx.Label().getText(), len(list)))
         list.append(-1)
@@ -502,6 +530,8 @@ class Mylistener3(llvmListener):
                 if call.Privatevariable() != None:
                     list.append("")
                     define_map[call.Privatevariable().getText()] = len(list) - 1
+                list.append("")
+                danger_zone.append(len(list) - 1)
             elif i.ret() != None:
                 ret = i.ret()
                 if ret.value() != None:
@@ -674,6 +704,7 @@ class Mylistener3(llvmListener):
         visited = []
         define_map = {}
         block_map = {}
+        danger_zone = []
 
         for i in ctx.basic_block():
             to_list = []
@@ -689,7 +720,9 @@ class Mylistener3(llvmListener):
         rbm = self.reverse_graph(block_map)
         block_index = []
         for i in queue:
-            self.conflict_graph(block_map[i][0], list, define_map, block_index)
+            self.conflict_graph(
+                block_map[i][0], list, define_map, block_index, danger_zone
+            )
         block_index_map = {}
         for i in range(len(block_index)):
             block_index_map[block_index[i][0]] = i
@@ -775,6 +808,12 @@ class Mylistener3(llvmListener):
             reguselist.append(RegUseList(i, use))
         reguselist.sort()
         reg_map = copy.deepcopy(self.reg_map)
+        danger_list = []
+        for i in danger_zone:
+            danger_list.append(Interval(i, i))
+        danger_list = self.merge_intervals(danger_list)
+        for i in self.danger_reg:
+            reg_map[i] += danger_list
         for i in reguselist:
             list1 = i.reg_list
             for j in reg_map:
@@ -789,7 +828,7 @@ class Mylistener3(llvmListener):
         tmp_store = {}
         if self.enter_function != "main":
             for i in reg_map:
-                if len(reg_map[i]) != 0:
+                if len(reg_map[i]) != 0 and i.startswith("s"):
                     tmp_store[i] = self.variable_cnt
                     self.variable_cnt += 4
         self.tmp_store = tmp_store
