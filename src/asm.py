@@ -70,6 +70,8 @@ class Mylistener3(llvmListener):
         "t4": [],
         "t5": [],
         "t6": [],
+        "gp": [],
+        "tp": [],
     }
 
     danger_reg = [
@@ -85,6 +87,8 @@ class Mylistener3(llvmListener):
         "t4",
         "t5",
         "t6",
+        "gp",
+        "tp",
     ]
 
     def enterRet(self, ctx: llvmParser.RetContext):
