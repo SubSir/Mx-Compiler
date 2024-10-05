@@ -23,13 +23,16 @@ class Interval:
 class RegUseList:
     name = ""
     reg_list = []
+    len_ = 0
 
     def __init__(self, name="", reg_list=[]):
         self.name = name
         self.reg_list = reg_list
+        for i in reg_list:
+            self.len_ += i.end - i.beg + 1
 
     def __lt__(self, other):
-        return len(self.reg_list) < len(other.reg_list)
+        return self.len_ < other.len_
 
 
 class Mylistener3(llvmListener):
