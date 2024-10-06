@@ -154,22 +154,61 @@ class Mylistener3(llvmListener):
 
     def params_decode(self, code: llvmParser.ParamsContext):
         params = code.parameter()
+        mv_list = []
+        add_str = ""
         for i in range(min(len(params), 8)):
             param = params[i]
             if param.Global_var() != None:
                 name = param.Global_var().getText()[1:]
                 if name[0] == ".":
-                    self.return_str += "\tla a" + str(i) + ", " + name + "\n"
+                    add_str += "\tla a" + str(i) + ", " + name + "\n"
                 else:
-                    self.return_str += "\tlw a" + str(i) + ", " + name + "\n"
+                    add_str += "\tlw a" + str(i) + ", " + name + "\n"
             elif param.Privatevariable() != None:
                 name = param.Privatevariable().getText()
-                self.loadword(self.variable_map[name], "a" + str(i))
+                index = self.variable_map[name]
+                # self.loadword(index, "a" + str(i))
+                if index != "a" + str(i):
+                    mv_list.append([index, "a" + str(i)])
             else:
                 name = param.constant().getText()
                 if name == "null":
                     name = "0"
-                self.return_str += "\tli a" + str(i) + ", " + name + "\n"
+                add_str += "\tli a" + str(i) + ", " + name + "\n"
+        while len(mv_list) > 0:
+            while True:
+                flag = True
+                dele = []
+                for i in mv_list:
+                    check = False
+                    for j in mv_list:
+                        if i[1] == j[0]:
+                            check = True
+                            break
+                    if not check:
+                        self.loadword(i[0], i[1])
+                        dele.append(i)
+                        flag = False
+                if flag:
+                    break
+                for i in dele:
+                    mv_list.remove(i)
+            dele = []
+            for i in mv_list:
+                conflict = []
+                for j in mv_list:
+                    if i[1] == j[0]:
+                        conflict = j
+                        break
+                self.loadword(i[1], "t0")
+                self.loadword(i[0], i[1])
+                mv_list.append(["t0", conflict[1]])
+                dele.append(conflict)
+                dele.append(i)
+                break
+            for i in dele:
+                mv_list.remove(i)
+        self.return_str += add_str
         if len(params) > 8:
             self.return_str += "\taddi sp, sp, -" + str((len(params) - 8) * 4) + "\n"
             for i in range(len(params) - 8):
@@ -180,15 +219,22 @@ class Mylistener3(llvmListener):
                         self.return_str += "\tla t0, " + name + "\n"
                     else:
                         self.return_str += "\tlw t0, " + name + "\n"
+                    t0 = "t0"
                 elif param.Privatevariable() != None:
                     name = param.Privatevariable().getText()
-                    self.loadword(self.variable_map[name])
+                    index = self.variable_map[name]
+                    if isinstance(index, str):
+                        t0 = index
+                    else:
+                        t0 = "t0"
+                        self.loadword(self.variable_map[name])
                 else:
                     name = param.constant().getText()
                     if name == "null":
                         name = "0"
                     self.return_str += "\tli t0, " + name + "\n"
-                self.saveword(i * 4)
+                    t0 = "t0"
+                self.saveword(i * 4, t0)
 
     def enterCall(self, ctx: llvmParser.CallContext):
         i = 0
@@ -978,11 +1024,47 @@ class Mylistener3(llvmListener):
             self.saveword(tmp_store[i], i)
         if ctx.params() is not None:
             params = ctx.params().parameter()
-            for i in range(min(8, len(params))):
-                if params[i].Privatevariable() is not None:
-                    var_name = params[i].Privatevariable().getText()
-                    self.saveword(self.variable_map[var_name], "a" + str(i))
-                    # self.variable_map[var_name] = "a" + str(i)
+            mv_list = []
+            for i in range(min(len(params), 8)):
+                param = params[i]
+                name = param.Privatevariable().getText()
+                index = self.variable_map[name]
+                # self.loadword(index, "a" + str(i))
+                if index != "a" + str(i):
+                    mv_list.append(["a" + str(i), index])
+            while len(mv_list) > 0:
+                while True:
+                    flag = True
+                    dele = []
+                    for i in mv_list:
+                        check = False
+                        for j in mv_list:
+                            if i[1] == j[0]:
+                                check = True
+                                break
+                        if not check:
+                            self.saveword(i[1], i[0])
+                            dele.append(i)
+                            flag = False
+                    if flag:
+                        break
+                    for i in dele:
+                        mv_list.remove(i)
+                dele = []
+                for i in mv_list:
+                    self.loadword(i[1], "t0")
+                    self.loadword(i[0], i[1])
+                    conflict = []
+                    for j in mv_list:
+                        if i[1] == j[0]:
+                            conflict = j
+                            break
+                    mv_list.append(["t0", conflict[1]])
+                    dele.append(conflict)
+                    dele.append(i)
+                    break
+                for i in dele:
+                    mv_list.remove(i)
 
     def _traverse_nodes(self, node):
         if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:

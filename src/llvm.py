@@ -29,6 +29,7 @@ class MyListener2(Mx_parserListener):
     loop_stack = []
     branch_map = {}
     tmp_cnt = 0
+    changes = {}
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -1011,9 +1012,8 @@ class MyListener2(Mx_parserListener):
             if constant.INTEGER_CONSTANT() != None:
                 # if print:
                 #     print(constant.getText(), end=" ")
-                stream[0] += result + " = add i32 0, " + constant.getText() + "\n\t\t"
                 value = constant.INTEGER_CONSTANT().getText()
-                self.variable_map[value] = ("int", result)
+                self.variable_map[value] = ("int", value)
                 return value
             if constant.string_constant() != None:
                 if constant.string_constant().STRING_CONTENT() != None:
