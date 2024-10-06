@@ -35,6 +35,21 @@ class RegUseList:
         return self.len_ < other.len_
 
 
+class Block:
+    name = ""
+    in_ = set()
+    out = set()
+    def_ = set()
+    use = set()
+
+    def __init__(self, name="", in_=set(), out=set(), def_=set(), use=set()) -> None:
+        self.name = name
+        self.in_ = in_
+        self.out = out
+        self.def_ = def_
+        self.use = use
+
+
 class Mylistener3(llvmListener):
     return_str = ".text\n"
     enter_label = ""
@@ -532,7 +547,7 @@ class Mylistener3(llvmListener):
                         if j.Privatevariable() != None:
                             list.append(j.Privatevariable().getText())
                 if call.Privatevariable() != None:
-                    list.append("")
+                    list.append("-" + call.Privatevariable().getText())
                     define_map[call.Privatevariable().getText()] = len(list) - 1
                 list.append("")
                 danger_zone.append(len(list) - 1)
@@ -547,7 +562,7 @@ class Mylistener3(llvmListener):
                 for j in binary_op.value():
                     if j.Privatevariable() != None:
                         list.append(j.Privatevariable().getText())
-                list.append("")
+                list.append("-" + binary_op.Privatevariable().getText())
                 define_map[binary_op.Privatevariable().getText()] = len(list) - 1
             elif i.branch() != None:
                 branch = i.branch()
@@ -560,7 +575,7 @@ class Mylistener3(llvmListener):
                 var = load.var()
                 if var.Privatevariable() != None:
                     list.append(var.Privatevariable().getText())
-                list.append("")
+                list.append("-" + load.Privatevariable().getText())
                 define_map[load.Privatevariable().getText()] = len(list) - 1
             elif i.store() != None:
                 value = i.store().value()
@@ -576,7 +591,7 @@ class Mylistener3(llvmListener):
                     list.append(value.Privatevariable().getText())
                 if var.Privatevariable() != None:
                     list.append(var.Privatevariable().getText())
-                list.append("")
+                list.append("-" + i.getelementptr().Privatevariable().getText())
                 define_map[i.getelementptr().Privatevariable().getText()] = (
                     len(list) - 1
                 )
@@ -585,14 +600,14 @@ class Mylistener3(llvmListener):
                 for j in compare.value():
                     if j.Privatevariable() != None:
                         list.append(j.Privatevariable().getText())
-                list.append("")
+                list.append("-" + compare.Privatevariable().getText())
                 define_map[compare.Privatevariable().getText()] = len(list) - 1
             elif i.phi() != None:
                 phi = i.phi()
                 for j in phi.value():
                     if j.Privatevariable() != None:
                         list.append(j.Privatevariable().getText())
-                list.append("")
+                list.append("-" + phi.Privatevariable().getText())
                 define_map[phi.Privatevariable().getText()] = len(list) - 1
 
     def _traverse_blocks(self, bm: dict, queue: list, from_: str, visited: list):
@@ -601,6 +616,17 @@ class Mylistener3(llvmListener):
             if j not in visited:
                 self._traverse_blocks(bm, queue, j, visited)
         queue.append(from_)
+
+    def bfs(self, graph: dict, visited: list, start: str):
+        queue = []
+        queue.append(start)
+        while queue:
+            vertex = queue.pop(0)
+            if vertex not in visited:
+                visited.append(vertex)
+                for neighbor in graph[vertex][1]:
+                    if neighbor not in visited:
+                        queue.append(neighbor)
 
     def merge_intervals(self, intervals):
         intervals.sort(key=lambda x: x.beg)
@@ -703,6 +729,19 @@ class Mylistener3(llvmListener):
             if reguse not in regusemap[name]:
                 regusemap[name].append(reguse)
 
+    def update_block(self, name: str, block_map: dict, block_stream_map: dict) -> bool:
+        me = block_stream_map[name]
+        in_ = set()
+        out = set()
+        for i in block_map[name][1]:
+            out = out | block_stream_map[i].in_
+        in_ = out | me.use - me.def_
+        if out == me.out and in_ == me.in_:
+            return True
+        me.out = out
+        me.in_ = me.out | me.use - me.def_
+        return False
+
     def enterFunction(self, ctx: llvmParser.FunctionContext):
         list = []
         visited = []
@@ -720,8 +759,14 @@ class Mylistener3(llvmListener):
         queue = []
         self._traverse_blocks(block_map, queue, ".entry", visited)
         queue = queue[::-1]
-        circle = {}
+        # circle = {}
+        for i in block_map:
+            if len(block_map[i][1]) == 0:
+                end = i
+                break
         rbm = self.reverse_graph(block_map)
+        bfs_queue = []
+        self.bfs(rbm, bfs_queue, end)
         block_index = []
         for i in queue:
             self.conflict_graph(
@@ -729,84 +774,148 @@ class Mylistener3(llvmListener):
             )
         block_index_map = {}
         for i in range(len(block_index)):
-            block_index_map[block_index[i][0]] = i
-        for i in block_map:
+            block_index_map[block_index[i][0]] = block_index[i][1]
+        block_index_interval = {}
+        block_stream_map = {}
+        for i in block_index_map:
+            use = set()
+            def_ = set()
             flag = False
-            for cir in circle:
-                if i in cir:
+            for j in range(block_index_map[i] + 1, len(list)):
+                if list[j] == -1:
+                    block_index_interval[i] = Interval(block_index_map[i], j)
                     flag = True
                     break
-            if flag:
-                continue
-            cir = self.search_circle(block_map, rbm, i)
-            if frozenset(cir) not in circle:
-                relist = []
-                for t in cir:
-                    if t not in block_index_map:
-                        continue
-                    p = block_index_map[t]
-                    beg = block_index[p][1]
-                    if p == len(block_index) - 1:
-                        end = len(list)
-                    else:
-                        end = block_index[p + 1][1]
-                    reguse = Interval(beg=beg, end=end)
-                    relist.append(reguse)
-                self.merge_intervals(relist)
-                circle[frozenset(cir)] = relist
+                if list[j].startswith("-"):
+                    def_.add(list[j][1:])
+                if list[j].startswith("%"):
+                    use.add(list[j])
+            block_stream_map[i] = Block(i, set(), set(), def_, use)
+            if not flag:
+                block_index_interval[i] = Interval(block_index_map[i], len(list))
+        # for i in block_map:
+        #     flag = False
+        #     for cir in circle:
+        #         if i in cir:
+        #             flag = True
+        #             break
+        #     if flag:
+        #         continue
+        #     cir = self.search_circle(block_map, rbm, i)
+        #     if frozenset(cir) not in circle:
+        #         relist = []
+        #         for t in cir:
+        #             if t not in block_index_map:
+        #                 continue
+        #             p = block_index_map[t]
+        #             beg = block_index[p][1]
+        #             if p == len(block_index) - 1:
+        #                 end = len(list)
+        #             else:
+        #                 end = block_index[p + 1][1]
+        #             reguse = Interval(beg=beg, end=end)
+        #             relist.append(reguse)
+        #         self.merge_intervals(relist)
+        #         circle[frozenset(cir)] = relist
 
         if ctx.params() != None:
             for i in ctx.params().parameter():
                 if i.Privatevariable() != None:
                     define_map[i.Privatevariable().getText()] = -1
-        reguselist = []
+                    block_stream_map[".entry"].def_.add(i.Privatevariable().getText())
+        block_stream_map[end].in_ = (
+            block_stream_map[end].use - block_stream_map[end].def_
+        )
         regusemap = {}
-        for i in range(len(list)):
-            name = list[i]
-            if name != "" and name != -1:
-                define = define_map[name]
-                define_block = ".entry"
-                for k in range(len(block_index)):
-                    if block_index[k][1] < define and (
-                        k == len(block_index) - 1 or block_index[k + 1][1] > define
-                    ):
-                        define_block = block_index[k][0]
+        while True:
+            flag = True
+            for i in bfs_queue:
+                if not self.update_block(i, block_map, block_stream_map):
+                    flag = False
+            if flag:
+                break
+        for i in block_stream_map:
+            intersection = block_stream_map[i].def_.intersection(
+                block_stream_map[i].use
+            )
+            for j in intersection:
+                for k in range(block_index_interval[i].end - 1, define_map[j], -1):
+                    if list[k] == j:
+                        if j not in regusemap:
+                            regusemap[j] = []
+                        regusemap[j].append(Interval(define_map[j], k))
                         break
-                use_block = ""
-                for k in range(len(block_index)):
-                    if block_index[k][1] < i and (
-                        k == len(block_index) - 1 or block_index[k + 1][1] > i
-                    ):
-                        use_block = block_index[k][0]
+        for i in block_stream_map:
+            block = block_stream_map[i]
+            intersection = block.in_.intersection(block.out)
+            in_ = block.in_ - intersection
+            out = block.out - intersection
+            for j in intersection:
+                if j not in regusemap:
+                    regusemap[j] = []
+                regusemap[j].append(block_index_interval[i])
+            for j in out:
+                if j not in regusemap:
+                    regusemap[j] = []
+                regusemap[j].append(
+                    Interval(define_map[j], block_index_interval[i].end)
+                )
+            for j in in_:
+                if j not in regusemap:
+                    regusemap[j] = []
+                for k in range(
+                    block_index_interval[i].end - 1, block_index_interval[i].beg, -1
+                ):
+                    if list[k] == j:
+                        regusemap[j].append(Interval(block_index_interval[i].beg, k))
                         break
-                final_end = len(list)
-                if define < i:
-                    # reguselist.append(RegUse(name=name, beg=define, end=i))
-                    if name not in regusemap:
-                        regusemap[name] = []
-                    regusemap[name].append(Interval(beg=define, end=i))
-                    if define_block != use_block:
-                        interval = [Interval(beg=define, end=i)]
-                        for k in circle:
-                            m = circle[k]
-                            if self.has_intersection(interval, m):
-                                for t in m:
-                                    # reguselist.append(
-                                    #     RegUse(name=name, beg=t.beg, end=t.end)
-                                    # )
-                                    regusemap[name].append(
-                                        Interval(beg=t.beg, end=t.end)
-                                    )
-                else:
-                    self.block_register(
-                        name,
-                        define_block,
-                        block_index,
-                        circle,
-                        regusemap,
-                        block_index_map,
-                        final_end,
-                    )
+        reguselist = []
+        # for i in range(len(list)):
+        #     name = list[i]
+        #     if name != "" and name != -1:
+        #         define = define_map[name]
+        #         define_block = ".entry"
+        #         for k in range(len(block_index)):
+        #             if block_index[k][1] < define and (
+        #                 k == len(block_index) - 1 or block_index[k + 1][1] > define
+        #             ):
+        #                 define_block = block_index[k][0]
+        #                 break
+        #         use_block = ""
+        #         for k in range(len(block_index)):
+        #             if block_index[k][1] < i and (
+        #                 k == len(block_index) - 1 or block_index[k + 1][1] > i
+        #             ):
+        #                 use_block = block_index[k][0]
+        #                 break
+        #         final_end = len(list)
+        #         if define < i:
+        #             # reguselist.append(RegUse(name=name, beg=define, end=i))
+        #             if name not in regusemap:
+        #                 regusemap[name] = []
+        #             regusemap[name].append(Interval(beg=define, end=i))
+        #             if define_block != use_block:
+        #                 interval = [Interval(beg=define, end=i)]
+        #                 for k in circle:
+        #                     m = circle[k]
+        #                     if self.has_intersection(interval, m):
+        #                         for t in m:
+        #                             # reguselist.append(
+        #                             #     RegUse(name=name, beg=t.beg, end=t.end)
+        #                             # )
+        #                             regusemap[name].append(
+        #                                 Interval(beg=t.beg, end=t.end)
+        #                             )
+        #         else:
+        #             self.block_register(
+        #                 name,
+        #                 define_block,
+        #                 block_index,
+        #                 circle,
+        #                 regusemap,
+        #                 block_index_map,
+        #                 final_end,
+        #             )
         for i in regusemap:
             use = self.merge_intervals(regusemap[i])
             reguselist.append(RegUseList(i, use))
@@ -820,7 +929,15 @@ class Mylistener3(llvmListener):
             reg_map[i] += danger_list
         for i in reguselist:
             list1 = i.reg_list
+            reg_sort = []
             for j in reg_map:
+                len_ = 0
+                for k in reg_map[j]:
+                    len_ += k.end - k.beg + 1
+                reg_sort.append((j, -len_))
+            reg_sort.sort(key=lambda x: x[1])
+            for j in reg_sort:
+                j = j[0]
                 list2 = reg_map[j]
                 if self.has_intersection(list1, list2) == False:
                     reg_map[j] += list1

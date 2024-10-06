@@ -1928,7 +1928,13 @@ class MyListener2(Mx_parserListener):
                     + "\n\t\t"
                 )
             else:
-                stream[0] += "br label %.label" + str(label_cnt + 1) + "\n\t\t"
+                stream[0] += (
+                    "br i1 1, label %.label"
+                    + str(label_cnt + 1)
+                    + ", label %.label"
+                    + str(label_cnt + 2)
+                    + "\n\t\t"
+                )
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
             self.branch_map_decode(label_cnt + 2, stream)
