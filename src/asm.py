@@ -280,6 +280,50 @@ class Mylistener3(llvmListener):
             name = value2.getText()
             if name == "null":
                 name = "0"
+            op = ctx.bin_op().getText()
+            if (
+                int(name) >= -2048
+                and int(name) <= 2047
+                and op != "sub"
+                and op != "mul"
+                and op != "sdiv"
+                and op != "srem"
+                and op != "shl"
+                and op != "ashr"
+            ):
+                t2 = name
+                name2 = self.variable_map[ctx.Privatevariable().getText()]
+                if not isinstance(name2, str):
+                    t0 = "t0"
+                else:
+                    t0 = name2
+                if op == "add":
+                    self.return_str += "\taddi " + t0 + ", " + t1 + ", " + t2 + "\n"
+                # elif op == "sub":
+                #     self.return_str += "\tli t2, " + name + "\n"
+                #     t2 = "t2"
+                #     self.return_str += "\tsub " + t0 + ", " + t1 + ", " + t2 + "\n"
+                # elif op == "mul":
+                #     self.return_str += "\tmuli " + t0 + ", " + t1 + ", " + t2 + "\n"
+                # elif op == "sdiv":
+                #     self.return_str += "\tdivi " + t0 + ", " + t1 + ", " + t2 + "\n"
+                # elif op == "srem":
+                #     self.return_str += "\tremi " + t0 + ", " + t1 + ", " + t2 + "\n"
+                # elif op == "shl":
+                #     self.return_str += "\tslli " + t0 + ", " + t1 + ", " + t2 + "\n"
+                # elif op == "ashr":
+                #     self.return_str += "\tsrai " + t0 + ", " + t1 + ", " + t2 + "\n"
+                elif op == "and":
+                    self.return_str += "\tandi " + t0 + ", " + t1 + ", " + t2 + "\n"
+                elif op == "or":
+                    self.return_str += "\tori " + t0 + ", " + t1 + ", " + t2 + "\n"
+                elif op == "xor":
+                    self.return_str += "\txori " + t0 + ", " + t1 + ", " + t2 + "\n"
+                else:
+                    sys.exit(1)
+                if t0 == "t0":
+                    self.saveword(name2)
+                return
             self.return_str += "\tli t2, " + name + "\n"
             t2 = "t2"
         op = ctx.bin_op().getText()
@@ -1138,7 +1182,6 @@ def main(code: str) -> str:
         i += 1
 
     def recursive_replace(replace_map, key):
-        # 检查是否需要进一步替换
         if key in replace_map:
             return recursive_replace(replace_map, replace_map[key])
         else:
