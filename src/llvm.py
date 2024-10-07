@@ -1803,6 +1803,22 @@ class MyListener2(Mx_parserListener):
             # print(tmp_stream[0])
             return
         elif isinstance(code, Mx_parserParser.ForStatementContext):
+            exp1 = code.forControl().expression1()
+            exp2 = code.forControl().expression2()
+            exp3 = code.forControl().expression3()
+            exp1 = None if exp1 is None else exp1.getText()
+            exp2 = None if exp2 is None else exp2.getText()
+            exp3 = None if exp3 is None else exp3.getText()
+            if isinstance(code.statement(), Mx_parserParser.ForStatementContext):
+                other = code.statement()
+                oexp1 = other.forControl().expression1()
+                oexp2 = other.forControl().expression2()
+                oexp3 = other.forControl().expression3()
+                oexp1 = None if oexp1 is None else oexp1.getText()
+                oexp2 = None if oexp2 is None else oexp2.getText()
+                oexp3 = None if oexp3 is None else oexp3.getText()
+                if exp1 == oexp1 and oexp2 == exp2 and oexp3 == exp3:
+                    return self.statement_decode2ir(code.statement(), stream)
             label_cnt = self.label_cnt
             self.label_cnt += 4
             if code.forControl().expression1() != None:
