@@ -39,51 +39,41 @@ class Mylistener2_5(llvmListener):
         value2 = ctx.value(1)
         op = ctx.bin_op().getText()
         var = ctx.Privatevariable().getText()
-        if value1.constant() != None and value2.constant() != None:
+        t1 = ""
+        t2 = ""
+        if value1.constant() != None:
+            t1 = int(value1.constant().getText())
+        elif value1.getText() in self.imm_map:
+            t1 = self.imm_map[value1.getText()]
+        if value2.constant() != None:
+            t2 = int(value2.constant().getText())
+        elif value2.getText() in self.imm_map:
+            t2 = self.imm_map[value2.getText()]
+        if not isinstance(t1, str) and not isinstance(t2, str):
             if op == "add":
-                self.imm_map[var] = int(value1.constant().getText()) + int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 + t2
             elif op == "sub":
-                self.imm_map[var] = int(value1.constant().getText()) - int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 - t2
             elif op == "mul":
-                self.imm_map[var] = int(value1.constant().getText()) * int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 * t2
             elif op == "sdiv":
-                if value2.constant().getText() == "0":
+                if t2 == 0:
                     return
-                self.imm_map[var] = int(value1.constant().getText()) / int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 // t2
             elif op == "srem":
-                if value2.constant().getText() == "0":
+                if t2 == 0:
                     return
-                self.imm_map[var] = int(value1.constant().getText()) % int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 % t2
             elif op == "shl":
-                self.imm_map[var] = int(value1.constant().getText()) << int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 << t2
             elif op == "ashr":
-                self.imm_map[var] = int(value1.constant().getText()) >> int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 >> t2
             elif op == "and":
-                self.imm_map[var] = int(value1.constant().getText()) & int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 & t2
             elif op == "or":
-                self.imm_map[var] = int(value1.constant().getText()) | int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 | t2
             elif op == "xor":
-                self.imm_map[var] = int(value1.constant().getText()) ^ int(
-                    value2.constant().getText()
-                )
+                self.imm_map[var] = t1 ^ t2
             return
         if value1.getText() == "0":
             if op == "add" or op == "or":
@@ -102,6 +92,35 @@ class Mylistener2_5(llvmListener):
                 self.imm_map[var] = value1.getText()
             elif op == "mul" or op == "and":
                 self.imm_map[var] = 0
+
+    def enterCompare(self, ctx: llvmParser.CompareContext):
+        value1 = ctx.value(0)
+        value2 = ctx.value(1)
+        op = ctx.cond().getText()
+        var = ctx.Privatevariable().getText()
+        t1 = ""
+        t2 = ""
+        if value1.constant() != None and value1.constant().getText().isdigit():
+            t1 = int(value1.constant().getText())
+        elif value1.getText() in self.imm_map:
+            t1 = self.imm_map[value1.getText()]
+        if value2.constant() != None and value2.constant().getText().isdigit():
+            t2 = int(value2.constant().getText())
+        elif value2.getText() in self.imm_map:
+            t2 = self.imm_map[value2.getText()]
+        if not isinstance(t1, str) and not isinstance(t2, str):
+            if op == "eq":
+                self.imm_map[var] = int(t1 == t2)
+            elif op == "ne":
+                self.imm_map[var] = int(t1 != t2)
+            elif op == "slt":
+                self.imm_map[var] = int(t1 < t2)
+            elif op == "sgt":
+                self.imm_map[var] = int(t1 > t2)
+            elif op == "sle":
+                self.imm_map[var] = int(t1 <= t2)
+            elif op == "sge":
+                self.imm_map[var] = int(t1 >= t2)
 
 
 def main(code: str) -> str:
