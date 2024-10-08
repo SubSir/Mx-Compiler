@@ -13,15 +13,9 @@ try:
     code3 = llvm.main(code2)
     with open("llvm.ll", "w") as f:
         f.write(code3)
-    len_code = len(code3)
-    while True:
-        code3 = llvm_optim.main(code3)
-        with open("llvm_optim.ll", "w") as f:
-            f.write(code3)
-        if len(code3) == len_code:
-            break
-        else:
-            len_code = len(code3)
+    code3 = llvm_optim.main(code3)
+    with open("llvm_optim.ll", "w") as f:
+        f.write(code3)
     code4 = asm.main(code3)
     with open("test.s", "w") as f:
         f.write(code4)

@@ -13,6 +13,10 @@ class Mylistener3(llvmListener):
     variable_map = {}
     return_ans = ""
 
+    def __init__(self) -> None:
+        self.variable_map = {}
+        self.return_ans = ""
+
     def _traverse_nodes(self, node):
         if hasattr(node, "Privatevariable") and node.Privatevariable() is not None:
             var_name = node.Privatevariable().getText()
@@ -165,34 +169,38 @@ def main(code: str) -> str:
         if imm_map == {}:
             break
 
-    input_stream = InputStream(code)
-    lexer = llvmLexer(input_stream)
-    token_stream = CommonTokenStream(lexer)
-    parser = llvmParser(token_stream)
+    while True:
+        input_stream = InputStream(code)
+        lexer = llvmLexer(input_stream)
+        token_stream = CommonTokenStream(lexer)
+        parser = llvmParser(token_stream)
 
-    tree = parser.module()
-    walker = ParseTreeWalker()
-    listener = Mylistener3()
-    walker.walk(listener, tree)
-    var_map = listener.variable_map
-    del_list = []
-    for i in var_map:
-        if var_map[i] == 1:
-            del_list.append("\t\t" + i + " = ")
-    return_ans = ""
-    lines = code.splitlines()
-    for line in lines:
-        flag = 1
-        for delete in del_list:
-            if line.startswith(delete):
-                if "call" in line:
-                    line = "\t\t" + line.split("= ")[1]
-                else:
-                    flag = 0
-                break
-        if flag == 1:
-            return_ans += line + "\n"
-    return return_ans
+        tree = parser.module()
+        walker = ParseTreeWalker()
+        listener = Mylistener3()
+        walker.walk(listener, tree)
+        var_map = listener.variable_map
+        del_list = []
+        for i in var_map:
+            if var_map[i] == 1:
+                del_list.append("\t\t" + i + " = ")
+        return_ans = ""
+        lines = code.splitlines()
+        for line in lines:
+            flag = 1
+            for delete in del_list:
+                if line.startswith(delete):
+                    if "call" in line:
+                        line = "\t\t" + line.split("= ")[1]
+                    else:
+                        flag = 0
+                    break
+            if flag == 1:
+                return_ans += line + "\n"
+        if code == return_ans:
+            break
+        code = return_ans
+    return code
 
 
 if __name__ == "__main__":

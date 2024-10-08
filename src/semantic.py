@@ -113,6 +113,7 @@ class MyListener(Mx_parserListener):
                 and (
                     self.enterclass == ""
                     or (text not in self.usertype_map[self.enterclass].class_member_map)
+                    or (len(self.variable_definition_map[text]) > 1)
                 )
                 and (len(self.ans) < 2 or self.ans[-2] != ".")
                 # and self.variable_definition_map[text].priority > 1
