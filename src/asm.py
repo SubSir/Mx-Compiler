@@ -1202,6 +1202,6 @@ def main(code: str) -> str:
 if __name__ == "__main__":
     code = sys.stdin.read()
     code2 = main(code)
-    with open("asm_optim.s", "w") as f:
+    with open("test.s", "w") as f:
         f.write(code2)
     print(code2)

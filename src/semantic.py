@@ -88,6 +88,7 @@ class MyListener(Mx_parserListener):
     add_end = []
     variable_cnt_map = {}
     variable_cnt_map2 = {}
+    tmp_cnt = 0
 
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
@@ -711,52 +712,95 @@ class MyListener(Mx_parserListener):
             )
         return class_
 
-    def array_init(self, returntype):
-        if returntype[-1] != "]":
-            return
-        cnt = 0
-        for i in returntype:
-            if i == "[":
-                cnt += 1
-        type1 = "class_" + returntype[: -2 * cnt] + str(cnt)
-        if cnt > 1:
-            type2 = "class_" + returntype[: -2 * cnt] + str(cnt - 1)
-            class_ = (
-                "class "
-                + type1
-                + "{\n int size;\n "
-                + type2
-                + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new "
-                + type2
-                + "[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
-                + type2
-                + ";\n}\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new "
-                + type2
-                + "[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
-                + type2
-                + ";\n this.value[i].list_init(num-1, x);}\n}\nint size(){\n return this.size;\n}\n\n }; \n"
-            )
-        else:
-            type2 = returntype[: -2 * cnt]
-            class_ = (
-                "class "
-                + type1
-                + "{\n int size;\n "
-                + type2
-                + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new "
-                + type2
-                + "[s]; \n }\n void list_init(int num, int[] x){\n if (num == 0){\n return; }\n int s = x[num-1];this.size = s; \n this.value = new "
-                + type2
-                + "[s]; }  \nint size(){\n return this.size;\n}\n}; \n"
-            )
-        if class_ not in self.add_end:
-            self.add_end.append(class_)
-        self.array_init(returntype[:-2])
+    # def array_init(self, returntype):
+    #     if returntype[-1] != "]":
+    #         return
+    #     cnt = 0
+    #     for i in returntype:
+    #         if i == "[":
+    #             cnt += 1
+    #     type1 = "class_" + returntype[: -2 * cnt] + str(cnt)
+    #     if cnt > 1:
+    #         type2 = "class_" + returntype[: -2 * cnt] + str(cnt - 1)
+    #         class_ = (
+    #             "class "
+    #             + type1
+    #             + "{\n int size;\n "
+    #             + type2
+    #             + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new "
+    #             + type2
+    #             + "[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+    #             + type2
+    #             + ";\n}\n}\n void list_init(int num, int[] x){ \n if (num == 0){\n return; }\n int s = x[num-1];\n this.size = s; \n this.value = new "
+    #             + type2
+    #             + "[s]; \n for(int i = 0;i < s;i++){this.value[i] = new "
+    #             + type2
+    #             + ";\n this.value[i].list_init(num-1, x);}\n}\nint size(){\n return this.size;\n}\n\n }; \n"
+    #         )
+    #     else:
+    #         type2 = returntype[: -2 * cnt]
+    #         class_ = (
+    #             "class "
+    #             + type1
+    #             + "{\n int size;\n "
+    #             + type2
+    #             + "[] value;\n void init(int s) { \n this.size = s; \n this.value = new "
+    #             + type2
+    #             + "[s]; \n }\n void list_init(int num, int[] x){\n if (num == 0){\n return; }\n int s = x[num-1];this.size = s; \n this.value = new "
+    #             + type2
+    #             + "[s]; }  \nint size(){\n return this.size;\n}\n}; \n"
+    #         )
+    #     if class_ not in self.add_end:
+    #         self.add_end.append(class_)
+    #     self.array_init(returntype[:-2])
 
-    def enterNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
-        dimansion = len(ctx.newpart())
-        returntype = ctx.type_().getText() + "[]" * dimansion
-        self.array_init(returntype)
+    # def enterNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
+    #     dimansion = len(ctx.newpart())
+    #     returntype = ctx.type_().getText() + "[]" * dimansion
+    #     self.array_init(returntype)
+
+    # def exitNewArrayExpression(self, ctx: Mx_parserParser.NewArrayExpressionContext):
+    #     self.ans += ";\n"
+    #     dimansion = len(ctx.newpart())
+    #     list = [i.expression() for i in ctx.newpart()]
+    #     exp = [i.getText() for i in list if i is not None]
+    #     end_square = "\n}" * (len(exp) - 1)
+    #     equal_index = -1
+    #     beg_index = -1
+    #     type_ = ctx.type_().getText()
+    #     for i in range(len(self.ans) - 1, -1, -1):
+    #         if self.ans[i] == "=":
+    #             equal_index = i
+    #         if equal_index != -1 and (self.ans[i] == "{" or self.ans[i] == "}" or self.ans[i]==";" or self.ans[i]==")"):
+    #             beg_index = i
+    #             break
+    #     var = self.ans[beg_index + 1 : equal_index]
+    #     while len(exp) > 1:
+    #         tmp_var = "t" + str(self.tmp_cnt) + "p"
+    #         self.tmp_cnt += 1
+    #         self.ans += (
+    #             "for(int "
+    #             + tmp_var
+    #             + "=0;"
+    #             + tmp_var
+    #             + " < "
+    #             + exp[0]
+    #             + ";++"
+    #             + tmp_var
+    #             + "){\n\t\t"
+    #             + var
+    #             + "["
+    #             + tmp_var
+    #             + "] = new "
+    #             + type_
+    #             + " ["
+    #             + exp[1]
+    #             + "]"
+    #             + "[]" * (len(exp) - 2)
+    #             + ";\n\t\t"
+    #         )
+    #         exp.pop(0)
+    #     self.ans += end_square + "\n\t\t"
 
     def enterConstruction(self, ctx: Mx_parserParser.ConstructionContext):
         self.function_definition_stack.append(
