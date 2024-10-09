@@ -31,6 +31,8 @@ class MyListener2(Mx_parserListener):
     tmp_cnt = 0
     changes = {}
     add_function_list = []
+    ret_label = ""
+    ret_value = []
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -1299,7 +1301,9 @@ class MyListener2(Mx_parserListener):
         stream = [func_str]
         for i in range(len(statement_list)):
             self.statement_decode2ir(statement_list[i], stream)
-        stream[0] += "ret void\n}\n"
+        self.ret_label = ".label" + str(self.label_cnt)
+        self.label_cnt += 1
+        stream[0] += "\n" + self.ret_label + ":\n\t\tret void\n}\n"
         self.function_definition_list.append(stream[0])
 
     def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
@@ -1516,6 +1520,7 @@ class MyListener2(Mx_parserListener):
         return ans
 
     def enterFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
+        self.ret_value = []
         type_ = ctx.returnType().getText()
         self.enter_function = self.enter_class + ctx.IDENTIFIER().getText()
         func_str = (
@@ -1544,6 +1549,8 @@ class MyListener2(Mx_parserListener):
         parameterstr += ")"
         if self.enter_class == "" and parameterstr != "()":
             parameterstr = parameterstr[:1] + parameterstr[2:]
+        self.ret_label = ".label" + str(self.label_cnt)
+        self.label_cnt += 1
         func_str += parameterstr + " {\n.entry:\n\t\t"
         self.label_str = ".entry"
         if ctx.IDENTIFIER().getText() == "main":
@@ -1555,8 +1562,38 @@ class MyListener2(Mx_parserListener):
         stream = [func_str]
         for i in range(len(statement_list)):
             self.statement_decode2ir(statement_list[i], stream)
-        default = self.return_default(type_)
-        stream[0] += "ret " + self.type2ir(type_) + " " + default
+        stream[0] += "br label %" + self.ret_label + "\n" + self.ret_label + ":\n\t\t"
+        flag = False
+        for i in self.ret_value:
+            if i[0] == self.label_str:
+                flag = True
+                break
+        if not flag:
+            default = self.return_default(type_)
+            self.ret_value.append([self.label_str, type_, default])
+        if type_ == "void":
+            stream[0] += "ret void"
+        else:
+            flag = False
+            for i in range(1, len(self.ret_value)):
+                if self.ret_value[i][2] != self.ret_value[0][2]:
+                    flag = True
+                    break
+            if len(self.ret_value) > 1 and flag:
+                ret = "%var" + str(self.variable_cnt)
+                self.variable_cnt += 1
+                stream[0] += ret + " = phi " + self.type2ir(type_)
+                for i in range(len(self.ret_value)):
+                    stream[0] += (
+                        "[" + self.ret_value[i][2] + ", %" + self.ret_value[i][0] + "]"
+                    )
+                    if i < len(self.ret_value) - 1:
+                        stream[0] += ", "
+                stream[0] += "\n\t\t"
+                stream[0] += "ret " + self.type2ir(type_) + " " + ret
+            else:
+                ret = self.ret_value[0][2]
+                stream[0] += "ret " + self.type2ir(type_) + " " + ret
         stream[0] += "\n}\n"
         self.function_definition_list.append(stream[0])
 
@@ -1946,10 +1983,8 @@ class MyListener2(Mx_parserListener):
                 )
             else:
                 stream[0] += (
-                    "br i1 1, label %.label"
+                    "br label %.label"
                     + str(label_cnt + 1)
-                    + ", label %.label"
-                    + str(label_cnt + 2)
                     + "\n\t\t"
                 )
             stream[0] += tmp_stream2[0]
@@ -1961,15 +1996,10 @@ class MyListener2(Mx_parserListener):
         elif isinstance(code, Mx_parserParser.ReturnStatementContext):
             if code.expression() != None:
                 t = self.return_expression2ir(code.expression(), stream)
-                stream[0] += (
-                    "ret "
-                    + self.type2ir(self.variable_map[t][0])
-                    + " "
-                    + self.variable_map[t][1]
-                    + "\n\t\t"
+                self.ret_value.append(
+                    [self.label_str, self.variable_map[t][0], self.variable_map[t][1]]
                 )
-            else:
-                stream[0] += "ret void\n\t\t"
+            stream[0] += "br label %" + self.ret_label + "\n\t\t"
             return
         elif isinstance(code, Mx_parserParser.BlockContext):
             for i in range(len(code.statement())):

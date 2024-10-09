@@ -831,6 +831,8 @@ class Mylistener3(llvmListener):
     def update_block(
         self, name: str, block_map: dict, block_stream_map: dict, phi_map: map
     ) -> bool:
+        if name not in block_stream_map:
+            return True
         me = block_stream_map[name]
         in_ = set()
         out = set()
