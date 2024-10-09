@@ -1731,17 +1731,18 @@ class MyListener2(Mx_parserListener):
                     result = "%var" + str(tmp_cnt)
                     tmp_cnt += 1
                     self.variable_map[i] = (self.variable_map[i][0], result)
-            stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
+            tmp_stream2 = [""]
+            tmp_stream2[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 1)
             self.loop_stack.append(label_cnt)
-            self.statement_decode2ir(code.statement(), stream)
+            self.statement_decode2ir(code.statement(), tmp_stream2)
             self.loop_stack.pop()
             self.branch_map_record(label_cnt)
-            stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
-            stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
+            tmp_stream2[0] += "br label %.label" + str(label_cnt) + "\n\t"
+            tmp_stream2[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt)
-            self.branch_map_decode(label_cnt, stream)
-            stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
+            self.branch_map_decode(label_cnt, tmp_stream2)
+            tmp_stream2[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt + 3) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 3)
             topo_list = []
@@ -1793,6 +1794,7 @@ class MyListener2(Mx_parserListener):
                 + str(label_cnt + 2)
                 + "\n\t\t"
             )
+            stream[0] += tmp_stream2[0]
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
             self.branch_map_decode(label_cnt + 2, stream)
@@ -1866,25 +1868,26 @@ class MyListener2(Mx_parserListener):
                     result = "%var" + str(tmp_cnt)
                     tmp_cnt += 1
                     self.variable_map[i] = (self.variable_map[i][0], result)
-            stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
+            tmp_stream2 = [""]
+            tmp_stream2[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 1)
             self.loop_stack.append(label_cnt)
-            self.statement_decode2ir(code.statement(), stream)
+            self.statement_decode2ir(code.statement(), tmp_stream2)
             self.loop_stack.pop()
             self.branch_map_record(label_cnt)
-            stream[0] += "br label %.label" + str(label_cnt) + "\n\t"
-            stream[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
+            tmp_stream2[0] += "br label %.label" + str(label_cnt) + "\n\t"
+            tmp_stream2[0] += "\n.label" + str(label_cnt) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt)
-            self.branch_map_decode(label_cnt, stream)
+            self.branch_map_decode(label_cnt, tmp_stream2)
             if code.forControl().expression3() != None:
                 if code.forControl().expression3().expression() != None:
                     self.return_expression2ir(
-                        code.forControl().expression3().expression(), stream
+                        code.forControl().expression3().expression(), tmp_stream2
                     )
                 else:
                     assignment = code.forControl().expression3().assignment()
-                    self.assignment_decode2ir(assignment, stream)
-            stream[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
+                    self.assignment_decode2ir(assignment, tmp_stream2)
+            tmp_stream2[0] += "br label %.label" + str(label_cnt + 3) + "\n\t"
             stream[0] += "\n.label" + str(label_cnt + 3) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 3)
             topo_list = []
@@ -1949,6 +1952,7 @@ class MyListener2(Mx_parserListener):
                     + str(label_cnt + 2)
                     + "\n\t\t"
                 )
+            stream[0] += tmp_stream2[0]
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)
             self.branch_map_decode(label_cnt + 2, stream)
