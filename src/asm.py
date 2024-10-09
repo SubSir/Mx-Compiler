@@ -87,6 +87,7 @@ class Mylistener3(llvmListener):
         "t6": [],
         "gp": [],
         "tp": [],
+        "ra": [],
     }
 
     danger_reg = [
@@ -104,6 +105,7 @@ class Mylistener3(llvmListener):
         "t6",
         "gp",
         "tp",
+        "ra",
     ]
 
     def enterRet(self, ctx: llvmParser.RetContext):
@@ -626,6 +628,7 @@ class Mylistener3(llvmListener):
         define_map: dict,
         block_index: dict,
         danger_zone: list,
+        phi_map: list,
     ):
         block_index.append((ctx.Label().getText(), len(list)))
         list.append(-1)
@@ -699,6 +702,12 @@ class Mylistener3(llvmListener):
                         list.append(j.Privatevariable().getText())
                 list.append("-" + phi.Privatevariable().getText())
                 define_map[phi.Privatevariable().getText()] = len(list) - 1
+                if ctx.Label().getText() not in phi_map:
+                    phi_map[ctx.Label().getText()] = {}
+                for i in range(len(phi.value())):
+                    phi_map[ctx.Label().getText()][phi.value(i).getText()] = phi.Label(
+                        i
+                    ).getText()
 
     def _traverse_blocks(self, bm: dict, queue: list, from_: str, visited: list):
         visited.append(from_)
@@ -819,12 +828,18 @@ class Mylistener3(llvmListener):
             if reguse not in regusemap[name]:
                 regusemap[name].append(reguse)
 
-    def update_block(self, name: str, block_map: dict, block_stream_map: dict) -> bool:
+    def update_block(
+        self, name: str, block_map: dict, block_stream_map: dict, phi_map: map
+    ) -> bool:
         me = block_stream_map[name]
         in_ = set()
         out = set()
         for i in block_map[name][1]:
-            out = out | block_stream_map[i].in_
+            tmp = set()
+            for j in block_stream_map[i].in_:
+                if i in phi_map and j in phi_map[i] and phi_map[i][j] != name:
+                    tmp.add(j)
+            out = out | (block_stream_map[i].in_ - tmp)
         in_ = out | me.use - me.def_
         if out == me.out and in_ == me.in_:
             return True
@@ -858,9 +873,10 @@ class Mylistener3(llvmListener):
         bfs_queue = []
         self.bfs(rbm, bfs_queue, end)
         block_index = []
+        phi_map = {}
         for i in queue:
             self.conflict_graph(
-                block_map[i][0], list, define_map, block_index, danger_zone
+                block_map[i][0], list, define_map, block_index, danger_zone, phi_map
             )
         block_index_map = {}
         for i in range(len(block_index)):
@@ -920,7 +936,7 @@ class Mylistener3(llvmListener):
         while True:
             flag = True
             for i in bfs_queue:
-                if not self.update_block(i, block_map, block_stream_map):
+                if not self.update_block(i, block_map, block_stream_map, phi_map):
                     flag = False
             if flag:
                 break
