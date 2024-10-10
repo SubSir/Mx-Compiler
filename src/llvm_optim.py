@@ -140,7 +140,7 @@ class Mylistener3_5(llvmListener):
                 cnt = 0
                 for j in i.basic_block():
                     cnt += len(j.instruction())
-                if cnt > 100:
+                if cnt > 50:
                     continue
                 use = set()
                 labels = []
@@ -159,6 +159,14 @@ class Mylistener3_5(llvmListener):
             ctx.Global_var().getText() in self.inline_func
             and ctx.Global_var().getText() != self.enter_func
         ):
+            if ctx.params() != None:
+                flag = False
+                for i in ctx.params().parameter():
+                    if i.getText() == "ptrnull":
+                        flag = True
+                        break
+                if flag:
+                    return
             if ctx.Privatevariable() != None:
                 str_ = (
                     ctx.Privatevariable().getText()
@@ -433,7 +441,7 @@ def main(code: str) -> str:
         stream = [i]
         for j in var_replace_map:
             variable_replace(j, var_replace_map[j], stream)
-        code_split = code.split(stream[0])
+        code_split = code.split("\t\t" + stream[0])
         return_ans = ""
         for j in range(len(code_split) - 1):
             inline_index = "_" + str(inline_cnt)
@@ -459,7 +467,9 @@ def main(code: str) -> str:
                     beg = k
                     break
             origin_label = code_split[j][beg:end]
-            add_str = entry + "\n\t\tbr label %" + ret_label + "\n" + func[1][:-3]
+            add_str = (
+                "\t\t" + entry + "\n\t\tbr label %" + ret_label + "\n" + func[1][:-3]
+            )
             func2 = listener.inline_func[listener.call_str[i][1]]
             var_set = func2[0] - set(func2[1])
             add_str = add_str.replace(entry_str + "]", origin_label + "]")
