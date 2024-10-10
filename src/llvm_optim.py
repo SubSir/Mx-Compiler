@@ -382,6 +382,9 @@ def main(code: str) -> str:
             break
         code = return_ans
 
+    if len(code.splitlines()) > 2000:
+        return code
+
     with open("llvm.ll", "w") as f:
         f.write(code)
 
