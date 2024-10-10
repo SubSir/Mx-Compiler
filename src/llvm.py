@@ -12,6 +12,7 @@ from antlr4.error.ErrorListener import ErrorListener
 
 # 定义一个监听器类来遍历和处理语法树
 class MyListener2(Mx_parserListener):
+    entry_cnt = 0
     variable_cnt = 0
     enter_class = ""
     enter_function = ""
@@ -1021,7 +1022,7 @@ class MyListener2(Mx_parserListener):
                 if constant.string_constant().STRING_CONTENT() != None:
                     string_ = constant.string_constant().getText()
                     _string, len_ = self.transform_string(string_)
-                    self.global_str += (
+                    self.global_str = (
                         "@.string."
                         + str(self.string_cnt)
                         + " = global [ "
@@ -1029,6 +1030,7 @@ class MyListener2(Mx_parserListener):
                         + " x i8] c"
                         + _string
                         + "\n"
+                        + self.global_str
                     )
                     self.variable_map[code.getText()] = (
                         "string",
@@ -1294,16 +1296,25 @@ class MyListener2(Mx_parserListener):
         func_str = (
             "define void @"
             + ctx.IDENTIFIER().getText()
-            + "_new(ptr %this){\n.entry:\n\t\t"
+            + "_new( ptr %this){\n.entry"
+            + str(self.entry_cnt)
+            + ":\n\t\t"
         )
-        self.label_str = ".entry"
+        self.label_str = ".entry" + str(self.entry_cnt)
+        self.entry_cnt += 1
         statement_list = ctx.functionBody().statement()
         stream = [func_str]
-        for i in range(len(statement_list)):
-            self.statement_decode2ir(statement_list[i], stream)
         self.ret_label = ".label" + str(self.label_cnt)
         self.label_cnt += 1
-        stream[0] += "\n" + self.ret_label + ":\n\t\tret void\n}\n"
+        for i in range(len(statement_list)):
+            self.statement_decode2ir(statement_list[i], stream)
+        stream[0] += (
+            "br label %"
+            + self.ret_label
+            + "\n"
+            + self.ret_label
+            + ":\n\t\tret void\n}\n"
+        )
         self.function_definition_list.append(stream[0])
 
     def enterProgram(self, ctx: Mx_parserParser.ProgramContext):
@@ -1365,11 +1376,20 @@ class MyListener2(Mx_parserListener):
                     else:
                         construct = 1
                 if construct == 0:
+                    ret_label = ".label" + str(self.label_cnt)
+                    self.label_cnt += 1
                     function_definition_str += (
                         "define void @"
                         + child.IDENTIFIER().getText()
-                        + "_new(ptr %this){\n.entry:\n\t\tret void \n}\n"
+                        + "_new( ptr %this){\n.entry"
+                        + str(self.entry_cnt)
+                        + ":\n\t\tbr label %"
+                        + ret_label
+                        + "\n"
+                        + ret_label
+                        + ":\n\t\tret void \n}\n"
                     )
+                    self.entry_cnt += 1
                 self.class_size_map[child.IDENTIFIER().getText()] = cnt * 4
                 for i in range(len(var_list)):
                     class_definition_str += var_list[i]
@@ -1435,9 +1455,12 @@ class MyListener2(Mx_parserListener):
                             init_func = (
                                 "define void @_init"
                                 + str(self.init_cnt)
-                                + " (){\n.entry:\n\t\t"
+                                + "() {\n.entry"
+                                + str(self.entry_cnt)
+                                + ":\n\t\t"
                             )
-                            self.label_str = ".entry"
+                            self.label_str = ".entry" + str(self.entry_cnt)
+                            self.entry_cnt += 1
                             stream = [init_func]
                             exp = self.variable_map[
                                 self.return_expression2ir(i.expression(), stream)
@@ -1456,8 +1479,8 @@ class MyListener2(Mx_parserListener):
                             self.init_cnt += 1
                     variable_definition_str += "\n"
         self.global_str += class_definition_str
-        self.global_str += function_definition_str
         self.global_str += variable_definition_str
+        self.global_str += function_definition_str
 
     def expressionLists_decode(
         self, code: Mx_parserParser.ExpressionListsContext, stream
@@ -1533,7 +1556,7 @@ class MyListener2(Mx_parserListener):
         parameterlist = self.parameterList_decode2name(ctx.parameterList())
         parameterstr = "("
         if self.enter_class != "":
-            parameterstr += "ptr %this"
+            parameterstr += " ptr %this"
         for i in range(len(parameterlist)):
             type = parameterlist[i][0]
             # if not self.isPrivate(self.enter_class):
@@ -1551,8 +1574,9 @@ class MyListener2(Mx_parserListener):
             parameterstr = parameterstr[:1] + parameterstr[2:]
         self.ret_label = ".label" + str(self.label_cnt)
         self.label_cnt += 1
-        func_str += parameterstr + " {\n.entry:\n\t\t"
-        self.label_str = ".entry"
+        func_str += parameterstr + " {\n.entry" + str(self.entry_cnt) + ":\n\t\t"
+        self.label_str = ".entry" + str(self.entry_cnt)
+        self.entry_cnt += 1
         if ctx.IDENTIFIER().getText() == "main":
             for i in range(self.init_cnt):
                 func_str += "call void @_init" + str(i) + "()\n\t\t"
@@ -1982,11 +2006,7 @@ class MyListener2(Mx_parserListener):
                     + "\n\t\t"
                 )
             else:
-                stream[0] += (
-                    "br label %.label"
-                    + str(label_cnt + 1)
-                    + "\n\t\t"
-                )
+                stream[0] += "br label %.label" + str(label_cnt + 1) + "\n\t\t"
             stream[0] += tmp_stream2[0]
             stream[0] += "\n.label" + str(label_cnt + 2) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 2)

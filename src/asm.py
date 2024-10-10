@@ -864,7 +864,8 @@ class Mylistener3(llvmListener):
                         to_list.append(k.getText())
             block_map[i.Label().getText()] = [i, to_list]
         queue = []
-        self._traverse_blocks(block_map, queue, ".entry", visited)
+        entry = ctx.basic_block(0).Label().getText()
+        self._traverse_blocks(block_map, queue, entry, visited)
         queue = queue[::-1]
         # circle = {}
         for i in block_map:
@@ -930,7 +931,7 @@ class Mylistener3(llvmListener):
             for i in ctx.params().parameter():
                 if i.Privatevariable() != None:
                     define_map[i.Privatevariable().getText()] = -1
-                    block_stream_map[".entry"].def_.add(i.Privatevariable().getText())
+                    block_stream_map[entry].def_.add(i.Privatevariable().getText())
         block_stream_map[end].in_ = (
             block_stream_map[end].use - block_stream_map[end].def_
         )
@@ -1188,7 +1189,7 @@ def main(code: str) -> str:
         if (
             not lines[i].startswith("\t")
             and not lines[i].startswith("tmp")
-            and not lines[i].endswith("entry:")
+            and not (":" in lines[i] and ".entry" in lines[i])
         ):
             if lines[i + 1].startswith("\tj"):
                 label1 = lines[i][:-1]
