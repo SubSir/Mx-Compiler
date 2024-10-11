@@ -2,6 +2,7 @@
 import sys
 import copy
 from antlr4 import InputStream, CommonTokenStream
+import antlr4
 from parser.Mx_parserLexer import Mx_parserLexer
 from parser.Mx_parserListener import Mx_parserListener
 from parser.Mx_parserParser import Mx_parserParser
@@ -34,6 +35,9 @@ class MyListener2(Mx_parserListener):
     add_function_list = []
     ret_label = ""
     ret_value = []
+    has_call = False
+    global_var_read = {}
+    global_var_write = {}
     # def enterEveryRule(self, ctx):
     #     rule_name = Mx_parserParser.ruleNames[ctx.getRuleIndex()]
     #     rule_text = ctx.getText()
@@ -1187,8 +1191,14 @@ class MyListener2(Mx_parserListener):
                     )
                     self.write_map[code.getText()] = ptr
                     return code.getText()
-            value = self.variable_map[identifier][1]
+            # value = self.variable_map[identifier][1]
             if self.write_map[identifier] != "":
+                if (
+                    self.has_call == False
+                    and identifier in self.variable_map
+                    and "%" in self.variable_map[identifier]
+                ):
+                    return identifier
                 stream[0] += (
                     result
                     + " = load "
@@ -1542,7 +1552,21 @@ class MyListener2(Mx_parserListener):
                 )
         return ans
 
+    def _traverse_nodes(self, node):
+        if isinstance(node, Mx_parserParser.FunctionCallContext) or isinstance(
+            node, Mx_parserParser.MemberFunctionCallContext
+        ):
+            self.has_call = True
+        else:
+            for child in node.getChildren():
+                if self.has_call == False and isinstance(
+                    child, antlr4.ParserRuleContext
+                ):
+                    self._traverse_nodes(child)
+
     def enterFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
+        self.has_call = False
+        self._traverse_nodes(ctx)
         self.ret_value = []
         type_ = ctx.returnType().getText()
         self.enter_function = self.enter_class + ctx.IDENTIFIER().getText()
@@ -2072,7 +2096,7 @@ class MyListener2(Mx_parserListener):
         t1 = self.return_expression2ir(code.expression(0), stream)
         t2 = self.return_expression2ir(code.expression(1), stream)
         name = code.expression(0).getText()
-        if self.write_map[code.expression(0).getText()] != "":
+        if self.write_map[name] != "":
             stream[0] += (
                 "store "
                 + self.type2ir(self.variable_map[t2][0])
@@ -2080,14 +2104,20 @@ class MyListener2(Mx_parserListener):
                 + self.variable_map[t2][1]
                 + ", "
                 + "ptr "
-                + self.write_map[code.expression(0).getText()]
+                + self.write_map[name]
                 + "\n\t\t"
             )
-        else:
-            self.variable_map[t1] = self.variable_map[t2]
+            self.variable_map[name] = (
+                self.variable_map[name][0],
+                self.variable_map[t2][1],
+            )
+        self.variable_map[t1] = self.variable_map[t2]
 
     def exitFunctionDefinition(self, ctx: Mx_parserParser.FunctionDefinitionContext):
         self.enter_function = ""
+        for j in self.write_map:
+            if self.write_map[j] != "" and j in self.variable_map:
+                self.variable_map[j] = (self.variable_map[j][0], "")
 
     def exitClassDefinition(self, ctx: Mx_parserParser.ClassDefinitionContext):
         self.enter_class = ""

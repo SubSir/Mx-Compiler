@@ -341,8 +341,8 @@ def main(code: str) -> str:
         code = stream[0]
         if replace_map == {}:
             break
-    with open("llvm2.ll", "w") as f:
-        f.write(code)
+    # with open("llvm2.ll", "w") as f:
+    #     f.write(code)
     while True:
         input_stream = InputStream(code)
         lexer = llvmLexer(input_stream)
