@@ -158,6 +158,13 @@ class MyListener2(Mx_parserListener):
             )
         return code.getText()
 
+    def global_var_change(self, var, other_map):
+        if "%" in self.variable_map[var][1] and "%" in other_map[var][1]:
+            return True
+        if var in self.write_map and self.write_map[var] != "":
+            self.variable_map[var] = (self.variable_map[var][0], "@" + var)
+        return False
+
     def return_expression2ir(
         self, code, stream
     ) -> str:  # stream[0] 为流, 返回variable_map的index
@@ -207,9 +214,9 @@ class MyListener2(Mx_parserListener):
             tmp_label1 = self.label_str
             change_map = {}
             for i in tmp_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_map)
+                ) and tmp_map[i][1] != self.variable_map[i][1]:
                     change_map[i] = (self.variable_map[i][1], tmp_map[i][1])
             stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 1)
@@ -278,9 +285,9 @@ class MyListener2(Mx_parserListener):
             t2 = self.return_expression2ir(code.expression(1), stream)
             name2 = self.variable_map[t2][1]
             for i in tmp_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_map)
+                ) and tmp_map[i][1] != self.variable_map[i][1]:
                     if i in change_map:
                         change_map[i] = (change_map[i][0], self.variable_map[i][1])
                     else:
@@ -349,9 +356,9 @@ class MyListener2(Mx_parserListener):
             tmp_label1 = self.label_str
             change_map = {}
             for i in tmp_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_map)
+                ) and tmp_map[i][1] != self.variable_map[i][1]:
                     change_map[i] = (self.variable_map[i][1], tmp_map[i][1])
             stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 1)
@@ -359,9 +366,9 @@ class MyListener2(Mx_parserListener):
             t2 = self.return_expression2ir(code.expression(2), stream)
             name2 = self.variable_map[t2][1]
             for i in tmp_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_map)
+                ) and tmp_map[i][1] != self.variable_map[i][1]:
                     if i in change_map:
                         change_map[i] = (change_map[i][0], self.variable_map[i][1])
                     else:
@@ -1196,7 +1203,7 @@ class MyListener2(Mx_parserListener):
                 if (
                     self.has_call == False
                     and identifier in self.variable_map
-                    and "%" in self.variable_map[identifier]
+                    and "%" in self.variable_map[identifier][1]
                 ):
                     return identifier
                 stream[0] += (
@@ -1746,9 +1753,9 @@ class MyListener2(Mx_parserListener):
             tmp_label1 = self.label_str
             change_map = {}
             for i in tmp_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_map)
+                ) and tmp_map[i][1] != self.variable_map[i][1]:
                     change_map[i] = (self.variable_map[i][1], tmp_map[i][1])
             stream[0] += "\n.label" + str(label_cnt + 1) + ":\n\t\t"
             self.label_str = ".label" + str(label_cnt + 1)
@@ -1756,9 +1763,9 @@ class MyListener2(Mx_parserListener):
                 self.variable_map = tmp_map.copy()
                 self.statement_decode2ir(code.elsestatement().statement(), stream)
                 for i in tmp_map:
-                    if (i in self.write_map and self.write_map[i] == "") and tmp_map[i][
-                        1
-                    ] != self.variable_map[i][1]:
+                    if (
+                        i in self.write_map and self.global_var_change(i, tmp_map)
+                    ) and tmp_map[i][1] != self.variable_map[i][1]:
                         if i in change_map:
                             change_map[i] = (change_map[i][0], self.variable_map[i][1])
                         else:
@@ -1811,7 +1818,8 @@ class MyListener2(Mx_parserListener):
             tmp_var_map = self.variable_map.copy()
             for i in self.variable_map:
                 if (
-                    i in self.write_map and self.write_map[i] == ""
+                    i in self.write_map
+                    and self.global_var_change(i, tmp_me.variable_map)
                 ) and tmp_me.variable_map[i][1] != self.variable_map[i][1]:
                     result = "%var" + str(tmp_cnt)
                     tmp_cnt += 1
@@ -1832,9 +1840,9 @@ class MyListener2(Mx_parserListener):
             self.label_str = ".label" + str(label_cnt + 3)
             topo_list = []
             for i in tmp_var_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_var_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_var_map)
+                ) and tmp_var_map[i][1] != self.variable_map[i][1]:
                     result = "%var" + str(self.variable_cnt)
                     self.variable_cnt += 1
                     topo_list.append(
@@ -1948,7 +1956,8 @@ class MyListener2(Mx_parserListener):
             tmp_var_map = self.variable_map.copy()
             for i in self.variable_map:
                 if (
-                    i in self.write_map and self.write_map[i] == ""
+                    i in self.write_map
+                    and self.global_var_change(i, tmp_me.variable_map)
                 ) and tmp_me.variable_map[i][1] != self.variable_map[i][1]:
                     result = "%var" + str(tmp_cnt)
                     tmp_cnt += 1
@@ -1977,9 +1986,9 @@ class MyListener2(Mx_parserListener):
             self.label_str = ".label" + str(label_cnt + 3)
             topo_list = []
             for i in tmp_var_map:
-                if (i in self.write_map and self.write_map[i] == "") and tmp_var_map[i][
-                    1
-                ] != self.variable_map[i][1]:
+                if (
+                    i in self.write_map and self.global_var_change(i, tmp_var_map)
+                ) and tmp_var_map[i][1] != self.variable_map[i][1]:
                     result = "%var" + str(self.variable_cnt)
                     self.variable_cnt += 1
                     if result == self.variable_map[i][1]:
