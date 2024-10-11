@@ -160,8 +160,11 @@ class MyListener2(Mx_parserListener):
 
     def global_var_change(self, var, other_map):
         if (
-            "@" not in self.variable_map[var][1]
-            and "@" not in other_map[var][1]
+            (
+                "@" not in self.variable_map[var][1]
+                or ".string" in self.variable_map[var][1]
+            )
+            and ("@" not in other_map[var][1] or ".string" in other_map[var][1])
             and self.variable_map[var][1] != ""
             and other_map[var][1] != ""
         ):
