@@ -309,8 +309,6 @@ def variable_replace(origin_var: str, new_var: str, stream: str):
 
 
 def main(code: str) -> str:
-    with open("llvm.ll", "w") as f:
-        f.write(code)
     while True:
         lines = code.splitlines()
         tmp_map = {}
@@ -341,8 +339,8 @@ def main(code: str) -> str:
         code = stream[0]
         if replace_map == {}:
             break
-    # with open("llvm2.ll", "w") as f:
-    #     f.write(code)
+    with open("llvm.ll", "w") as f:
+        f.write(code)
     while True:
         input_stream = InputStream(code)
         lexer = llvmLexer(input_stream)

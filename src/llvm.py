@@ -159,7 +159,12 @@ class MyListener2(Mx_parserListener):
         return code.getText()
 
     def global_var_change(self, var, other_map):
-        if "%" in self.variable_map[var][1] and "%" in other_map[var][1]:
+        if (
+            "@" not in self.variable_map[var][1]
+            and "@" not in other_map[var][1]
+            and self.variable_map[var][1] != ""
+            and other_map[var][1] != ""
+        ):
             return True
         if var in self.write_map and self.write_map[var] != "":
             self.variable_map[var] = (self.variable_map[var][0], "@" + var)
