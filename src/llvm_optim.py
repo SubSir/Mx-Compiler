@@ -309,6 +309,40 @@ def variable_replace(origin_var: str, new_var: str, stream: str):
 
 
 def main(code: str) -> str:
+    with open("llvm.ll", "w") as f:
+        f.write(code)
+    while True:
+        lines = code.splitlines()
+        tmp_map = {}
+        replace_map = {}
+        return_ans = ""
+        for line in lines:
+            flag = True
+            if line.startswith("."):
+                tmp_map = {}
+            elif "=" in line:
+                line2 = line.strip()
+                var = line2.split(" = ")[0]
+                value = line2.split(" = ")[1]
+                if value in tmp_map:
+                    replace_map[var] = tmp_map[value]
+                    flag = False
+                elif (
+                    "load" not in value
+                    and "call" not in value
+                    and "global" not in value
+                ):
+                    tmp_map[value] = var
+            if flag:
+                return_ans += line + "\n"
+        stream = [return_ans]
+        for i in replace_map:
+            variable_replace(i, replace_map[i], stream)
+        code = stream[0]
+        if replace_map == {}:
+            break
+    with open("llvm2.ll", "w") as f:
+        f.write(code)
     while True:
         input_stream = InputStream(code)
         lexer = llvmLexer(input_stream)
@@ -384,9 +418,6 @@ def main(code: str) -> str:
 
     if len(code.splitlines()) > 2000:
         return code
-
-    with open("llvm.ll", "w") as f:
-        f.write(code)
 
     input_stream = InputStream(code)
     lexer = llvmLexer(input_stream)

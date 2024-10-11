@@ -87,7 +87,6 @@ class Mylistener3(llvmListener):
         "t6": [],
         "gp": [],
         "tp": [],
-        "ra": [],
     }
 
     danger_reg = [
@@ -105,7 +104,6 @@ class Mylistener3(llvmListener):
         "t6",
         "gp",
         "tp",
-        "ra",
     ]
 
     def enterRet(self, ctx: llvmParser.RetContext):
@@ -578,6 +576,10 @@ class Mylistener3(llvmListener):
                 + self.enter_label[len(self.enter_function) :]
             )
             value1 = ctx.value(i)
+            moved = False
+            to = self.variable_map[ctx.Privatevariable().getText()]
+            if not isinstance(to, str):
+                to = "t0"
             value1_str = ""
             if value1.Privatevariable() != None:
                 index = self.variable_map[value1.Privatevariable().getText()]
@@ -585,32 +587,43 @@ class Mylistener3(llvmListener):
                     t0 = index
                 else:
                     if index > 2047 or index < -2048:
-                        value1_str += "\tli t0, " + str(index) + "\n"
-                        value1_str += "\tadd t0, sp, t0\n"
-                        value1_str += "\tlw t0, 0(t0)\n"
+                        value1_str += "\tli ra, " + str(index) + "\n"
+                        value1_str += "\tadd ra, sp, ra\n"
+                        value1_str += "\tlw " + to + ", 0(ra)\n"
+                        if to != "t0":
+                            moved = True
                     else:
-                        value1_str += "\tlw t0, " + str(index) + "(sp)\n"
+                        value1_str += "\tlw " + to + ", " + str(index) + "(sp)\n"
+                        if to != "t0":
+                            moved = True
                     t0 = "t0"
             elif value1.Global_var() != None:
-                value1_str += "\tla t0, " + value1.Global_var().getText()[1:] + "\n"
+                value1_str += (
+                    "\tla " + to + ", " + value1.Global_var().getText()[1:] + "\n"
+                )
+                if to != "t0":
+                    moved = True
                 t0 = "t0"
             else:
                 name = value1.getText()
                 if name == "null":
                     name = "0"
-                value1_str += "\tli t0, " + name + "\n"
+                value1_str += "\tli " + to + ", " + name + "\n"
+                if to != "t0":
+                    moved = True
                 t0 = "t0"
             index = self.variable_map[ctx.Privatevariable().getText()]
             str1 = value1_str
-            if isinstance(index, str):
-                str1 += "\tmv " + index + ", " + t0 + "\n"
-            else:
-                if index > 2047 or index < -2048:
-                    str1 += "\tli t0, " + str(index) + "\n"
-                    str1 += "\tadd t0, sp, t0\n"
-                    str1 += "\tsw " + t0 + ", 0(t0)\n"
+            if not moved:
+                if isinstance(index, str):
+                    str1 += "\tmv " + index + ", " + t0 + "\n"
                 else:
-                    str1 += "\tsw " + t0 + ", " + str(index) + "(sp)\n"
+                    if index > 2047 or index < -2048:
+                        str1 += "\tli ra, " + str(index) + "\n"
+                        str1 += "\tadd ra, sp, ra\n"
+                        str1 += "\tsw " + t0 + ", 0(ra)\n"
+                    else:
+                        str1 += "\tsw " + t0 + ", " + str(index) + "(sp)\n"
             if label1 not in self.label_map:
                 self.label_map[label1] = str1
             else:
@@ -1189,7 +1202,7 @@ def main(code: str) -> str:
         if (
             not lines[i].startswith("\t")
             and not lines[i].startswith("tmp")
-            and not (":" in lines[i] and ".entry" in lines[i])
+            and not (":" in lines[i] and ".entry" in lines[i] and lines[i].count(".") == 1)
         ):
             if lines[i + 1].startswith("\tj"):
                 label1 = lines[i][:-1]
