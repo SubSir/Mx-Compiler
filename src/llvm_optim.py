@@ -133,6 +133,8 @@ class Mylistener3_5(llvmListener):
     label = ""
     enter_func = ""
     queue_set = set()
+    not_inline = set()
+    line_cnt = 0
 
     def enterModule(self, ctx: llvmParser.ModuleContext):
         for i in ctx.getChildren():
@@ -140,7 +142,13 @@ class Mylistener3_5(llvmListener):
                 cnt = 0
                 for j in i.basic_block():
                     cnt += len(j.instruction())
-                if cnt > 50:
+                if self.line_cnt > 2000:
+                    if cnt > 50:
+                        self.not_inline.add(i.Global_var().getText())
+                else:
+                    if cnt > 250:
+                        self.not_inline.add(i.Global_var().getText())
+                if cnt > 31:
                     continue
                 use = set()
                 labels = []
@@ -158,6 +166,7 @@ class Mylistener3_5(llvmListener):
         if (
             ctx.Global_var().getText() in self.inline_func
             and ctx.Global_var().getText() != self.enter_func
+            and self.enter_func not in self.not_inline
         ):
             if ctx.params() != None:
                 flag = False
@@ -339,8 +348,6 @@ def main(code: str) -> str:
         code = stream[0]
         if replace_map == {}:
             break
-    with open("llvm.ll", "w") as f:
-        f.write(code)
     while True:
         input_stream = InputStream(code)
         lexer = llvmLexer(input_stream)
@@ -370,10 +377,10 @@ def main(code: str) -> str:
             if imap[key] in imap:
                 replace(imap[key], imap, stream)
                 imap[key] = imap[imap[key]]
-            stream[0] = stream[0].replace(key + " ", str(imm_map[key]) + " ")
-            stream[0] = stream[0].replace(key + ",", str(imm_map[key]) + ",")
-            stream[0] = stream[0].replace(key + "\n", str(imm_map[key]) + "\n")
-            stream[0] = stream[0].replace(key + ")", str(imm_map[key]) + ")")
+            stream[0] = stream[0].replace(key + " ", str(imap[key]) + " ")
+            stream[0] = stream[0].replace(key + ",", str(imap[key]) + ",")
+            stream[0] = stream[0].replace(key + "\n", str(imap[key]) + "\n")
+            stream[0] = stream[0].replace(key + ")", str(imap[key]) + ")")
 
         stream = [return_ans]
         for i in imm_map:
@@ -414,8 +421,133 @@ def main(code: str) -> str:
             break
         code = return_ans
 
-    if len(code.splitlines()) > 2000:
-        return code
+    # with open("llvm.ll", "w") as f:
+    #     f.write(code)
+
+    # lines = code.splitlines()
+    # i = 0
+    # ptr_map = {}
+    # global_imm = {}
+    # global_imm_map = {}
+    # while i < len(lines):
+    #     if "getelementptr %" in lines[i] and "getelementptr %var" not in lines[i]:
+    #         line = lines[i].strip()
+    #         name = line.split("getelementptr ")[1]
+    #         var = line.split(" = ")[0]
+    #         ptr_map[var] = name
+    #     i += 1
+    # i = 0
+    # while i < len(lines):
+    #     if "store" in lines[i]:
+    #         line = lines[i].strip()
+    #         value = line.split("store ")[1].split(",")[0]
+    #         var = line.split(", ptr ")[1]
+    #         if var not in ptr_map:
+    #             i += 1
+    #             continue
+    #         name = ptr_map[var]
+    #         if (
+    #             name in global_imm
+    #             and global_imm[name] != value
+    #             and name in global_imm_map
+    #         ):
+    #             del global_imm_map[name]
+    #         else:
+    #             if name not in global_imm:
+    #                 global_imm[name] = value
+    #                 global_imm_map[name] = value
+    #     i += 1
+    # global_imm = {}
+    # for i in global_imm_map:
+    #     val = global_imm_map[i]
+    #     if val.split()[1].isalnum():
+    #         global_imm[i] = val.split()[1]
+    # return_ans = ""
+    # i = 0
+    # replace_map = {}
+    # while i < len(lines):
+    #     if "load" in lines[i]:
+    #         line = lines[i].strip()
+    #         ptr = line.split(", ptr ")[1]
+    #         if ptr not in ptr_map:
+    #             return_ans += lines[i] + "\n"
+    #             i += 1
+    #             continue
+    #         name = ptr_map[ptr]
+    #         if name in global_imm:
+    #             replace_map[line.split(" = ")[0]] = global_imm[name]
+    #             i += 1
+    #             continue
+    #     return_ans += lines[i] + "\n"
+    #     i += 1
+    # stream = [return_ans]
+    # for i in replace_map:
+    #     replace(i, replace_map, stream)
+    # code = stream[0]
+    # with open("llvm2.ll", "w") as f:
+    #     f.write(code)
+    # while True:
+    #     input_stream = InputStream(code)
+    #     lexer = llvmLexer(input_stream)
+    #     token_stream = CommonTokenStream(lexer)
+    #     parser = llvmParser(token_stream)
+
+    #     tree = parser.module()
+    #     walker = ParseTreeWalker()
+    #     listener = Mylistener3()
+    #     walker.walk(listener, tree)
+    #     var_map = listener.variable_map
+    #     del_list = []
+    #     for i in var_map:
+    #         if var_map[i] == 1:
+    #             del_list.append("\t\t" + i + " = ")
+    #     return_ans = ""
+    #     lines = code.splitlines()
+    #     for line in lines:
+    #         flag = 1
+    #         for delete in del_list:
+    #             if line.startswith(delete):
+    #                 if "call" in line:
+    #                     line = "\t\t" + line.split("= ")[1]
+    #                 else:
+    #                     flag = 0
+    #                 break
+    #         if flag == 1:
+    #             return_ans += line + "\n"
+    #     if code == return_ans:
+    #         break
+    #     code = return_ans
+    # while True:
+    #     input_stream = InputStream(code)
+    #     lexer = llvmLexer(input_stream)
+    #     token_stream = CommonTokenStream(lexer)
+    #     parser = llvmParser(token_stream)
+
+    #     tree = parser.module()
+    #     walker = ParseTreeWalker()
+    #     listener = Mylistener2_5()
+    #     walker.walk(listener, tree)
+    #     imm_map = listener.imm_map
+    #     del_list = []
+    #     for i in imm_map:
+    #         del_list.append("\t\t" + i + " = ")
+    #     return_ans = ""
+    #     lines = code.splitlines()
+    #     for line in lines:
+    #         flag = 1
+    #         for delete in del_list:
+    #             if line.startswith(delete):
+    #                 flag = 0
+    #                 break
+    #         if flag == 1:
+    #             return_ans += line + "\n"
+
+    #     stream = [return_ans]
+    #     for i in imm_map:
+    #         replace(i, imm_map, stream)
+    #     code = stream[0]
+    #     if imm_map == {}:
+    #         break
 
     input_stream = InputStream(code)
     lexer = llvmLexer(input_stream)
@@ -425,6 +557,7 @@ def main(code: str) -> str:
     tree = parser.module()
     walker = ParseTreeWalker()
     listener = Mylistener3_5()
+    listener.line_cnt = len(code.splitlines())
     walker.walk(listener, tree)
     inline_cnt = 0
     lines = code.splitlines()
