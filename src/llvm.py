@@ -2150,8 +2150,8 @@ class MyListener2(Mx_parserListener):
 def main(code):
 
     return_str = ""
-    with open("./src/head.ll", "r") as f:
-        return_str += f.read()
+    # with open("./src/head.ll", "r") as f:
+    #     return_str += f.read()
 
     return_str += "\n\n"
 
@@ -2193,6 +2193,6 @@ def main(code):
 if __name__ == "__main__":
     code = sys.stdin.read()
     code2 = main(code)
-    with open("llvm.ll", "w") as f:
-        f.write(code2)
+    # with open("llvm.ll", "w") as f:
+    #     f.write(code2)
     print(code2)

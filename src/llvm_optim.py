@@ -355,8 +355,6 @@ def main(code: str) -> str:
         code = stream[0]
         if replace_map == {}:
             break
-    with open("llvm.ll", "w") as f:
-        f.write(code)
     while True:
         input_stream = InputStream(code)
         lexer = llvmLexer(input_stream)
@@ -432,6 +430,8 @@ def main(code: str) -> str:
 
     inline_cnt = 0
     while True:
+        # with open("llvm.ll", "w") as f:
+        #     f.write(code)
         past_len = len(code)
         input_stream = InputStream(code)
         lexer = llvmLexer(input_stream)
@@ -561,6 +561,6 @@ def main(code: str) -> str:
 if __name__ == "__main__":
     code = sys.stdin.read()
     code2 = main(code)
-    with open("llvm.s", "w") as f:
-        f.write(code2)
+    # with open("llvm.s", "w") as f:
+    #     f.write(code2)
     print(code2)

@@ -1192,8 +1192,8 @@ def main(code: str) -> str:
     listener = Mylistener3()
     walker.walk(listener, tree)
     listener.return_str = listener.return_str.replace("newBoolArray", "newIntArray")
-    with open("asm.s", "w") as f:
-        f.write(listener.return_str + listener.data)
+    # with open("asm.s", "w") as f:
+    #     f.write(listener.return_str + listener.data)
     return_str = ""
     lines = listener.return_str.splitlines()
     i = 0
@@ -1202,7 +1202,9 @@ def main(code: str) -> str:
         if (
             not lines[i].startswith("\t")
             and not lines[i].startswith("tmp")
-            and not (":" in lines[i] and ".entry" in lines[i] and lines[i].count(".") == 1)
+            and not (
+                ":" in lines[i] and ".entry" in lines[i] and lines[i].count(".") == 1
+            )
         ):
             if lines[i + 1].startswith("\tj"):
                 label1 = lines[i][:-1]
@@ -1226,14 +1228,14 @@ def main(code: str) -> str:
         return_str = return_str.replace(
             "j " + i + "\n", "j " + new_replace_map[i] + "\n"
         )
-    with open("asm_optim.s", "w") as f:
-        f.write(return_str + listener.data)
+    # with open("asm_optim.s", "w") as f:
+    #     f.write(return_str + listener.data)
     return return_str + listener.data
 
 
 if __name__ == "__main__":
     code = sys.stdin.read()
     code2 = main(code)
-    with open("test.s", "w") as f:
-        f.write(code2)
+    # with open("test.s", "w") as f:
+    #     f.write(code2)
     print(code2)
