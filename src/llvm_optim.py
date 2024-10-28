@@ -430,8 +430,6 @@ def main(code: str) -> str:
             break
         code = return_ans
 
-    if len(code.splitlines()) > 2000:
-        return code
     inline_cnt = 0
     while True:
         past_len = len(code)
