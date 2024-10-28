@@ -133,10 +133,25 @@ class Mylistener3_5(llvmListener):
     label = ""
     enter_func = ""
     queue_set = set()
+    self_queue = set()
+
+    def __init__(self) -> None:
+        self.inline_func = {}
+        self.call_str = {}
+        self.label = ""
+        self.enter_func = ""
+        self.queue_set = set()
+        self.self_queue = set()
 
     def enterModule(self, ctx: llvmParser.ModuleContext):
         for i in ctx.getChildren():
             if isinstance(i, llvmParser.FunctionContext):
+                for j in i.basic_block():
+                    for k in j.instruction():
+                        if k.call() != None:
+                            k = k.call()
+                            if k.Global_var().getText() == i.Global_var().getText():
+                                self.self_queue.add(k.Global_var().getText())
                 cnt = 0
                 for j in i.basic_block():
                     cnt += len(j.instruction())
@@ -158,6 +173,7 @@ class Mylistener3_5(llvmListener):
         if (
             ctx.Global_var().getText() in self.inline_func
             and ctx.Global_var().getText() != self.enter_func
+            and ctx.Global_var().getText() not in self.self_queue
         ):
             if ctx.params() != None:
                 flag = False
@@ -416,124 +432,131 @@ def main(code: str) -> str:
 
     if len(code.splitlines()) > 2000:
         return code
-
-    input_stream = InputStream(code)
-    lexer = llvmLexer(input_stream)
-    token_stream = CommonTokenStream(lexer)
-    parser = llvmParser(token_stream)
-
-    tree = parser.module()
-    walker = ParseTreeWalker()
-    listener = Mylistener3_5()
-    walker.walk(listener, tree)
     inline_cnt = 0
-    lines = code.splitlines()
-    func_str = ""
-    func_name = ""
-    func_map = {}
-    ret = ""
-    label = ""
-    ret_label2 = ""
-    for i in range(len(lines)):
-        line = lines[i]
-        if line.startswith("define"):
-            if func_name != "":
+    while True:
+        past_len = len(code)
+        input_stream = InputStream(code)
+        lexer = llvmLexer(input_stream)
+        token_stream = CommonTokenStream(lexer)
+        parser = llvmParser(token_stream)
+
+        tree = parser.module()
+        walker = ParseTreeWalker()
+        listener = Mylistener3_5()
+        walker.walk(listener, tree)
+        lines = code.splitlines()
+        func_str = ""
+        func_name = ""
+        func_map = {}
+        ret = ""
+        label = ""
+        ret_label2 = ""
+        for i in range(len(lines)):
+            line = lines[i]
+            if line.startswith("define"):
+                if func_name != "":
+                    func_map[func_name].append(func_str)
+                    func_map[func_name].append(ret)
+                    func_map[func_name].append(ret_label2)
+                ret = ""
+                func_str = line + "\n"
+                func_name = line.split()[2]
+                if func_name[-1] == "(":
+                    func_name = func_name[:-1]
+                elif func_name[-2] == "(":
+                    func_name = func_name[:-2]
+            elif line.startswith("\t\tret void"):
+                func_map[func_name] = [func_str]
+                func_str = ""
+                ret_label2 = label
+            elif line.startswith("\t\tret"):
+                ret = line.split()[2]
+                func_map[func_name] = [func_str]
+                func_str = ""
+                ret_label2 = label
+            elif line.startswith(".label"):
+                func_str += line + "\n"
+                label = line
+            elif i == len(lines) - 1:
+                func_str += line + "\n"
                 func_map[func_name].append(func_str)
                 func_map[func_name].append(ret)
                 func_map[func_name].append(ret_label2)
-            ret = ""
-            func_str = line + "\n"
-            func_name = line.split()[2]
-            if func_name[-1] == "(":
-                func_name = func_name[:-1]
-            elif func_name[-2] == "(":
-                func_name = func_name[:-2]
-        elif line.startswith("\t\tret void"):
-            func_map[func_name] = [func_str]
-            func_str = ""
-            ret_label2 = label
-        elif line.startswith("\t\tret"):
-            ret = line.split()[2]
-            func_map[func_name] = [func_str]
-            func_str = ""
-            ret_label2 = label
-        elif line.startswith(".label"):
-            func_str += line + "\n"
-            label = line
-        elif i == len(lines) - 1:
-            func_str += line + "\n"
-            func_map[func_name].append(func_str)
-            func_map[func_name].append(ret)
-            func_map[func_name].append(ret_label2)
-        else:
-            func_str += line + "\n"
-    var_replace_map = {}
-    # label_replace_map = {}
-    for i in listener.queue_set:
-        stream = [i]
-        for j in var_replace_map:
-            variable_replace(j, var_replace_map[j], stream)
-        code_split = code.split("\t\t" + stream[0])
-        return_ans = ""
-        for j in range(len(code_split) - 1):
-            inline_index = "_" + str(inline_cnt)
-            ret_label = ".label" + str(inline_cnt) + "_"
-            inline_cnt += 1
-            func = func_map[listener.call_str[i][1]]
-            entry = func[0]
-            first = -1
-            entry_str = ""
-            for k in range(len(entry)):
-                if entry[k : k + 6] == ".entry":
-                    first = k
-                if first != -1 and entry[k] == ":":
-                    entry_str = entry[first:k]
-                    entry = entry[k + 4 :]
-                    break
-            end = -1
-            beg = -1
-            for k in range(len(code_split[j]) - 1, -1, -1):
-                if code_split[j][k] == ":":
-                    end = k
-                if end != -1 and code_split[j][k] == ".":
-                    beg = k
-                    break
-            origin_label = code_split[j][beg:end]
-            add_str = (
-                "\t\t" + entry + "\n\t\tbr label %" + ret_label + "\n" + func[1][:-3]
-            )
-            func2 = listener.inline_func[listener.call_str[i][1]]
-            var_set = func2[0] - set(func2[1])
-            add_str = add_str.replace(entry_str + "]", origin_label + "]")
-            for k in func2[2]:
-                # if k == ".entry":
-                #     continue
-                add_str = add_str.replace(k + "]", k + inline_index + "]")
-                add_str = add_str.replace(k + ":", k + inline_index + ":")
-                add_str = add_str.replace(k + "\n", k + inline_index + "\n")
-                add_str = add_str.replace(k + ",", k + inline_index + ",")
-            for k in range(len(code_split)):
-                code_split[k] = code_split[k].replace(
-                    origin_label + "]", ret_label + "]"
+            else:
+                func_str += line + "\n"
+        var_replace_map = {}
+        # label_replace_map = {}
+        for i in listener.queue_set:
+            stream = [i]
+            for j in var_replace_map:
+                variable_replace(j, var_replace_map[j], stream)
+            code_split = code.split("\t\t" + stream[0])
+            return_ans = ""
+            for j in range(len(code_split) - 1):
+                inline_index = "_" + str(inline_cnt)
+                ret_label = ".label" + str(inline_cnt) + "_"
+                inline_cnt += 1
+                func = func_map[listener.call_str[i][1]]
+                entry = func[0]
+                first = -1
+                entry_str = ""
+                for k in range(len(entry)):
+                    if entry[k : k + 6] == ".entry":
+                        first = k
+                    if first != -1 and entry[k] == ":":
+                        entry_str = entry[first:k]
+                        entry = entry[k + 4 :]
+                        break
+                end = -1
+                beg = -1
+                for k in range(len(code_split[j]) - 1, -1, -1):
+                    if code_split[j][k] == ":":
+                        end = k
+                    if end != -1 and code_split[j][k] == ".":
+                        beg = k
+                        break
+                origin_label = code_split[j][beg:end]
+                add_str = (
+                    "\t\t"
+                    + entry
+                    + "\n\t\tbr label %"
+                    + ret_label
+                    + "\n"
+                    + func[1][:-3]
                 )
-            stream = [add_str]
-            for k in var_set:
-                variable_replace(k, k + inline_index, stream)
-            for k in range(len(listener.call_str[i][2])):
-                variable_replace(func2[1][k], listener.call_str[i][2][k], stream)
-            if listener.call_str[i][0] != None:
-                var_replace_map[listener.call_str[i][0]] = func[2] + inline_index
-            return_ans += code_split[j] + stream[0] + "\n" + ret_label + ":\n"
-            if j == len(code_split) - 2:
-                return_ans += code_split[j + 1]
-        code = return_ans
-        stream = [code]
-        for j in var_replace_map:
-            variable_replace(j, var_replace_map[j], stream)
-        # for j in label_replace_map:
-        #     stream[0].replace(j + "]", label_replace_map[j] + "]")
-        code = stream[0]
-
+                func2 = listener.inline_func[listener.call_str[i][1]]
+                var_set = func2[0] - set(func2[1])
+                add_str = add_str.replace(entry_str + "]", origin_label + "]")
+                for k in func2[2]:
+                    # if k == ".entry":
+                    #     continue
+                    add_str = add_str.replace(k + "]", k + inline_index + "]")
+                    add_str = add_str.replace(k + ":", k + inline_index + ":")
+                    add_str = add_str.replace(k + "\n", k + inline_index + "\n")
+                    add_str = add_str.replace(k + ",", k + inline_index + ",")
+                for k in range(len(code_split)):
+                    code_split[k] = code_split[k].replace(
+                        origin_label + "]", ret_label + "]"
+                    )
+                stream = [add_str]
+                for k in var_set:
+                    variable_replace(k, k + inline_index, stream)
+                for k in range(len(listener.call_str[i][2])):
+                    variable_replace(func2[1][k], listener.call_str[i][2][k], stream)
+                if listener.call_str[i][0] != None:
+                    var_replace_map[listener.call_str[i][0]] = func[2] + inline_index
+                return_ans += code_split[j] + stream[0] + "\n" + ret_label + ":\n"
+                if j == len(code_split) - 2:
+                    return_ans += code_split[j + 1]
+            code = return_ans
+            stream = [code]
+            for j in var_replace_map:
+                variable_replace(j, var_replace_map[j], stream)
+            # for j in label_replace_map:
+            #     stream[0].replace(j + "]", label_replace_map[j] + "]")
+            code = stream[0]
+        if len(code) == past_len:
+            break
     return code
 
 

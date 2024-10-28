@@ -6,6 +6,7 @@ __pycache__/
 ravel/
 test
 llvm.ll
+llvm2.ll
 test.in
 output.ll
 .vscode/
