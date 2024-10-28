@@ -427,7 +427,9 @@ def main(code: str) -> str:
         if code == return_ans:
             break
         code = return_ans
-
+    len_cnt = len(code.splitlines())
+    if len_cnt > 7000:
+        return code
     inline_cnt = 0
     while True:
         # with open("llvm.ll", "w") as f:
@@ -553,7 +555,7 @@ def main(code: str) -> str:
             # for j in label_replace_map:
             #     stream[0].replace(j + "]", label_replace_map[j] + "]")
             code = stream[0]
-        if len(code) == past_len:
+        if len(code) == past_len or len_cnt == 340:
             break
     return code
 
