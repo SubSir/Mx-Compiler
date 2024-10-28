@@ -555,7 +555,7 @@ def main(code: str) -> str:
             # for j in label_replace_map:
             #     stream[0].replace(j + "]", label_replace_map[j] + "]")
             code = stream[0]
-        if len(code) == past_len or len_cnt == 340:
+        if len(code) == past_len or len_cnt != 340:
             break
     return code
 
