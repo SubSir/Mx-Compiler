@@ -2150,8 +2150,8 @@ class MyListener2(Mx_parserListener):
 def main(code):
 
     return_str = ""
-    # with open("./src/head.ll", "r") as f:
-    #     return_str += f.read()
+    with open("./src/head.ll", "r") as f:
+        return_str += f.read()
 
     return_str += "\n\n"
 
