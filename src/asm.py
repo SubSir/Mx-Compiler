@@ -870,7 +870,7 @@ class Mylistener3(llvmListener):
         for i in block_map[name][1]:
             tmp = set()
             for j in block_stream_map[i].in_:
-                if i in phi_map and j in phi_map[i] and phi_map[i][j] != name:
+                if i in phi_map and j in phi_map[i] and phi_map[i][j] != name and j not in block_stream_map[i].out:
                     tmp.add(j)
             out = out | (block_stream_map[i].in_ - tmp)
         if name in phi_map2:
