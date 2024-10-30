@@ -627,7 +627,20 @@ class Mylistener3(llvmListener):
             if label1 not in self.label_map:
                 self.label_map[label1] = str1
             else:
-                self.label_map[label1] = str1 + self.label_map[label1]
+                str_ = self.label_map[label1]
+                lines = str_.splitlines()
+                tmp_str = ""
+                i = 0
+                while i < len(lines):
+                    if lines[i].startswith("\tj"):
+                        break
+                    tmp_str += lines[i] + "\n"
+                    i += 1
+                tmp_str += str1
+                while i < len(lines):
+                    tmp_str += lines[i] + "\n"
+                    i += 1
+                self.label_map[label1] = tmp_str
 
     def enterBasic_block(self, ctx: llvmParser.Basic_blockContext):
         name = ctx.Label().getText()
@@ -842,7 +855,12 @@ class Mylistener3(llvmListener):
                 regusemap[name].append(reguse)
 
     def update_block(
-        self, name: str, block_map: dict, block_stream_map: dict, phi_map: map
+        self,
+        name: str,
+        block_map: dict,
+        block_stream_map: dict,
+        phi_map: map,
+        phi_map2: map,
     ) -> bool:
         if name not in block_stream_map:
             return True
@@ -855,11 +873,17 @@ class Mylistener3(llvmListener):
                 if i in phi_map and j in phi_map[i] and phi_map[i][j] != name:
                     tmp.add(j)
             out = out | (block_stream_map[i].in_ - tmp)
-        in_ = out | me.use - me.def_
+        if name in phi_map2:
+            for i in phi_map2[name]:
+                j = phi_map2[name][i]
+                for k in j:
+                    if k in block_stream_map[i].def_:
+                        out.add(k)
+        in_ = (out | me.use) - me.def_
         if out == me.out and in_ == me.in_:
             return True
         me.out = out
-        me.in_ = me.out | me.use - me.def_
+        me.in_ = in_
         return False
 
     def enterFunction(self, ctx: llvmParser.FunctionContext):
@@ -949,10 +973,21 @@ class Mylistener3(llvmListener):
             block_stream_map[end].use - block_stream_map[end].def_
         )
         regusemap = {}
+        phi_map2 = {}
+        for i in phi_map:
+            j = phi_map[i]
+            for k in j:
+                if j[k] not in phi_map2:
+                    phi_map2[j[k]] = {}
+                if i not in phi_map2[j[k]]:
+                    phi_map2[j[k]][i] = set()
+                phi_map2[j[k]][i].add(k)
         while True:
             flag = True
             for i in bfs_queue:
-                if not self.update_block(i, block_map, block_stream_map, phi_map):
+                if not self.update_block(
+                    i, block_map, block_stream_map, phi_map, phi_map2
+                ):
                     flag = False
             if flag:
                 break
@@ -966,6 +1001,15 @@ class Mylistener3(llvmListener):
                         if j not in regusemap:
                             regusemap[j] = []
                         regusemap[j].append(Interval(define_map[j], k))
+                        break
+                for k in range(define_map[j] - 1, block_index_interval[i].beg, -1):
+                    if list[k] == j:
+                        if j not in regusemap:
+                            regusemap[j] = []
+                        regusemap[j].append(Interval(block_index_interval[i].beg, k))
+                        regusemap[j].append(
+                            Interval(define_map[j], block_index_interval[i].end)
+                        )
                         break
         for i in block_stream_map:
             block = block_stream_map[i]
@@ -1236,6 +1280,6 @@ def main(code: str) -> str:
 if __name__ == "__main__":
     code = sys.stdin.read()
     code2 = main(code)
-    # with open("test.s", "w") as f:
-    #     f.write(code2)
+    with open("test.s", "w") as f:
+        f.write(code2)
     print(code2)

@@ -1874,6 +1874,7 @@ class MyListener2(Mx_parserListener):
                         )
                     )
                     self.variable_map[i] = (self.variable_map[i][0], result)
+            tmp_ = ""
             while topo_list:
                 for i in topo_list:
                     flag = 0
@@ -1882,8 +1883,9 @@ class MyListener2(Mx_parserListener):
                             flag = 1
                             break
                     if flag == 0:
-                        stream[0] += i[2]
+                        tmp_ = i[2] + tmp_
                         topo_list.remove(i)
+            stream[0]+=tmp_
             t2 = self.return_expression2ir(code.expression(), stream)
             self.branch_map_record(label_cnt + 2)
             stream[0] += (
@@ -2022,6 +2024,7 @@ class MyListener2(Mx_parserListener):
                         )
                     )
                     self.variable_map[i] = (self.variable_map[i][0], result)
+            tmp_ = ""
             while topo_list:
                 for i in topo_list:
                     flag = 0
@@ -2030,8 +2033,9 @@ class MyListener2(Mx_parserListener):
                             flag = 1
                             break
                     if flag == 0:
-                        stream[0] += i[2]
+                        tmp_ = i[2] + tmp_
                         topo_list.remove(i)
+            stream[0] += tmp_
             if code.forControl().expression2() != None:
                 t2 = self.return_expression2ir(
                     code.forControl().expression2().expression(), stream
