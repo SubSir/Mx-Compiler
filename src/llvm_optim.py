@@ -9,7 +9,6 @@ from antlr4.tree.Tree import ParseTreeWalker
 
 
 class Mylistener3(llvmListener):
-
     variable_map = {}
     return_ans = ""
 
@@ -125,6 +124,36 @@ class Mylistener2_5(llvmListener):
                 self.imm_map[var] = int(t1 <= t2)
             elif op == "sge":
                 self.imm_map[var] = int(t1 >= t2)
+
+
+class Mylistener2_7(llvmListener):
+    delete_list = []
+
+    def reverse_graph(self, bm: dict):
+        reversed_bm = {}
+        for node, (_, out_neighbors) in bm.items():
+            if node not in reversed_bm:
+                reversed_bm[node] = ([], [])
+            for neighbor in out_neighbors:
+                if neighbor not in reversed_bm:
+                    reversed_bm[neighbor] = ([], [])
+                reversed_bm[neighbor][1].append(node)
+        return reversed_bm
+
+    def enterFunction(self, ctx: llvmParser.FunctionContext):
+        block_map = {}
+        for i in ctx.basic_block():
+            to_list = []
+            for j in i.instruction():
+                if j.branch() != None:
+                    for k in j.branch().Label():
+                        to_list.append(k.getText())
+            block_map[i.Label().getText()] = [i, to_list]
+        rbm = self.reverse_graph(block_map)
+        entry = ctx.basic_block(0).Label().getText()
+        for i in rbm:
+            if len(rbm[i][1]) == 0 and i != entry:
+                self.delete_list.append(i)
 
 
 class Mylistener3_5(llvmListener):
@@ -393,7 +422,87 @@ def main(code: str) -> str:
         for i in imm_map:
             replace(i, imm_map, stream)
         code = stream[0]
-        if imm_map == {}:
+        loop = imm_map != {}
+        tmp = ""
+        for line in code.splitlines():
+            if line.startswith("\t\tbr i1 0"):
+                jmp = line.split(",")[2]
+                tmp += "\t\tbr" + jmp + "\n"
+                loop = True
+            elif line.startswith("\t\tbr i1 1"):
+                jmp = line.split(",")[1]
+                tmp += "\t\tbr" + jmp + "\n"
+                loop = True
+            else:
+                tmp += line + "\n"
+        code = tmp
+        input_stream = InputStream(code)
+        lexer = llvmLexer(input_stream)
+        token_stream = CommonTokenStream(lexer)
+        parser = llvmParser(token_stream)
+
+        tree = parser.module()
+        walker = ParseTreeWalker()
+        listener = Mylistener2_7()
+        walker.walk(listener, tree)
+        delete_list = listener.delete_list
+        tmp = ""
+        i = 0
+        lines = code.splitlines()
+        while i < len(lines):
+            line = lines[i]
+            delete_flag = False
+            for j in delete_list:
+                if line.startswith(j):
+                    loop = True
+                    delete_flag = True
+                    break
+            if delete_flag:
+                i += 1
+                while i < len(lines) and lines[i].startswith("\t\t"):
+                    i += 1
+            else:
+                if "phi " in line:
+                    parts = line.split("[")
+                    new_parts = []
+                    for part in parts[1:]:
+                        label = part.split()[1][:-1]
+                        if len(label) > 0 and label[-1] == "]":
+                            label = label[:-1]
+                        if len(label) > 0 and label[1:] not in delete_list:
+                            new_parts.append([part.split(",")[0], label])
+                    if len(new_parts) == 1:
+                        parts = line.split(" = phi ")
+                        line = (
+                            parts[0]
+                            + " = add "
+                            + parts[1].split("[")[0]
+                            + " "
+                            + new_parts[0][0]
+                            + ", 0"
+                        )
+                    else:
+                        same = True
+                        for part in range(1, len(new_parts)):
+                            if new_parts[part][0] != new_parts[0][0]:
+                                same = False
+                                break
+                        if same:
+                            parts = line.split(" = phi ")
+                            line = (
+                                parts[0]
+                                + " = add "
+                                + parts[1].split("[")[0]
+                                + " "
+                                + new_parts[0][0]
+                                + ", 0"
+                            )
+                tmp += line + "\n"
+                i += 1
+        code = tmp
+        with open("1.txt", "w") as f:
+            f.write(code)
+        if not loop:
             break
 
     while True:
