@@ -500,8 +500,8 @@ def main(code: str) -> str:
                 tmp += line + "\n"
                 i += 1
         code = tmp
-        with open("1.txt", "w") as f:
-            f.write(code)
+        # with open("1.txt", "w") as f:
+        #     f.write(code)
         if not loop:
             break
 
